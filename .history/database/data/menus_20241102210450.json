@@ -1,0 +1,66 @@
+[
+    {
+        "id": 1,
+        "title": "Dashboard",
+        "url": "/home",
+        "icon": "fa-tachometer-alt",
+        "parent_id": null,
+        "order": "1",
+        "role": "view dashboard",
+        "children": []
+    },
+    {
+        "id": 2,
+        "title": "Settings",
+        "url": "",
+        "icon": "fa-share",
+        "parent_id": null,
+        "order": "2",
+        "role": "view settings",
+        "children": [
+            {
+                "title": "Users",
+                "url": "/users",
+                "icon": null,
+                "parent_id": "2",
+                "order": "2",
+                "role": "view users"
+            },
+            {
+                "title": "Roles",
+                "url": "/roles",
+                "icon": null,
+                "parent_id": "2",
+                "order": "2",
+                "role": "view roles"
+            },
+            {
+                "title": "Permissions",
+                "url": "/permissions",
+                "icon": null,
+                "parent_id": "2",
+                "order": "2",
+                "role": "view permissions"
+            }
+        ]
+    },
+    {
+        "id": 2,
+        "title": "Internet Plan",
+        "url": "",
+        "icon": "fa-shapes",
+        "parent_id": null,
+        "order": "2",
+        "role": "view internetplan",
+        "children": [
+            {
+                "title": "Users",
+                "url": "/users",
+                "icon": null,
+                "parent_id": "2",
+                "order": "2",
+                "role": "view users"
+            }
+        ]
+    }
+]

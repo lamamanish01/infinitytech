@@ -1,0 +1,11 @@
+[
+    {
+        "title": "Dashboard",
+        "url": "/home",
+        "icon": "fa-tachometer-alt",
+        "parent_id": "",
+        "order": "1",
+        "role": "view dashboard",
+        "children": []
+    }
+]

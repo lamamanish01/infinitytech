@@ -1,0 +1,13 @@
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Model;
+
+class InternetPlan extends Model
+{
+    public function plantype()
+    {
+        return $this->HasMany(InternetPlanType::class, 'name');
+    }
+}

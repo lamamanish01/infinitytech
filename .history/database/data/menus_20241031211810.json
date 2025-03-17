@@ -1,0 +1,20 @@
+[
+    {
+        "title": "Dashboard",
+        "url": "/home",
+        "icon": "fa-tachometer-alt",
+        "parent_id": "",
+        "order": "1",
+        "role": "view dashboard",
+        "children": []
+    },
+    {
+        "title": "Admins",
+        "url": "",
+        "icon": "fa-users-alt",
+        "parent_id": "",
+        "order": "1",
+        "role": "view dashboard",
+        "children": []
+    }
+]

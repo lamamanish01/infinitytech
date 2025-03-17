@@ -1,0 +1,90 @@
+<?php
+
+namespace App\Console\Commands;
+
+use Carbon\Carbon;
+use App\Models\Nas;
+use App\Models\RadAcct;
+use App\Models\RadCheck;
+use App\Models\RadReply;
+use App\Models\Recharge;
+use Illuminate\Console\Command;
+use Illuminate\Support\Facades\DB;
+
+class UpdateExpiredCustomers extends Command
+{
+    /**
+     * The name and signature of the console command.
+     *
+     * @var string
+     */
+    protected $signature = 'customers:update-expired';
+
+    /**
+     * The console command description.
+     *
+     * @var string
+     */
+    protected $description = 'Check and update exipred customers & change  Framed-Pool in radreply';
+
+    /**
+     * Execute the console command.
+     */
+    public function handle()
+    {
+        $expiredCustomers = RadCheck::where('attribute', 'Expiration')
+            ->where('value', '<', Carbon::now()->toDateTimeString())->get();
+
+        if ($expiredCustomers->isEmpty())
+        {
+            $this->info('No expired customers were found.');
+        }
+
+        foreach ($expiredCustomers as $expiredCustomer)
+        {
+            // RadReply::where('username', $expiredCustomer->username)
+            //     ->where('attribute', 'Framed-Pool')
+            //     ->update(['value' => 'Expired-Pool']);
+
+            RadReply::updateOrCreate([
+                'username' => $expiredCustomer->username,
+                'attribute' => 'Mikrotik-Address-List',
+                'op' => ':=',
+                'value' => 'Exipred',
+            ]);
+
+            $this->disconnectCustomer($expiredCustomer->username)
+            $this->info("Customer {$expiredCustomer->username}'s Address-list updated to Expired.");
+        }
+    }
+
+    private function disconnectCustomer($username)
+    {
+        $session = RadAcct::where('username', $username)
+            ->whereNull('acctstoptime')->first();
+
+        if (!$session) {
+            $this->info('No Active Session Found.');
+        }
+
+        $nas = Nas::get();
+
+        foreach ($nas as $na) {
+            $radiusIP = $na->nasname;
+            $radiusSecret = $na->secret;
+            $radiusPorts = $na->ports;
+        }
+
+        $acctSessionId = $session->acctsessionid ?? '';
+
+        $command = "echo \"User-Name={$username}\nAcct-Session-Id={$acctSessionId}\nNAS-IP-Address={$nasIp}\" | radclient {$nasIp}:{$port} disconnect {$sharedSecret}";
+
+        exec($command, $output, $result);
+
+        if ($result === 0) {
+            $this->info("Customer {$username} disconnected successfully.");
+        } else {
+            $this->error("Failed to disconnect user {$username}. Error: " . implode("\n", $output));
+        }
+    }
+}

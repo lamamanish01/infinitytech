@@ -1,0 +1,77 @@
+<?php
+
+namespace App\Http\Controllers;
+
+use App\Models\User;
+use Illuminate\Http\Request;
+use Spatie\Permission\Models\Role;
+use Illuminate\Support\Facades\Hash;
+
+class UserController extends Controller implements HasMiddleware
+{
+    public static function midddleware(): array
+    {
+        return [
+        
+        ];
+    }
+
+    public function index()
+    {
+        $users = User::orderBy('name', 'asc')->paginate(5);
+        return view('users.index', compact('users'));
+    }
+
+    public function create()
+    {
+        return view('users.create');
+    }
+
+    public function store(Request $request, User $user)
+    {
+        $request->validate([
+            'name' => 'required',
+            'email' => 'required|unique:users,email,'.$user->id.',id',
+            'password' => 'required|confirmed|min:8',
+        ]);
+
+        User::create([
+            'name' => $request->name,
+            'email' => $request->email,
+            'password' => Hash::make($request->password),
+        ]);
+
+        return redirect()->route('users.index')->with('success', 'User created successfully.');
+    }
+
+    public function edit(User $user)
+    {
+        $roles = Role::orderBy('name', 'asc')->get();
+        $hasRoles = $user->roles->pluck('name');
+        return view('users.edit', compact('user', 'roles', 'hasRoles'));
+    }
+
+    public function update(Request $request, User $user)
+    {
+        //dd($request->all());
+        $request->validate([
+            'name' => 'required',
+            'email' => 'required|unique:users,email,'.$user->id.',id',
+            'password' => 'required|confirmed|min:8',
+        ]);
+
+        $user->name = $request->name;
+        $user->email = $request->email;
+        $user->password = Hash::make($request->password);
+        $user->save();
+
+        $user->syncRoles($request->role);
+
+        return redirect()->route('users.index')->with('success', 'User updated successfully.');
+    }
+
+    public function destroy(User $user)
+    {
+        //
+    }
+}

@@ -1,0 +1,31 @@
+[
+    {
+        "id": 1,
+        "title": "Dashboard",
+        "url": "/home",
+        "icon": "fa-tachometer-alt",
+        "parent_id": null,
+        "order": "1",
+        "role": "view dashboard",
+        "children": []
+    },
+    {
+        "title": "Users",
+        "url": "",
+        "icon": "fa-users",
+        "parent_id": null,
+        "order": "2",
+        "role": "view dashboard",
+        "children": [
+            {
+                "title": "list of Users",
+                "url": "/users",
+                "icon": "fa-tachometer-alt",
+                "parent_id": "",
+                "order": "1",
+                "role": "view dashboard",
+                "children": []
+            }
+        ]
+    }
+]

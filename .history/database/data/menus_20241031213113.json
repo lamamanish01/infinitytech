@@ -1,0 +1,39 @@
+[
+    {
+        "id": 1,
+        "title": "Dashboard",
+        "url": "/home",
+        "icon": "fa-tachometer-alt",
+        "parent_id": null,
+        "order": "1",
+        "role": "view dashboard",
+        "children": []
+    },
+    {
+        "id": 2,
+        "title": "Settings",
+        "url": "",
+        "icon": "fa-gear",
+        "parent_id": null,
+        "order": "2",
+        "role": "view settings",
+        "children": [
+            {
+                "title": "Users",
+                "url": "/users",
+                "icon": null,
+                "parent_id": "2",
+                "order": "1",
+                "role": "view dashboard"
+            },
+            {
+                "title": "Users",
+                "url": "/users",
+                "icon": null,
+                "parent_id": "2",
+                "order": "1",
+                "role": "view dashboard"
+            }
+        ]
+    }
+]

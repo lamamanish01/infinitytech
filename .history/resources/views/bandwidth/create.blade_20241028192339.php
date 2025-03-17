@@ -1,0 +1,62 @@
+@extends('layouts.app')
+
+@section('content')
+    <!-- Content Header (Page header) -->
+    <div class="content-header">
+        <div class="container-fluid">
+            <div class="row mb-2">
+                <div class="col-sm-6">
+                    <h1 class="m-0">{{ __('Bandwidths Profile') }}</h1>
+                </div><!-- /.col -->
+            </div><!-- /.row -->
+        </div><!-- /.container-fluid -->
+    </div>
+    <!-- /.content-header -->
+
+    <!-- Main content -->
+    <div class="content">
+        <div class="container-fluid">
+            <div class="row">
+                <div class="col-lg-12">
+
+                    <div class="card card-info">
+                        {{--  <div class="card-header">
+                            <h3 class="card-title">Color &amp; Time Picker</h3>
+                        </div>  --}}
+
+                        <div class="card-body">
+                            <form action="{{route('bandwidth.store')}}" method="POST">
+                                @csrf
+                                <div class="form-group row">
+                                    <label class="col-sm-2">Bandwidth Name:</label>
+                                        <div class="col">
+                                            <div class="col-sm-10">
+                                                <input type="email" class="form-control" id="inputEmail3" placeholder="Email">
+                                            </div>
+                                        </div>
+                                    <input type="text" class="form-control" name="name" placeholder="Enter Name" value="{{old('name')}}">
+                                </div>
+                                <div class="form-group">
+                                    <label>Contact Number:</label>
+                                    <input type="text" class="form-control" name="contact_number" placeholder="Enter Contact">
+                                </div>
+                                <div class="form-group">
+                                    <label>Remarks:</label>
+                                    <input type="text" class="form-control" name="remarks" placeholder="Remarks ...">
+                                </div>
+                                <div class="btn-group">
+                                    <button type="submit" class="btn btn-primary">Save</button>
+                                </div>
+                            </form>
+
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+            <!-- /.row -->
+        </div><!-- /.container-fluid -->
+    </div>
+    <!-- /.content -->
+@endsection
