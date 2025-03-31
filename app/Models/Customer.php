@@ -6,6 +6,7 @@ use Carbon\Carbon;
 use App\Models\RadCheck;
 use App\Models\RadReply;
 use App\Models\Recharge;
+use App\Models\RadPostAuth;
 use App\Models\InternetPlan;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Database\Eloquent\Model;
@@ -77,7 +78,7 @@ class Customer extends Model
 
     public function authLogs()
     {
-        return $this->hasMany(Radpostauth::class, 'username', 'username');
+        return $this->hasMany(RadPostAuth::class, 'username', 'username');
     }
 
     public function billings()
