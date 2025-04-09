@@ -50,21 +50,21 @@ class Recharge extends Model
             'value' => $password
         ]);
 
-        $expiryDate = date('d M Y H:i:s', strtotime($expire_date));
-        $radCheck = RadCheck::where('username', $username)
-            ->where('attribute', 'Expiration')
-            ->first();
+        // $expiryDate = date('d M Y H:i:s', strtotime($expire_date));
+        // $radCheck = RadCheck::where('username', $username)
+        //     ->where('attribute', 'Expiration')
+        //     ->first();
 
-        if ($radCheck) {
-            $radCheck->update(['value' => $expiryDate]);
-        } else {
-            RadCheck::updateOrCreate([
-                'username' => $username,
-                'attribute' => 'Expiration',
-                'op' => ':=',
-                'value' => $expiryDate,
-            ]);
-        }
+        // if ($radCheck) {
+        //     $radCheck->update(['value' => $expiryDate]);
+        // } else {
+        //     RadCheck::updateOrCreate([
+        //         'username' => $username,
+        //         'attribute' => 'Expiration',
+        //         'op' => ':=',
+        //         'value' => $expiryDate,
+        //     ]);
+        // }
 
         RadReply::updateOrCreate([
             'username' => $username,
