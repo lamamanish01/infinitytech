@@ -135,8 +135,8 @@
                                 <tr>
                                     <td>{{$loop->iteration}}</td>
                                     <td>{{$billing->username}}</td>
-                                    <td>{{$billing->recharge_id}}</td>
-                                    <td>{{$billing->internet_plan}}</td>
+                                    <td>{{$customer->expire_date}}</td>
+                                    <td>{{$customer->internetplan}}</td>
                                     <td>{{$billing->amount}}</td>
                                 </tr>
                             @endforeach
@@ -154,6 +154,7 @@
                                 <th>#</th>
                                 <th>Username</th>
                                 <th>Reply</th>
+                                <th>Reply Message</th>
                                 <th>Auth Date</th>
                             </tr>
                         </thead>
@@ -163,6 +164,7 @@
                                     <td>{{$loop->iteration}}</td>
                                     <td>{{$authLog->username}}</td>
                                     <td>{{$authLog->reply}}</td>
+                                    <td>{{$authLog->reply_message}}</td>
                                     <td>{{$authLog->authdate}}</td>
                                 </tr>
                             @endforeach

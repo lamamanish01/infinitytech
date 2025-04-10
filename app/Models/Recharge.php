@@ -10,7 +10,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class Recharge extends Model
 {
-    protected $fillable = ['customer_id'. 'internet_plan', 'recharge_date', 'expire_date'];
+    protected $fillable = ['customer_id', 'internet_plan', 'recharge_date', 'expire_date'];
 
     public function customer()
     {
@@ -36,7 +36,7 @@ class Recharge extends Model
     {
         if ($this->isExpired())
         {
-            $this->expire_date = Carbon::parse($this->expire_date)->addDays($graceDays);
+            $this->expire_date = Carbon::parse($this->expire_date)->addDays((int)$graceDays);
             $this->save();
         }
     }
