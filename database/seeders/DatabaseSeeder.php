@@ -25,10 +25,6 @@ class DatabaseSeeder extends Seeder
             'name' => 'Super Admin',
             'email' => 'lamamanish234@gmail.com',
             'password' => Hash::make('M@nish#1234')
-
-            // 'name' => 'Rejina Lama',
-            // 'email' => 'tamangrejina237@gmail.com',
-            // 'password' => Hash::make('rejina@1234')
         ]);
 
         $role = $user->assignRole('Super Admin');
