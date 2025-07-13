@@ -52,7 +52,7 @@ class Recharge extends Model
 
         $expiryDate = date('d M Y H:i:s', strtotime($expire_date));
 
-        RadReply::updateOrCreate([
+        RadCheck::updateOrCreate([
             'username' => $username,
             'attribute' => 'Expiration',
             'op' => ':=',
