@@ -68,6 +68,13 @@ class Recharge extends Model
 
         RadReply::updateOrCreate([
             'username' => $username,
+            'attribute' => 'Expiration',
+            'op' => ':=',
+            'value' => $expire_date,
+        ]);
+
+        RadReply::updateOrCreate([
+            'username' => $username,
             'attribute' => 'Mikrotik-Rate-Limit',
             'op' => ':=',
             'value' => $rate_limit,
@@ -79,19 +86,5 @@ class Recharge extends Model
             'op' => ':=',
             'value' => 'PPPoE-Pool',
         ]);
-
-        // RadReply::updateOrCreate([
-        //     'username' => $username,
-        //     'attribute' => 'Session-Timeout',
-        //     'op' => ':=',
-        //     'value' => 3600,
-        // ]);
-
-        // RadReply::updateOrCreate([
-        //     'username' => $username,
-        //     'attribute' => 'Idle-Timeout',
-        //     'op' => ':=',
-        //     'value' => 600,
-        // ]);
     }
 }
