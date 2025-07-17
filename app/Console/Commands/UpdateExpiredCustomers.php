@@ -32,31 +32,19 @@ class UpdateExpiredCustomers extends Command
      */
     public function handle()
     {
-        $today = Carbon::today()->toDateString();
+        $expiredUsers = RadCheck::where('attribute', 'Expiration')->get();
 
-        $expiredCustomer = RadCheck::where('attribute', 'Expiration')
-            ->where('value', '<', $today)
-            ->pluck('username');
+        foreach($expiredUsers as $expiredUser) {
+            $expiredAt = Carbon::createFromFormat('d M Y H:i:s', $expiredUser->value);
 
-        if ($expiredCustomer->isEmpty())
-        {
-            return $this->info('No Expired Customer Found');
-        }
-        RadReply::whereIn('username', $expiredCustomer)
-            ->where('attribute', 'Session-Timeout')
-            ->delete();
-
-            foreach ($expiredCustomer as $username) {
-                RadReply::updateOrInsert(
-                    [
-                        'username' => $username,
-                        'attribute' => 'Session-Timeout',
-                    ],
-                    [
-                        'op' => ':=',
-                        'value' => '0', // Force session to expire immediately
-                    ]
+            if($expiredAt->isPast()) {
+                RadCheck::updateOrCreate(
+                    ['username' => $expiredUser->username, 'attribute' => 'Auth-Type'],
+                    ['op' => ':=', 'value' => 'Reject']
                 );
+                $this->info("User {$expiredUser->username} marked as expired.");
             }
+        }
+                $this->info('Done disabling expired users.');
     }
 }
