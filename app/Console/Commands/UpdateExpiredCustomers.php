@@ -30,21 +30,53 @@ class UpdateExpiredCustomers extends Command
     /**
      * Execute the console command.
      */
-    public function handle()
-    {
-        $expiredUsers = RadCheck::where('attribute', 'Expiration')->get();
+    // public function handle()
+    // {
+    //     $expiredUsers = RadCheck::where('attribute', 'Expiration')->get();
 
-        foreach($expiredUsers as $expiredUser) {
+    //     foreach($expiredUsers as $expiredUser) {
+    //         $expiredAt = Carbon::createFromFormat('d M Y H:i:s', $expiredUser->value);
+
+    //         if($expiredAt->isPast()) {
+    //             RadCheck::updateOrCreate(
+    //                 ['username' => $expiredUser->username, 'attribute' => 'Auth-Type'],
+    //                 ['op' => ':=', 'value' => 'Reject']
+    //             );
+    //             $this->info("User {$expiredUser->username} marked as expired.");
+    //         }
+    //     }
+    //             $this->info('Done disabling expired users.');
+    // }
+
+    public function handle()
+{
+    $this->info('Checking for expired users...');
+
+    $expiredUsers = RadCheck::where('attribute', 'Expiration')->get();
+
+    foreach ($expiredUsers as $expiredUser) {
+        try {
             $expiredAt = Carbon::createFromFormat('d M Y H:i:s', $expiredUser->value);
 
-            if($expiredAt->isPast()) {
+            if ($expiredAt->isPast()) {
                 RadCheck::updateOrCreate(
-                    ['username' => $expiredUser->username, 'attribute' => 'Auth-Type'],
-                    ['op' => ':=', 'value' => 'Reject']
+                    [
+                        'username'  => $expiredUser->username,
+                        'attribute' => 'Auth-Type'
+                    ],
+                    [
+                        'op'    => ':=',
+                        'value' => 'Reject'
+                    ]
                 );
+
                 $this->info("User {$expiredUser->username} marked as expired.");
             }
+        } catch (\Exception $e) {
+            $this->error("Failed to process user {$expiredUser->username}: " . $e->getMessage());
         }
-                $this->info('Done disabling expired users.');
     }
+    $this->info('Done disabling expired users.');
+}
+
 }
