@@ -63,12 +63,11 @@ class UserController extends Controller
         $request->validate([
             'name' => 'required',
             'email' => 'required|unique:users,email,'.$user->id.',id',
-            'branch_id' => 'required'
         ]);
 
         $user->name = $request->name;
         $user->email = $request->email;
-        $user->branch = $request->branch_id;
+        $user->branch_id = $user->branch_id;
         $user->password = Hash::make($request->password);
         $user->save();
 
