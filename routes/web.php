@@ -10,6 +10,8 @@ use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\RechargeController;
 use App\Http\Controllers\BandwidthController;
 use App\Http\Controllers\PermissionController;
+use App\Http\Controllers\Tr069DeviceController;
+use App\Http\Controllers\Tr069ServerController;
 use App\Http\Controllers\InternetPlanController;
 
 Route::get('/', function () {
@@ -38,6 +40,9 @@ Route::middleware('auth')->group(function () {
     Route::get('/recharges/create/{customerId}', [RechargeController::class, 'create'])->name('recharges.create');
     Route::post('/recharges', [RechargeController::class, 'store'])->name('recharges.store');
     Route::post('/provide-grace/{customerId}', [RechargeController::class, 'provideGrace'])->name('provide-grace');
+
+    Route::resource('/tr069server', Tr069ServerController::class);
+    Route::resource('/tr069device', Tr069DeviceController::class);
 
     Route::resource('/nas', NasController::class);
 });
