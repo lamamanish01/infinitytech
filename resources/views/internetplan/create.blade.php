@@ -64,7 +64,7 @@
                                     <label class="col-sm-2 col-form-label">Rate Limit :</label>
                                     <div class="col">
                                         <div class="col-sm-12">
-                                            <input type="text" class="form-control" name="rate_limit" placeholder="1M/1M">
+                                            <input type="text" class="form-control" name="rate_limit" placeholder="5M/5M">
                                         </div>
                                     </div>
                                 </div>
