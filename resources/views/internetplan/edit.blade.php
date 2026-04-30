@@ -32,7 +32,7 @@
                                     <label class="col-sm-2 col-form-label">Plan Name :</label>
                                     <div class="col">
                                         <div class="col-sm-12">
-                                            <input type="text" class="form-control" name="name" placeholder="Enter Plan Name" value="{{$internetplan->name}}">
+                                            <input class="form-control" name="name" value="{{$internetplan->name}}">
                                         </div>
                                     </div>
                                 </div>
@@ -40,7 +40,7 @@
                                     <label class="col-sm-2 col-form-label">Price :</label>
                                     <div class="col">
                                         <div class="col-sm-12">
-                                            <input type="text" class="form-control" name="price" placeholder="Enter Plan Price" value="{{$internetplan->price}}">
+                                            <input class="form-control" name="price" value="{{$internetplan->price}}">
                                         </div>
                                     </div>
                                 </div>
@@ -48,7 +48,7 @@
                                     <label class="col-sm-2 col-form-label">Plan Validity :</label>
                                     <div class="col">
                                         <div class="col-sm-12">
-                                            <input type="text" class="form-control" name="duration" placeholder="Enter Plan Validity" value="{{$internetplan->duration}}">
+                                            <input class="form-control" name="duration" value="{{$internetplan->duration}}">
                                         </div>
                                     </div>
                                     <div class="col">
@@ -66,6 +66,14 @@
                                                     @endif
                                                 @endforeach
                                             </select>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="form-group row">
+                                    <label class="col-sm-2 col-form-label">Price :</label>
+                                    <div class="col">
+                                        <div class="col-sm-12">
+                                            <input class="form-control" name="rate_limit" value="{{$internetplan->rate_limit}}">
                                         </div>
                                     </div>
                                 </div>

@@ -8,7 +8,6 @@ use App\Http\Controllers\UserController;
 use App\Http\Controllers\BranchController;
 use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\RechargeController;
-use App\Http\Controllers\BandwidthController;
 use App\Http\Controllers\PermissionController;
 use App\Http\Controllers\Tr069DeviceController;
 use App\Http\Controllers\Tr069ServerController;
@@ -39,6 +38,8 @@ Route::middleware('auth')->group(function () {
     Route::resource('/customers', CustomerController::class);
     Route::get('/recharges/create/{customerId}', [RechargeController::class, 'create'])->name('recharges.create');
     Route::post('/recharges', [RechargeController::class, 'store'])->name('recharges.store');
+    Route::get('/recharges/edit/{customerId}', [RechargeController::class, 'edit'])->name('recharges.edit');
+    Route::patch('/recharges', [RechargeController::class, 'update'])->name('recharges.update');
     Route::post('/provide-grace/{customerId}', [RechargeController::class, 'provideGrace'])->name('provide-grace');
 
     Route::resource('/tr069server', Tr069ServerController::class);

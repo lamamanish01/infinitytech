@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Bandwidth;
 use App\Models\InternetPlan;
 use Illuminate\Http\Request;
 use App\Models\InternetPlanType;
@@ -64,7 +63,7 @@ class InternetPlanController extends Controller
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(Internetplan $internetplan)
+    public function edit(InternetPlan $internetplan)
     {
         $plan_types = InternetPlanType::pluck('type_name', 'id');
 
@@ -74,7 +73,7 @@ class InternetPlanController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, Internetplan $internetplan)
+    public function update(Request $request, InternetPlan $internetplan)
     {
         $request->validate([
             'name' => 'required',
@@ -88,6 +87,7 @@ class InternetPlanController extends Controller
         $internetplan->price = $request->price;
         $internetplan->duration = $request->duration;
         $internetplan->type = $request->type;
+        $internetplan->rate_limit = $request->rate_limit;
         $internetplan->save();
 
         return redirect()->route('internetplan.index')->with('success', 'Internet Plan created successfully.');

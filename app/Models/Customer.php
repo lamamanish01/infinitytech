@@ -8,7 +8,6 @@ use App\Models\RadReply;
 use App\Models\Recharge;
 use App\Models\RadPostAuth;
 use App\Models\InternetPlan;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Database\Eloquent\Model;
 
 class Customer extends Model
@@ -43,6 +42,11 @@ class Customer extends Model
     public function latestRecharge()
     {
         return $this->hasOne(Recharge::class)->latest('expire_date');
+    }
+
+    public function rechargeDate()
+    {
+        return $this->hasOne(Recharge::class)->latest('recharge_date');
     }
 
     public function gracePeriod()

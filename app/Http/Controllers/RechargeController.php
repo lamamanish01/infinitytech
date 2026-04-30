@@ -90,17 +90,29 @@ class RechargeController extends Controller
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(string $id)
+    public function edit(Recharge $recharge, $customerId)
     {
-        //
+        $customer = Customer::findOrFail($customerId);
+        return view('recharges.edit', compact('recharge', 'customer'));
     }
 
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, string $id)
+    public function update(Request $request, Recharge $recharge)
     {
-        //
+        $request->validate([
+            'internet_plan' => 'required',
+            'expire_date' => 'required',
+        ]);
+
+        $recharge->customer_id = $request->customer_id;
+        $recharge->internet_plan = $request->internet_plan;
+        $recharge->recharge_date = $request->recharge_date;
+        $recharge->expire_date = $request->expire_date;
+        $recharge->save();
+
+        return redirect()->route('customers.index')->with('success', 'Expiry Date changed successfully.');
     }
 
     /**

@@ -89,17 +89,39 @@ class CustomerController extends Controller
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(string $id)
+    public function edit(customer $customer)
     {
-        //
+        $internetplans = InternetPlan::orderBy('bandwidth_name', 'ASC')->get();
+        return view('customers.edit', compact('customer', 'internetplans'));
     }
 
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, string $id)
+    public function update(Request $request, customer $customer)
     {
-        //
+        dd($customer->all());
+        $request->validate([
+            'name' => 'required',
+            'email' => 'email|unique:customers,email',
+            'address' => 'required',
+            'contact_number' => 'required|numeric|min:12',
+            'username' => 'required|unique:customers,username',
+            'password' => 'required',
+            'internetplan' => 'required',
+            'branch' => 'required',
+        ]);
+
+        $customer->name = $request->name;
+        $customer->email = $request->email;
+        $customer->address = $request->address;
+        $customer->contact_number = $request->contact_number;
+        $customer->username = $request->username;
+        $customer->password = $request->password;
+        $customer->internetplan = $request->internetplan;
+        $recharge->expired = $request->expire;
+
+        return redirect()->route('customers.index')->with('success', 'Customer edited successfully.');
     }
 
     /**
