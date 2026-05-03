@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('tr069_servers', function (Blueprint $table) {
             $table->id();
-            table->string('name')->nullable();
+            $table->string('name')->nullable();
             $table->string('ip')->nullable();
             $table->integer('web_port')->default(3000);
             $table->integer('api_port')->default(7557);
