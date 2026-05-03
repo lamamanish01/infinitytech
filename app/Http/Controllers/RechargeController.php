@@ -7,7 +7,6 @@ use App\Models\Billing;
 use App\Models\Invoice;
 use App\Models\Customer;
 use App\Models\Recharge;
-use App\Models\InternetPlan;
 use Illuminate\Http\Request;
 
 class RechargeController extends Controller
@@ -106,6 +105,12 @@ class RechargeController extends Controller
             'expire_date' => 'required',
         ]);
 
+        // Recharge::updateOrCreate([
+        //     'customer_id' => $request->customer_id,
+        //     'internet_plan' => $request->internet_plan,
+        //     'recharge_date' => $request->recharge_date,
+        //     'expire_date' => $request->expire_date
+        // ]);
         $recharge->customer_id = $request->customer_id;
         $recharge->internet_plan = $request->internet_plan;
         $recharge->recharge_date = $request->recharge_date;

@@ -41,12 +41,12 @@ class Customer extends Model
 
     public function latestRecharge()
     {
-        return $this->hasOne(Recharge::class)->latest('expire_date');
+        return $this->hasOne(Recharge::class)->latestOfMany('expire_date');
     }
 
     public function rechargeDate()
     {
-        return $this->hasOne(Recharge::class)->latest('recharge_date');
+        return $this->hasOne(Recharge::class)->latestOfMany('recharge_date');
     }
 
     public function gracePeriod()

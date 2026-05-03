@@ -3,14 +3,14 @@
 namespace App\Models;
 
 use Carbon\Carbon;
-use App\Models\RadAcct;
 use App\Models\RadCheck;
 use App\Models\InternetPlan;
 use Illuminate\Database\Eloquent\Model;
 
 class Recharge extends Model
 {
-    protected $fillable = ['customer_id', 'internet_plan', 'recharge_date', 'expire_date'];
+    protected $fillable = ['customer_id', 'internet_plan', 'recharge_date', '
+    '];
 
     public function customer()
     {
@@ -52,12 +52,12 @@ class Recharge extends Model
 
         $expiryDate = date('d M Y H:i:s', strtotime($expire_date));
 
-        RadCheck::updateOrCreate([
-            'username' => $username,
-            'attribute' => 'Expiration',
-            'op' => ':=',
-            'value' => $expiryDate,
-        ]);
+        // RadCheck::updateOrCreate([
+        //     'username' => $username,
+        //     'attribute' => 'Expiration',
+        //     'op' => ':=',
+        //     'value' => $expiryDate,
+        // ]);
 
         RadReply::updateOrCreate([
             'username' => $username,
