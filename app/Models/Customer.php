@@ -90,6 +90,39 @@ class Customer extends Model
         return $this->hasMany(Billing::class);
     }
 
+    public function syncWithRad($username, $password, $rate_limit)
+    {
+        RadCheck::updateOrCreate([
+            'username' => $username,
+            'attribute' => 'Cleartext-Password',
+            'op' => ':=',
+            'value' => $password
+        ]);
+
+        // $expiryDate = date('d M Y H:i:s', strtotime($expire_date));
+
+        // RadCheck::updateOrCreate([
+        //     'username' => $username,
+        //     'attribute' => 'Expiration',
+        //     'op' => ':=',
+        //     'value' => $expiryDate,
+        // ]);
+
+        RadReply::updateOrCreate([
+            'username' => $username,
+            'attribute' => 'Mikrotik-Rate-Limit',
+            'op' => ':=',
+            'value' => $rate_limit,
+        ]);
+
+        RadReply::updateOrCreate([
+            'username' => $username,
+            'attribute' => 'Framed-Pool',
+            'op' => ':=',
+            'value' => 'PPPoE-Pool',
+        ]);
+    }
+
     public function provideGraceDays($graceDays)
     {
         $latestRecharge = $this->latestRecharge->first();

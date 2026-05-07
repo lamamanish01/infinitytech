@@ -4,9 +4,7 @@ namespace App\Http\Controllers;
 
 use Carbon\Carbon;
 use App\Models\Branch;
-use App\Models\RadAcct;
 use App\Models\Customer;
-use App\Models\GracePeriod;
 use App\Models\InternetPlan;
 use Illuminate\Http\Request;
 
@@ -61,6 +59,12 @@ class CustomerController extends Controller
             'user_id' => auth()->id(),
         ]);
 
+        $username = $customer->username;
+        $password = $customer->password;
+        $rate_limit = $customer->internetPlan->rate_limit;
+
+        $customer->syncWithRad($username, $password, $rate_limit);
+
         return redirect()->route('customers.index')->with('success', 'Customer created successfully.');
     }
 
@@ -100,7 +104,6 @@ class CustomerController extends Controller
      */
     public function update(Request $request, customer $customer)
     {
-        dd($customer->all());
         $request->validate([
             'name' => 'required',
             'email' => 'email|unique:customers,email',
@@ -119,7 +122,6 @@ class CustomerController extends Controller
         $customer->username = $request->username;
         $customer->password = $request->password;
         $customer->internetplan = $request->internetplan;
-        $recharge->expired = $request->expire;
 
         return redirect()->route('customers.index')->with('success', 'Customer edited successfully.');
     }

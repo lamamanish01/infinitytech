@@ -37,11 +37,11 @@
                                 </div>
                                 <div class="form-group">
                                     <label>Recharge Date:</label>
-                                    <input class="form-control" name="recharge_date" value="{{$customer->rechargeDate->recharge_date}}" readonly>
+                                    <input type="date" class="form-control" name="recharge_date" value="{{$customer->rechargeDate->recharge_date ?? 'Recharge Date Not Found.'}}">
                                 </div>
                                 <div class="form-group">
                                     <label>Expiry Date:</label>
-                                    <input class="form-control" name="expire_date" value="{{$customer->latestRecharge->expire_date ?? 'Expire Date Not Found.'}}">
+                                    <input type="date" class="form-control" name="expire_date" value="{{$customer->latestRecharge->expire_date ?? 'Expire Date Not Found.'}}">
                                 </div>
 
                                 <div class="btn-group">

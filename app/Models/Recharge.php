@@ -3,7 +3,6 @@
 namespace App\Models;
 
 use Carbon\Carbon;
-use App\Models\RadCheck;
 use App\Models\InternetPlan;
 use Illuminate\Database\Eloquent\Model;
 
@@ -39,38 +38,5 @@ class Recharge extends Model
             $this->expire_date = Carbon::parse($this->expire_date)->addDays((int)$graceDays);
             $this->save();
         }
-    }
-
-    public function syncWithRad($username, $password, $expire_date, $rate_limit)
-    {
-        RadCheck::updateOrCreate([
-            'username' => $username,
-            'attribute' => 'Cleartext-Password',
-            'op' => ':=',
-            'value' => $password
-        ]);
-
-        $expiryDate = date('d M Y H:i:s', strtotime($expire_date));
-
-        // RadCheck::updateOrCreate([
-        //     'username' => $username,
-        //     'attribute' => 'Expiration',
-        //     'op' => ':=',
-        //     'value' => $expiryDate,
-        // ]);
-
-        RadReply::updateOrCreate([
-            'username' => $username,
-            'attribute' => 'Mikrotik-Rate-Limit',
-            'op' => ':=',
-            'value' => $rate_limit,
-        ]);
-
-        RadReply::updateOrCreate([
-            'username' => $username,
-            'attribute' => 'Framed-Pool',
-            'op' => ':=',
-            'value' => 'PPPoE-Pool',
-        ]);
     }
 }

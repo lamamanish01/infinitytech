@@ -34,9 +34,6 @@
 
                     <div class="row">
                         <div class="col-md-4 mb-3">
-                            <div class="col-md-12 text-right">
-                                <a class="btn btn-primary" href="{{ route('recharges.edit', $customer->id) }}"></i> Change Expiry Date </a>
-                            </div>
                             <ul class="list-group mt-3 mb-3">
                                 <li class="list-group-item d-flex justify-content-between align-items-center">
                                     Username :
@@ -66,7 +63,8 @@
                             </ul>
                         </div>
                         <div class="col-md-12">
-                            <a class="btn btn-primary" href="{{ route('recharges.create', $customer->id) }}"></i> Recharge Customer </a>
+                            <a class="btn btn-warning" href="{{ route('recharges.create', $customer->id) }}"></i> Recharge Customer </a>
+                            <a class="btn btn-danger" href="{{ route('recharges.edit', $customer->id) }}"></i> Change Expiry Date </a>
                         </div>
                         <form action="{{route('provide-grace', $customer->id)}}" method="POST">
                             @csrf

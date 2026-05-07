@@ -38,7 +38,7 @@
                                 </div>
                                 <div class="form-group">
                                     <label>Username:</label>
-                                    <input value="{{$customer->username}}" class="form-control" name="username">
+                                    <input value="{{$customer->username}}" class="form-control" name="username" readonly>
                                 </div>
                                 <div class="form-group">
                                     <label>Change Password:</label>
@@ -61,11 +61,6 @@
                                     <label>Contact Number:</label>
                                     <input value="{{$customer->contact_number}}" class="form-control" name="contact_number">
                                 </div>
-                                <div class="form-group">
-                                    <label>Expire Date:</label>
-                                    <input class="form-control" name="expire_date" value="{{$customer->latestRecharge->expire_date ?? ''}}">
-                                </div>
-
                                 <div class="btn-group mt-2">
                                     <button type="submit" class="btn btn-primary">Update</button>
                                 </div>

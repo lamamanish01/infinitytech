@@ -35,7 +35,6 @@ class RechargeController extends Controller
     {
         $customer = Customer::findOrFail($request->customer_id);
         $duration = $customer->internetPlan->duration;
-        $rate_limit = $customer->internetPlan->rate_limit;;
         $price = $customer->internetPlan->price;
 
         $expiryDate = $customer->NewExpiryDate($duration);
@@ -52,13 +51,6 @@ class RechargeController extends Controller
         $recharge->recharge_date = Carbon::now();
         $recharge->expire_date = $expiryDate;
         $recharge->save();
-
-        $username = $customer->username;
-        $password = $customer->password;
-        $rate_limit = $rate_limit;
-        $expiry_date = $expiryDate;
-
-        $recharge->syncWithRad($username, $password, $expiry_date, $rate_limit);
 
         $billing = Billing::create([
             'customer_id' => $customer->id,
@@ -105,12 +97,6 @@ class RechargeController extends Controller
             'expire_date' => 'required',
         ]);
 
-        // Recharge::updateOrCreate([
-        //     'customer_id' => $request->customer_id,
-        //     'internet_plan' => $request->internet_plan,
-        //     'recharge_date' => $request->recharge_date,
-        //     'expire_date' => $request->expire_date
-        // ]);
         $recharge->customer_id = $request->customer_id;
         $recharge->internet_plan = $request->internet_plan;
         $recharge->recharge_date = $request->recharge_date;
