@@ -1,17 +1,18 @@
 <?php
 
-use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\NasController;
-use App\Http\Controllers\MenuController;
-use App\Http\Controllers\RoleController;
-use App\Http\Controllers\UserController;
 use App\Http\Controllers\BranchController;
 use App\Http\Controllers\CustomerController;
-use App\Http\Controllers\RechargeController;
+use App\Http\Controllers\InternetPlanController;
+use App\Http\Controllers\MenuController;
+use App\Http\Controllers\NasController;
 use App\Http\Controllers\PermissionController;
+use App\Http\Controllers\RechargeController;
+use App\Http\Controllers\RoleController;
+use App\Http\Controllers\TicketController;
 use App\Http\Controllers\Tr069DeviceController;
 use App\Http\Controllers\Tr069ServerController;
-use App\Http\Controllers\InternetPlanController;
+use App\Http\Controllers\UserController;
+use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
     return view('welcome');
@@ -36,6 +37,7 @@ Route::middleware('auth')->group(function () {
     Route::resource('/internetplan', InternetPlanController::class);
     Route::resource('/menus', MenuController::class);
     Route::resource('/customers', CustomerController::class);
+
     Route::get('/recharges/create/{customerId}', [RechargeController::class, 'create'])->name('recharges.create');
     Route::post('/recharges', [RechargeController::class, 'store'])->name('recharges.store');
     Route::get('/recharges/edit/{customerId}', [RechargeController::class, 'edit'])->name('recharges.edit');
@@ -46,4 +48,8 @@ Route::middleware('auth')->group(function () {
     Route::resource('/tr069device', Tr069DeviceController::class);
 
     Route::resource('/nas', NasController::class);
+
+    Route::resource('/ticket', TicketController::class);
+    Route::post('/ticket/reply/{id}',[TicketController::class, 'reply'])->name('ticket.reply');
+    Route::post('/ticket/close/{id}',[TicketController::class, 'close'])->name('ticket.close');
 });

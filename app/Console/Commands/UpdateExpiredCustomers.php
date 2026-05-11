@@ -49,7 +49,7 @@ class UpdateExpiredCustomers extends Command
     // }
 
     public function handle()
-{
+    {
     $this->info('Checking for expired users...');
 
     $expiredUsers = RadCheck::where('attribute', 'Expiration')->get();
