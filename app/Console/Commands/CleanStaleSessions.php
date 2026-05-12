@@ -12,21 +12,17 @@ class CleanStaleSessions extends Command
 
     public function handle()
     {
-        $limit = now()->subMinutes(5);
-
         $updated = DB::table('radacct')
             ->whereNull('acctstoptime')
-            ->where(function ($q) use ($limit) {
-                $q->where('acctupdatetime', '<', $limit)
+            ->where(function ($q) {
+                $q->where('acctupdatetime', '<', now()->subMinutes(5))
                 ->orWhereNull('acctupdatetime');
             })
             ->update([
                 'acctstoptime' => now(),
-                'acctterminatecause' => 'Stale-Session-Auto-Cron'
+                'acctterminatecause' => 'Stale-Session'
             ]);
 
-        $this->info("Stale sessions cleaned: {$updated}");
-
-        return self::SUCCESS;
+        $this->info("Cleaned {$updated} stale sessions.");
     }
 }

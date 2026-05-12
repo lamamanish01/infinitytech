@@ -153,7 +153,11 @@ class Customer extends Model
             return false;
         }
 
-        return $session->acctstarttime >= now()->subMinutes(5);
+        if (!$session->acctupdatetime) {
+            return false;
+        }
+
+        return $session->acctupdatetime >= now()->subMinutes(5);
     }
 
     public function getActiveAttribute()
