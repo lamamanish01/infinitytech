@@ -2,39 +2,28 @@
 
 namespace App\Console\Commands;
 
-use App\Models\RadAcct;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
 
 class CleanStaleSessions extends Command
 {
-    /**
-     * The name and signature of the console command.
-     *
-     * @var string
-     */
     protected $signature = 'customers:clean-stale-sessions';
+    protected $description = 'Clean stale FreeRADIUS sessions (radacct) after 5 minutes inactivity';
 
-    /**
-     * The console command description.
-     *
-     * @var string
-     */
-    protected $description = 'Remove stale sessions from the FreeRADIUS radacct table';
-
-    /**
-     * Execute the console command.
-     */
     public function handle()
     {
+        $limit = now()->subMinutes(5);
+
         $updated = DB::table('radacct')
             ->whereNull('acctstoptime')
-            ->where('acctstarttime', '<', now()->subMinutes(5))
+            ->where('acctstarttime', '<', $limit)
             ->update([
                 'acctstoptime' => now(),
-                'acctterminatecause' => 'Stale-Session-Cleanup'
+                'acctterminatecause' => 'Stale-Session-5min-Cron'
             ]);
 
-        $this->info("Cleaned {$updated} stale sessions.");
+        $this->info("Stale sessions cleaned: {$updated}");
+
+        return self::SUCCESS;
     }
 }

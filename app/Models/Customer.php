@@ -135,19 +135,19 @@ class Customer extends Model
     {
         return $this->hasOne(RadAcct::class, 'username', 'username')
             ->whereNull('acctstoptime')
-            ->latest('acctstarttime');
+            ->latestOfMany('acctstarttime');
     }
 
     public function previousSession()
     {
         return $this->hasOne(RadAcct::class, 'username', 'username')
             ->whereNotNull('acctstoptime')
-            ->latest('acctstoptime');
+            ->latestOfMany('acctstoptime');
     }
 
     public function getIsOnlineAttribute()
     {
-        $session = $this->activeSession()->first();
+        $session = $this->activeSession;
 
         if (!$session) {
             return false;
@@ -158,12 +158,12 @@ class Customer extends Model
 
     public function getActiveAttribute()
     {
-        return $this->activeSession()->first();
+        return $this->activeSession;
     }
 
     public function getPreviousAttribute()
     {
-        return $this->previousSession()->first();
+        return $this->previousSession;
     }
 
     public function recentAuthLogs($limit = 25)
