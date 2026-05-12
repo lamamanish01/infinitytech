@@ -16,10 +16,13 @@ class CleanStaleSessions extends Command
 
         $updated = DB::table('radacct')
             ->whereNull('acctstoptime')
-            ->where('acctstarttime', '<', $limit)
+            ->where(function ($q) use ($limit) {
+                $q->where('acctupdatetime', '<', $limit)
+                ->orWhereNull('acctupdatetime');
+            })
             ->update([
                 'acctstoptime' => now(),
-                'acctterminatecause' => 'Stale-Session-5min-Cron'
+                'acctterminatecause' => 'Stale-Session-Auto-Cron'
             ]);
 
         $this->info("Stale sessions cleaned: {$updated}");
