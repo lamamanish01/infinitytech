@@ -99,15 +99,6 @@ class Customer extends Model
             'value' => $password
         ]);
 
-        // $expiryDate = date('d M Y H:i:s', strtotime($expire_date));
-
-        // RadCheck::updateOrCreate([
-        //     'username' => $username,
-        //     'attribute' => 'Expiration',
-        //     'op' => ':=',
-        //     'value' => $expiryDate,
-        // ]);
-
         RadReply::updateOrCreate([
             'username' => $username,
             'attribute' => 'Mikrotik-Rate-Limit',
@@ -140,22 +131,39 @@ class Customer extends Model
         return true;
     }
 
-    public function showActiveSessionDetails()
+    public function activeSession()
     {
-        return $this->radAccts()
-            ->selectRaw("
-                username,
-                framedipaddress as ip_address,
-                acctstarttime as start_time,
-                calledstationid as ppp_server,
-                nasipaddress as nas_ip,
-                callingstationid as mac_address,
-                FLOOR(acctinputoctets / POWER(1024, 2)) as upload_mb,
-                FLOOR(acctoutputoctets / POWER(1024, 2)) as download_mb,
-                TIMESTAMPDIFF(SECOND, acctstarttime, NOW()) as session_time
-            ")
-            ->whereNull('acctstoptime') // Only active sessions
-            ->get();
+        return $this->hasOne(RadAcct::class, 'username', 'username')
+            ->whereNull('acctstoptime')
+            ->latest('acctstarttime');
+    }
+
+    public function previousSession()
+    {
+        return $this->hasOne(RadAcct::class, 'username', 'username')
+            ->whereNotNull('acctstoptime')
+            ->latest('acctstoptime');
+    }
+
+    public function getIsOnlineAttribute()
+    {
+        $session = $this->activeSession()->first();
+
+        if (!$session) {
+            return false;
+        }
+
+        return $session->acctstarttime >= now()->subMinutes(5);
+    }
+
+    public function getActiveAttribute()
+    {
+        return $this->activeSession()->first();
+    }
+
+    public function getPreviousAttribute()
+    {
+        return $this->previousSession()->first();
     }
 
     public function recentAuthLogs($limit = 25)
@@ -181,5 +189,6 @@ class Customer extends Model
         )
         ->get();
     }
+
 }
 

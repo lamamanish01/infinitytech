@@ -8,6 +8,12 @@
                 <div class="row mb-2">
                     <div class="col-sm-6">
                         <h3>{{$customer->name}}</h3>
+                        @if($customer->is_online)
+                            <span class="badge bg-success">ONLINE</span>
+                        @else
+                            <span class="badge bg-danger">OFFLINE</span>
+                        @endif
+
                     </div><!-- /.col -->
                 </div><!-- /.row -->
             </div><!-- /.container-fluid -->
@@ -99,20 +105,56 @@
                             </tr>
                         </thead>
                         <tbody>
-                            @foreach ($activeSessions as $activeSession)
+                            @if($customer->active)
                                 <tr>
-                                    <td>{{$loop->iteration}}</td>
-                                    <td>{{$activeSession->username}}</td>
-                                    <td>{{$activeSession->ip_address}}</td>
-                                    <td>{{$activeSession->start_time}}</td>
-                                    <td>{{$activeSession->formatted_time}}</td>
-                                    <td>{{$activeSession->upload_mb. ' '. 'MB'}}</td>
-                                    <td>{{$activeSession->download_mb. ' '. 'MB'}}</td>
-                                    <td>{{$activeSession->mac_address}}</td>
-                                    <td>{{$activeSession->nas_ip}}</td>
-                                    <td>{{$activeSession->ppp_server}}</td>
+                                    <td>#</td>
+                                    <td>{{ $customer->active->username}}</td>
+                                    <td>{{ $customer->active->ip_address}}</td>
+                                    <td>{{ $customer->active->start_time}}</td>
+                                    <td>{{ $customer->active->session_time_human}}</td>
+                                    <td>{{ $customer->active->upload_mb}}</td>
+                                    <td>{{ $customer->active->download_mb}}</td>
+                                    <td>{{ $customer->active->mac_address}}</td>
+                                    <td>{{ $customer->active->nas_ip}}</td>
+                                    <td>{{ $customer->active->ppp_server}}</td>
                                 </tr>
-                            @endforeach
+                            @else
+
+                                <div class="alert alert-secondary">
+                                    No active session (or inactive for more than 5 minutes)
+                                </div>
+
+                            @endif
+
+                            {{-- PREVIOUS SESSION --}}
+                            @if($customer->previous)
+                                <tr>
+                                    <td>#</td>
+                                    <td>{{ $customer->previous->username}}</td>
+                                    <td>{{ $customer->previous->ip_address}}</td>
+                                    <td>{{ $customer->previous->start_time}}</td>
+                                    <td>{{ $customer->previous->session_time_human}}</td>
+                                    <td>{{ $customer->previous->upload_mb}}</td>
+                                    <td>{{ $customer->previous->download_mb}}</td>
+                                    <td>{{ $customer->previous->mac_address}}</td>
+                                    <td>{{ $customer->previous->nas_ip}}</td>
+                                    <td>{{ $customer->previous->ppp_server}}</td>
+                                </tr>
+                            @endif
+
+
+                            {{--  <tr>
+                                <td>#</td>
+                                <td>{{$customer->username}}</td>  --}}
+                                {{--  <td>{{$customer->activeSession->ip_address}}</td>
+                                <td>{{$customer->activeSession->start_time}}</td>
+                                <td>{{$customer->activeSession->session_time_human}}</td>
+                                <td>{{$customer->activeSession->upload_mb}}</td>
+                                <td>{{$customer->activeSession->download_mb}}</td>
+                                <td>{{$customer->activeSession->mac_address}}</td>
+                                <td>{{$customer->activeSession->nas_ip}}</td>
+                                <td>{{$customer->activeSession->ppp_server}}</td>  --}}
+                            </tr>
                         </tbody>
                     </table>
                 </div>

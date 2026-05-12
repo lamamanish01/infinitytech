@@ -27,32 +27,14 @@ class CleanStaleSessions extends Command
      */
     public function handle()
     {
-        $users = DB::table('radacct')
-            ->select('username')
-            ->whereNull('acctstoptime')  // Active sessions (no stop time)
-            ->groupBy('username')
-            ->havingRaw('COUNT(*) > 1') // More than one active session
-            ->get();
+        $updated = DB::table('radacct')
+            ->whereNull('acctstoptime')
+            ->where('acctstarttime', '<', now()->subMinutes(5))
+            ->update([
+                'acctstoptime' => now(),
+                'acctterminatecause' => 'Stale-Session-Cleanup'
+            ]);
 
-            foreach ($users as $user) {
-                // Keep only the latest session and mark others as stale
-                DB::table('radacct')
-                    ->whereNull('acctstoptime')
-                    ->where('username', $user->username)
-                    ->whereNotIn('radacctid', function ($query) use ($user) {
-                        $query->select('radacctid')
-                              ->from('radacct')
-                              ->where('username', $user->username)
-                              ->whereNull('acctstoptime')
-                              ->orderBy('acctstarttime', 'DESC')
-                              ->limit(1); // Keep the latest session
-                    })
-                    ->update([
-                        'acctstoptime' => now(),          // Mark session as stopped
-                        'acctterminatecause' => 'Stale',  // Reason for stop
-                    ]);
-            }
-
-            $this->info('Stale sessions cleaned up for users with multiple active sessions.');
+        $this->info("Cleaned {$updated} stale sessions.");
     }
 }

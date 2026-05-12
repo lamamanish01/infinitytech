@@ -71,23 +71,23 @@ class CustomerController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(Customer $customer)
+    public function show($id)
     {
-        $activeSessions = $customer->showActiveSessionDetails();
+        $customer = Customer::with(['activeSession'])->findOrFail($id);
         $authLogs = $customer->recentAuthLogs();
         $billings = $customer->getCustomerBilling();
 
-        foreach ($activeSessions as $session) {
-            $seconds = $session->session_time;
+        // foreach ($activeSessions as $session) {
+        //     $seconds = $session->session_time;
 
-            $days = floor($seconds / 86400);
-            $hours = floor(($seconds % 86400) / 3600);
-            $minutes = floor(($seconds % 3600) / 60);
+        //     $days = floor($seconds / 86400);
+        //     $hours = floor(($seconds % 86400) / 3600);
+        //     $minutes = floor(($seconds % 3600) / 60);
 
-            $session->formatted_time = "{$days} days {$hours} h {$minutes} m";
-        }
+        //     $session->formatted_time = "{$days} days {$hours} h {$minutes} m";
+        // }
 
-        return view('customers.show', compact('customer', 'activeSessions', 'authLogs', 'billings'));
+        return view('customers.show', compact('customer', 'billings', 'authLogs'));
     }
 
     /**
