@@ -14,9 +14,9 @@ use App\Http\Controllers\Tr069ServerController;
 use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
 
-Route::get('/', function () {
-    return view('login');
-});
+// Route::get('/', function () {
+//     return view('home');
+// });
 
 Auth::routes();
 
