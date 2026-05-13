@@ -40,6 +40,8 @@ class Recharge extends Model
         $customer = Customer::findOrFail($customerId);
         $internetPlan = InternetPlan::findOrFail($internetplanId);
 
+        GracePeriod::where('customer_id', $customer->id)->delete();
+
         if ($customer->expire_date && Carbon::parse($customer->expire_date)->isFuture())
         {
             $expireDate = Carbon::parse($customer->expire_date);
@@ -93,30 +95,12 @@ class Recharge extends Model
         ]);
 
         if ($customer->gracePeriod) {
-            $customer->gracePeriod->update([
-                'grace_start_date' => 0
+            $customer->gracePeriod->updateOrCreate([
+                'customer_id' => $customer->id,
+                'grace_days' => 0,
+                'grace_start' => null
             ]);
         }
-
         return true;
-    }
-
-    public function isExpired()
-    {
-        return Carbon::parse($this->expire_date)->isPast();
-    }
-
-    public function isWithinGracePeriod()
-    {
-        return $this->grace_period && Carbon::now()->between($this->expire_date, $this->grace_period);
-    }
-
-    public function extendWithGracePeriod($graceDays)
-    {
-        if ($this->isExpired())
-        {
-            $this->expire_date = Carbon::parse($this->expire_date)->addDays((int)$graceDays);
-            $this->save();
-        }
     }
 }

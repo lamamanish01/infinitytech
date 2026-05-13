@@ -68,38 +68,69 @@ class Customer extends Model
         return $this->hasOne(Recharge::class)->latestOfMany('recharge_date');
     }
 
-    public function gracePeriod()
+    public function gracePeriods()
     {
-        return $this->hasOne(GracePeriod::class);
+        return $this->hasMany(GracePeriod::class);
     }
 
-    public function isActive()
+    public function activeGrace()
+    {
+        return $this->gracePeriods()->latest()->first();
+    }
+
+     public function isActive()
     {
         return $this->expire_date && now()->lte($this->expire_date);
     }
 
     public function graceEndDate()
     {
-        $days = $this->gracePeriod->grace_days ?? 0;
+        $grace = $this->activeGrace();
 
-        return $this->expire_date
-            ? Carbon::parse($this->expire_date)->addDays($days)
-            : null;
+        if (!$grace || !$grace->grace_start) {
+            return null;
+        }
+
+        return Carbon::parse($grace->grace_start)
+            ->addDays($grace->grace_days);
     }
 
     public function isInGrace()
     {
-        return $this->expire_date
-            && $this->gracePeriod
-            && now()->gt($this->expire_date)
+        $grace = $this->activeGrace();
+
+        if (!$grace || !$this->expire_date) {
+            return false;
+        }
+
+        return now()->gt($this->expire_date)
             && now()->lte($this->graceEndDate());
+    }
+
+    public function isExpired()
+    {
+        if (!$this->expire_date)
+            return true;
+
+        $grace = $this->activeGrace();
+
+        if ($grace) {
+            return now()->gt($this->graceEndDate());
+        }
+
+        return now()->gt($this->expire_date);
     }
 
     public function status()
     {
-        if ($this->isActive()) return 'active';
-        if ($this->isInGrace()) return 'grace';
-        return 'blocked';
+        if ($this->status === 'suspended')
+            return 'suspended';
+        if ($this->isActive())
+            return 'active';
+        if ($this->isInGrace())
+            return 'grace';
+
+        return 'expired';
     }
 
     public function radAccts()
@@ -198,21 +229,5 @@ class Customer extends Model
             ->take($limit)
             ->get();
     }
-
-    // public function getCustomerBilling()
-    // {
-    //     return $this->billings()
-    //     ->join('customers', 'billings.customer_id', '=', 'customers.id')
-    //     ->select(
-    //         'billings.customer_id',
-    //         'customers.username',
-    //         'billings.recharge_id',
-    //         'billings.billing_date',
-    //         'billings.internet_plan',
-    //         'billings.amount'
-    //     )
-    //     ->get();
-    // }
-
 }
 

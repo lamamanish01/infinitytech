@@ -13,9 +13,10 @@ use App\Http\Controllers\Tr069DeviceController;
 use App\Http\Controllers\Tr069ServerController;
 use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Auth;
 
 Route::get('/', function () {
-    return view('home');
+    return view('welcome');
 });
 
 Auth::routes();

@@ -55,30 +55,30 @@
                                     <span class="badge badge-primary badge-pill">{{$customer->internetPlan->bandwidth_name}}</span>
                                 </li>
                                 <li class="list-group-item d-flex justify-content-between align-items-center">
-                                    Grace End Date: :
-                                    <span class="badge badge-primary badge-pill">{{$customer->graceEndDate()}}</span>
+                                    Status :
+                                    <span class="badge badge-primary badge-pill">{{$customer->status}}</span>
                                 </li>
                                 <li class="list-group-item d-flex justify-content-between align-items-center">
-                                    Remaining Grace Days :
-                                    {{--  <span class="badge badge-primary badge-pill">{{$customer->remainingGraceDays()}}</span>  --}}
+                                    @php
+                                        $grace = $customer->activeGrace();
+                                    @endphp
+                                    Grace:
+                                    <span class="badge badge-primary badge-pill">{{ $grace ? $grace->grace_days.' days' : 'Not given' }}</span>
                                 </li>
-                                <li class="list-group-item d-flex justify-content-between align-items-center">
-                                    Grace :
-                                    <span class="badge badge-danger badge-pill">
-                                        @if($customer->status() == 'active')
-                                            <span style="color:green;">Active</span>
+                                    @if($grace)
+                                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                                        Grace Start:
+                                        <span class="badge badge-primary badge-pill">{{$grace->grace_start}}</span>
+                                    </li>
+                                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                                        Grace End:
+                                        <span class="badge badge-primary badge-pill">{{$customer->graceEndDate()}}</span>
+                                    </li>
+                                    @endif
 
-                                        @elseif($customer->status() == 'grace')
-                                            <span style="color:orange;">Grace</span>
-
-                                        @else
-                                            <span style="color:red;">Blocked</span>
-                                        @endif
-                                    </span>
-                                </li>
                                 <li class="list-group-item d-flex justify-content-between align-items-center">
                                     Expired :
-                                    <span class="badge badge-primary badge-pill">{{$customer->latestRecharge->expire_date ?? 'Expire Date Not Found.'}}</span>
+                                    <span class="badge badge-primary badge-pill">{{$customer->expire_date}}</span>
                                 </li>
                                 <li class="list-group-item d-flex justify-content-between align-items-center">
                                     Registered By :

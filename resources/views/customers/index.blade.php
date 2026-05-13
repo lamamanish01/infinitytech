@@ -48,26 +48,7 @@
                                     @forelse($customers as $customer)
                                         <tr>
                                             <td>{{$loop->iteration}}</td>
-
-                                            <td>
-                                                @if ($customer->latestRecharge)
-                                                    @if ($customer->latestRecharge->isExpired())
-                                                        <div class="btn btn-sm btn-danger">
-                                                            {{$customer->username}}
-                                                        </div>
-                                                    @elseif ($customer->latestRecharge->isWithinGracePeriod())
-                                                        <div class="btn btn-sm btn-warning">
-                                                            {{$customer->username}}
-                                                        </div>
-                                                    @elseif ($customer->latestRecharge->expire_date)
-                                                        <div class="btn btn-sm btn-success">
-                                                            {{$customer->username}}
-                                                        </div>
-                                                    @endif
-                                                @else
-                                                    {{$customer->username}}
-                                                @endif
-                                            </td>
+                                            <td>{{$customer->username}}</td>
                                             <td>{{$customer->internetPlan->bandwidth_name}}</td>
                                             <td>{{$customer->name}}</td>
                                             <td>{{$customer->address}}</td>

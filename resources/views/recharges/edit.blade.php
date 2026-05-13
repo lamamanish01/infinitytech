@@ -30,18 +30,8 @@
                                     <input type="text" class="form-control" name="username" value="{{$customer->username}}" readonly>
                                 </div>
                                 <div class="form-group">
-                                    <label>Select Internet Plans:</label>
-                                    <select name="internet_plan" class="custom-select">
-                                        <option value="{{$customer->internetplan}}">{{$customer->internetplan}}</option>
-                                    </select>
-                                </div>
-                                <div class="form-group">
-                                    <label>Recharge Date:</label>
-                                    <input type="date" class="form-control" name="recharge_date" value="{{$customer->rechargeDate->recharge_date ?? 'Recharge Date Not Found.'}}">
-                                </div>
-                                <div class="form-group">
                                     <label>Expiry Date:</label>
-                                    <input type="date" class="form-control" name="expire_date" value="{{$customer->latestRecharge->expire_date ?? 'Expire Date Not Found.'}}">
+                                    <input type="date" class="form-control" name="expire_date" value="{{$recharge->expire_date}}">
                                 </div>
 
                                 <div class="btn-group">

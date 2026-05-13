@@ -34,9 +34,28 @@
                                 </div>
                                 <div class="form-group">
                                     <label>Select Internet Plans:</label>
-                                    <select name="internetplan" class="custom-select">
-                                        <option value="{{$customer->internetplan}}">{{$customer->internetplan}}</option>
+                                    <select name="internet_plan_id" class="custom-select">
+                                        <option value="{{$customer->internetPlan->id}}">{{$customer->internetplan->bandwidth_name}}</option>
                                     </select>
+                                </div>
+                                <div class="form-group">
+                                    <label>Internet Plan Price:</label>
+                                    <select name="internet_plan_price" class="custom-select">
+                                        <option value="{{$customer->internetPlan->id}}">{{$customer->internetplan->price}}</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label>Select Payment Method:</label>
+                                    <select name="payment_method" class="custom-select">
+                                        <option value="Cash">Cash</option>
+                                        <option value="eSewa">eSewa</option>
+                                        <option value="Khalti">Khalti</option>
+                                        <option value="Bank">Bank</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label>Transaction ID:</label>
+                                    <input type="text" class="form-control" name="transaction_id">
                                 </div>
 
                                 <div class="btn-group">

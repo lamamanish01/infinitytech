@@ -72,7 +72,7 @@ class CustomerController extends Controller
     public function show($id)
     {
         $customer = Customer::with(['activeSession'])->findOrFail($id);
-        $customer->load('gracePeriod');
+        // $customer->load('gracePeriod');
         $authLogs = $customer->recentAuthLogs();
         // $billings = $customer->getCustomerBilling();
 
