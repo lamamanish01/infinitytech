@@ -45,10 +45,10 @@
                                 </div>
                                 <div class="form-select">
                                     <label>Internet Plans:</label>
-                                        <select name="internetplan" class="custom-select">
-                                            <option value="">Select Internet Plans</option>
-                                            @foreach ($internetplans as $internetplan)
-                                                <option value="{{$internetplan->bandwidth_name}}">{{$internetplan->bandwidth_name}}</option>
+                                        <select name="internet_plan_id" class="custom-select">
+                                            <option>Select Internet Plans</option>
+                                            @foreach ($internet_plans as $internet_plan)
+                                                <option value="{{$internet_plan->id}}">{{$internet_plan->bandwidth_name}}</option>
                                             @endforeach
                                         </select>
                                 </div>
@@ -63,15 +63,11 @@
                                 <div class="form-select">
                                     <label>Branch:</label>
                                     @foreach ($branches as $branch)
-                                        <select name="branch" class="custom-select">
+                                        <select name="branch_id" class="custom-select">
                                             <option value="">Select Branch</option>
-                                            <option value="{{$branch->name}}">{{$branch->name}}</option>
+                                            <option value="{{$branch->id}}">{{$branch->name}}</option>
                                         </select>
                                     @endforeach
-                                </div>
-                                <div class="form-group">
-                                    <label>Registration Date:</label>
-                                    <input type="date" class="form-control" name="registration_date" placeholder="0">
                                 </div>
 
                                 <div class="btn-group mt-2">

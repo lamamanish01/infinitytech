@@ -12,12 +12,29 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('billings', function (Blueprint $table) {
+
             $table->id();
-            $table->foreignId('customer_id')->references('id')->on('customers')->onDelete('cascade');
-            $table->foreignId('recharge_id')->references('id')->on('recharges')->onDelete('cascade');
+
+            $table->foreignId('customer_id')
+                ->constrained('customers')
+                ->cascadeOnDelete();
+
+            $table->foreignId('recharge_id')
+                ->constrained('recharges')
+                ->cascadeOnDelete();
+
             $table->date('billing_date');
-            $table->string('internet_plan');
-            $table->float('amount');
+
+            $table->decimal('amount', 10, 2);
+
+            $table->enum('status', [
+                'unpaid',
+                'paid',
+                'partial'
+            ])->default('unpaid');
+
+            $table->string('invoice_number')->nullable();
+
             $table->timestamps();
         });
     }

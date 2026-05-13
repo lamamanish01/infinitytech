@@ -52,11 +52,29 @@
                                 </li>
                                 <li class="list-group-item d-flex justify-content-between align-items-center">
                                     Interner Plan :
-                                    <span class="badge badge-primary badge-pill">{{$customer->internetplan}}</span>
+                                    <span class="badge badge-primary badge-pill">{{$customer->internetPlan->bandwidth_name}}</span>
+                                </li>
+                                <li class="list-group-item d-flex justify-content-between align-items-center">
+                                    Grace End Date: :
+                                    <span class="badge badge-primary badge-pill">{{$customer->graceEndDate()}}</span>
+                                </li>
+                                <li class="list-group-item d-flex justify-content-between align-items-center">
+                                    Remaining Grace Days :
+                                    {{--  <span class="badge badge-primary badge-pill">{{$customer->remainingGraceDays()}}</span>  --}}
                                 </li>
                                 <li class="list-group-item d-flex justify-content-between align-items-center">
                                     Grace :
-                                    <span class="badge badge-danger badge-pill">{{$customer->grace ?? 0}}</span>
+                                    <span class="badge badge-danger badge-pill">
+                                        @if($customer->status() == 'active')
+                                            <span style="color:green;">Active</span>
+
+                                        @elseif($customer->status() == 'grace')
+                                            <span style="color:orange;">Grace</span>
+
+                                        @else
+                                            <span style="color:red;">Blocked</span>
+                                        @endif
+                                    </span>
                                 </li>
                                 <li class="list-group-item d-flex justify-content-between align-items-center">
                                     Expired :
@@ -141,20 +159,6 @@
                                     <td>{{ $customer->previous->ppp_server}}</td>
                                 </tr>
                             @endif
-
-
-                            {{--  <tr>
-                                <td>#</td>
-                                <td>{{$customer->username}}</td>  --}}
-                                {{--  <td>{{$customer->activeSession->ip_address}}</td>
-                                <td>{{$customer->activeSession->start_time}}</td>
-                                <td>{{$customer->activeSession->session_time_human}}</td>
-                                <td>{{$customer->activeSession->upload_mb}}</td>
-                                <td>{{$customer->activeSession->download_mb}}</td>
-                                <td>{{$customer->activeSession->mac_address}}</td>
-                                <td>{{$customer->activeSession->nas_ip}}</td>
-                                <td>{{$customer->activeSession->ppp_server}}</td>  --}}
-                            </tr>
                         </tbody>
                     </table>
                 </div>
@@ -162,7 +166,7 @@
 
 
 
-                <div class="tab-pane fade" id="billing" role="tabpanel" aria-labelledby="billing-tab">
+                {{--  <div class="tab-pane fade" id="billing" role="tabpanel" aria-labelledby="billing-tab">
                     <table class="table table-hover text-nowrap">
                         <thead>
                             <tr>
@@ -185,12 +189,12 @@
                             @endforeach
                         </tbody>
                     </table>
-                </div>
+                </div>  --}}
 
 
 
 
-                <div class="tab-pane fade" id="logs" role="tabpanel" aria-labelledby="logs-tab">
+                {{--  <div class="tab-pane fade" id="logs" role="tabpanel" aria-labelledby="logs-tab">
                     <table class="table table-hover text-nowrap">
                         <thead>
                             <tr>
@@ -213,7 +217,7 @@
                             @endforeach
                         </tbody>
                     </table>
-                </div>
+                </div>  --}}
 
               </div>
         </div>

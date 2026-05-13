@@ -2,11 +2,13 @@
 
 namespace App\Http\Controllers;
 
-use Carbon\Carbon;
 use App\Models\Billing;
-use App\Models\Invoice;
 use App\Models\Customer;
+use App\Models\GracePeriod;
+use App\Models\InternetPlan;
+use App\Models\Invoice;
 use App\Models\Recharge;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 
 class RechargeController extends Controller
@@ -33,39 +35,17 @@ class RechargeController extends Controller
      */
     public function store(Request $request, Recharge $recharge)
     {
-        $customer = Customer::findOrFail($request->customer_id);
-        $duration = $customer->internetPlan->duration;
-        $price = $customer->internetPlan->price;
-
-        $expiryDate = $customer->NewExpiryDate($duration);
-
-        if ($customer->gracePeriod && $customer->gracePeriod->grace_days > 0)
-        {
-            $expiryDate->subDays($customer->gracePeriod->grace_days);
-
-            $customer->gracePeriod->update(['grace_days' => 0]);
-        }
-
-        $recharge->customer_id = $customer->id;
-        $recharge->internet_plan = $request->internetplan;
-        $recharge->recharge_date = Carbon::now();
-        $recharge->expire_date = $expiryDate;
-        $recharge->save();
-
-        $billing = Billing::create([
-            'customer_id' => $customer->id,
-            'recharge_id' => $recharge->id,
-            'billing_date' => Carbon::now(),
-            'internet_plan' => $customer->internetplan,
-            'amount' => $price,
+        $request->validate([
+            'customer_id' => 'required|exists:customers,id',
+            'internet_plan_id' => 'required|exists:internet_plans,id',
         ]);
 
-        Invoice::create([
-            'billing_id' => $billing->id,
-            'invoice_date' => Carbon::now(),
-            'status' => 'unpaid',
-            'amount' => $price
-        ]);
+        Recharge::makeRecharge(
+            $request->customer_id,
+            $request->internet_plan_id,
+            $request->payment_method,
+            $request->transaction_id
+        );
 
         return redirect()->route('customers.index')->with('success', 'Customer recharge successful');
     }
@@ -114,22 +94,20 @@ class RechargeController extends Controller
         //
     }
 
-
     public function provideGrace(Request $request, $customerId)
     {
         $request->validate([
             'grace_days' => 'required'
         ]);
 
-        $customer = Customer::findOrFail($customerId);
+        GracePeriod::updateOrCreate(
+            ['customer_id' => $customerId],
+            [
+                'grace_days' => $request->grace_days,
+                'grace_start_date' => Carbon::now()
+            ]
+        );
 
-        $gracePermit = $customer->provideGraceDays($request->grace_days);
-
-        if ($gracePermit)
-        {
-            return redirect()->route('customers.show', $customer->id)->with('success', "$request->grace_days days grace provided successfully");
-        } else {
-            return redirect()->route('customers.show', $customer->id)->with('error', 'Cannot provide grace days, subscription is not expired.');
-        }
+        return back()->with('success', 'Grace updated successfully');
     }
 }

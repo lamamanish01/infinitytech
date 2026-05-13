@@ -25,8 +25,8 @@ class CustomerController extends Controller
     public function create()
     {
         $branches = Branch::orderBy('name', 'ASC')->get();
-        $internetplans = InternetPlan::orderBy('bandwidth_name', 'ASC')->get();
-        return view('customers.create', compact('branches', 'internetplans'));
+        $internet_plans = InternetPlan::all();
+        return view('customers.create', compact('branches', 'internet_plans'));
     }
 
     /**
@@ -35,14 +35,12 @@ class CustomerController extends Controller
     public function store(Request $request, Customer $customer)
     {
         $request->validate([
-            'name' => 'required',
-            'email' => 'email|unique:customers,email',
-            'address' => 'required',
-            'contact_number' => 'required|numeric|min:12',
+            'name' => 'required|string',
             'username' => 'required|unique:customers,username',
             'password' => 'required',
-            'internetplan' => 'required',
-            'branch' => 'required',
+            'contact_number' => 'required|numeric|min:12',
+            'internet_plan_id' => 'required',
+            'branch_id' => 'required',
         ]);
 
         $customer = Customer::create([
@@ -52,10 +50,10 @@ class CustomerController extends Controller
             'contact_number' => $request->contact_number,
             'username' => $request->username,
             'password' => $request->password,
-            'internetplan' => $request->internetplan,
-            'branch' => $request->branch,
-            'expired' => Carbon::now(),
-            'registered' => Carbon::now(),
+            'internet_plan_id' => $request->internet_plan_id,
+            'branch_id' => $request->branch_id,
+            'expire_date' => Carbon::now(),
+            'registered_at' => Carbon::now(),
             'user_id' => auth()->id(),
         ]);
 
@@ -74,20 +72,11 @@ class CustomerController extends Controller
     public function show($id)
     {
         $customer = Customer::with(['activeSession'])->findOrFail($id);
+        $customer->load('gracePeriod');
         $authLogs = $customer->recentAuthLogs();
-        $billings = $customer->getCustomerBilling();
+        // $billings = $customer->getCustomerBilling();
 
-        // foreach ($activeSessions as $session) {
-        //     $seconds = $session->session_time;
-
-        //     $days = floor($seconds / 86400);
-        //     $hours = floor(($seconds % 86400) / 3600);
-        //     $minutes = floor(($seconds % 3600) / 60);
-
-        //     $session->formatted_time = "{$days} days {$hours} h {$minutes} m";
-        // }
-
-        return view('customers.show', compact('customer', 'billings', 'authLogs'));
+        return view('customers.show', compact('customer', 'authLogs'));
     }
 
     /**
@@ -111,8 +100,8 @@ class CustomerController extends Controller
             'contact_number' => 'required|numeric|min:12',
             'username' => 'required|unique:customers,username',
             'password' => 'required',
-            'internetplan' => 'required',
-            'branch' => 'required',
+            'internet_plan_id' => 'required',
+            'branch_id' => 'required',
         ]);
 
         $customer->name = $request->name;
@@ -121,7 +110,7 @@ class CustomerController extends Controller
         $customer->contact_number = $request->contact_number;
         $customer->username = $request->username;
         $customer->password = $request->password;
-        $customer->internetplan = $request->internetplan;
+        $customer->internet_plan_id = $request->internet_plan_id;
 
         return redirect()->route('customers.index')->with('success', 'Customer edited successfully.');
     }

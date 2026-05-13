@@ -33,11 +33,9 @@ class InternetPlanController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'name' => 'required',
-            'price' => 'required',
-            'duration' => 'required',
-            'type' => 'required',
-            'rate_limit' => 'required',
+            'name' => 'required|string',
+            'price' => 'required|numeric',
+            'duration' => 'required|integer',
         ]);
 
         InternetPlan::create([
@@ -76,10 +74,9 @@ class InternetPlanController extends Controller
     public function update(Request $request, InternetPlan $internetplan)
     {
         $request->validate([
-            'name' => 'required',
-            'price' => 'required',
-            'duration' => 'required',
-            'type' => 'required',
+            'name' => 'required|string',
+            'price' => 'required|numeric',
+            'duration' => 'required|integer',
         ]);
 
         $internetplan->name = $request->name;

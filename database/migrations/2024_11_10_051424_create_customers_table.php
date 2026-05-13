@@ -12,19 +12,21 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('customers', function (Blueprint $table) {
+
             $table->id();
             $table->string('name');
-            $table->string('email');
-            $table->string('address');
-            $table->bigInteger('contact_number')->nullable();
-            $table->dateTime('registered')->nullable();
-            $table->string('username');
+            $table->string('email')->nullable();
+            $table->string('address')->nullable();
+            $table->string('contact_number')->nullable();
+            $table->string('username')->unique();
             $table->string('password');
-            $table->string('internetplan')->nullable();
-            $table->string('branch')->nullable();
-            $table->integer('user_id')->nullable();
-            $table->enum('status', ['Online', 'Offline', 'discontinued']);
-            $table->string('remarks')->nullable();
+            $table->foreignId('internet_plan_id')->nullable()->constrained('internet_plans')->nullOnDelete();
+            $table->foreignId('branch_id')->nullable()->constrained('branches')->nullOnDelete();
+            $table->foreignId('user_id')->nullable()->constrained('users')->nullOnDelete();
+            $table->dateTime('expire_date')->nullable();
+            $table->dateTime('registered_at')->nullable();
+            $table->enum('status', ['active','expired','suspended','discontinued'])->default('active');
+            $table->text('remarks')->nullable();
             $table->timestamps();
         });
     }

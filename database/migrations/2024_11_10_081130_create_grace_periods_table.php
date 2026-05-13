@@ -15,6 +15,7 @@ return new class extends Migration
             $table->id();
             $table->foreignId('customer_id')->constrained()->onDelete('cascade');
             $table->integer('grace_days');
+            $table->timestamp('grace_start')->nullable();
             $table->timestamps();
         });
     }

@@ -4,7 +4,6 @@ namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 
 class InternetPlanTypeSeeder extends Seeder
 {
@@ -14,9 +13,9 @@ class InternetPlanTypeSeeder extends Seeder
     public function run(): void
     {
         $types = [
-            'Days',
-            'Months',
-            'Years'
+            'day',
+            'month',
+            'year'
         ];
 
         foreach ($types as $type)

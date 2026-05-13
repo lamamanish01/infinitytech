@@ -12,7 +12,26 @@ use Illuminate\Database\Eloquent\Model;
 
 class Customer extends Model
 {
-    protected $fillable = ['name', 'address', 'email', 'username', 'password', 'contact_number', 'internetplan', 'branch', 'registered', 'status', 'user_id'];
+    protected $fillable = [
+        'name',
+        'email',
+        'address',
+        'contact_number',
+        'username',
+        'password',
+        'internet_plan_id',
+        'branch_id',
+        'user_id',
+        'expire_date',
+        'registered_at',
+        'status',
+        'remarks',
+    ];
+
+    protected $casts = [
+        'expire_date' => 'datetime',
+        'registered_at' => 'datetime',
+    ];
 
     public function branch()
     {
@@ -26,7 +45,7 @@ class Customer extends Model
 
     public function internetPlan()
     {
-        return $this->belongsTo(InternetPlan::class, 'internetplan', 'bandwidth_name', 'price');
+        return $this->belongsTo(InternetPlan::class, 'id');
     }
 
     public function user()
@@ -54,15 +73,33 @@ class Customer extends Model
         return $this->hasOne(GracePeriod::class);
     }
 
-    public function NewExpiryDate($planDuration)
+    public function isActive()
     {
-        $latestRecharge = $this->latestRecharge;
+        return $this->expire_date && now()->lte($this->expire_date);
+    }
 
-        if($latestRecharge && !$latestRecharge->isExpired()) {
-            return Carbon::parse($latestRecharge->expire_date)->addMonths($planDuration);
-        } else {
-            return Carbon::now()->addMonths($planDuration);
-        }
+    public function graceEndDate()
+    {
+        $days = $this->gracePeriod->grace_days ?? 0;
+
+        return $this->expire_date
+            ? Carbon::parse($this->expire_date)->addDays($days)
+            : null;
+    }
+
+    public function isInGrace()
+    {
+        return $this->expire_date
+            && $this->gracePeriod
+            && now()->gt($this->expire_date)
+            && now()->lte($this->graceEndDate());
+    }
+
+    public function status()
+    {
+        if ($this->isActive()) return 'active';
+        if ($this->isInGrace()) return 'grace';
+        return 'blocked';
     }
 
     public function radAccts()
@@ -114,23 +151,6 @@ class Customer extends Model
         ]);
     }
 
-    public function provideGraceDays($graceDays)
-    {
-        $latestRecharge = $this->latestRecharge->first();
-
-        if ($latestRecharge && $latestRecharge->isExpired()) {
-            $gracePeriod = GracePeriod::updateOrCreate([
-                'customer_id' => $this->id,
-                'grace_days' => $graceDays
-            ]);
-
-            $latestRecharge->extendWithGracePeriod($gracePeriod->grace_days);
-        } else {
-            return false;
-        }
-        return true;
-    }
-
     public function activeSession()
     {
         return $this->hasOne(RadAcct::class, 'username', 'username')
@@ -179,20 +199,20 @@ class Customer extends Model
             ->get();
     }
 
-    public function getCustomerBilling()
-    {
-        return $this->billings()
-        ->join('customers', 'billings.customer_id', '=', 'customers.id')
-        ->select(
-            'billings.customer_id',
-            'customers.username',
-            'billings.recharge_id',
-            'billings.billing_date',
-            'billings.internet_plan',
-            'billings.amount'
-        )
-        ->get();
-    }
+    // public function getCustomerBilling()
+    // {
+    //     return $this->billings()
+    //     ->join('customers', 'billings.customer_id', '=', 'customers.id')
+    //     ->select(
+    //         'billings.customer_id',
+    //         'customers.username',
+    //         'billings.recharge_id',
+    //         'billings.billing_date',
+    //         'billings.internet_plan',
+    //         'billings.amount'
+    //     )
+    //     ->get();
+    // }
 
 }
 

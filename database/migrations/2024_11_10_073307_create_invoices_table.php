@@ -12,13 +12,28 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('invoices', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('billing_id')->constrained()->onDelete('cascade');
-            $table->date('invoice_date');
-            $table->enum('status', ['unpaid', 'paid']);
-            $table->float('amount');
-            $table->timestamps();
-        });
+
+        $table->id();
+
+        $table->foreignId('billing_id')
+            ->constrained('billings')
+            ->cascadeOnDelete();
+
+        $table->date('invoice_date');
+
+        $table->decimal('amount', 10, 2);
+
+        $table->enum('status', [
+            'unpaid',
+            'paid'
+        ])->default('unpaid');
+
+        $table->string('payment_method')->nullable();
+
+        $table->string('transaction_id')->nullable();
+
+        $table->timestamps();
+    });
     }
 
     /**

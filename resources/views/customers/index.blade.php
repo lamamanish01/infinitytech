@@ -68,11 +68,12 @@
                                                     {{$customer->username}}
                                                 @endif
                                             </td>
-                                            <td>{{$customer->internetplan}}</td>
+                                            <td>{{$customer->internetPlan->bandwidth_name}}</td>
                                             <td>{{$customer->name}}</td>
                                             <td>{{$customer->address}}</td>
                                             <td>{{$customer->contact_number}}</td>
-                                            <td>
+                                            <td>{{$customer->expire_date}}</td>
+                                            {{--  <td>
                                                 @if ($customer->latestRecharge)
                                                     @if ($customer->latestRecharge->isExpired())
                                                         <div class="btn btn-sm btn-danger">
@@ -88,7 +89,7 @@
                                                 @else
                                                     <p>No recharge record found.</p>
                                                 @endif
-                                            </td>
+                                            </td>  --}}
                                             <td>
                                                 <div class="btn-group">
                                                     <a href="{{route('customers.show', $customer->id)}}" class="btn btn-sm btn-secondary">Show</a>
