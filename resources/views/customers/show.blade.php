@@ -68,11 +68,11 @@
                                     @if($grace)
                                     <li class="list-group-item d-flex justify-content-between align-items-center">
                                         Grace Start:
-                                        <span class="badge badge-primary badge-pill">{{$grace->grace_start}}</span>
+                                        <span class="badge badge-warning badge-pill">{{$grace->grace_start}}</span>
                                     </li>
                                         <li class="list-group-item d-flex justify-content-between align-items-center">
                                         Grace End:
-                                        <span class="badge badge-primary badge-pill">{{$customer->graceEndDate()}}</span>
+                                        <span class="badge badge-warning badge-pill">{{$customer->graceEndDate()}}</span>
                                     </li>
                                     @endif
 
@@ -88,7 +88,7 @@
                         </div>
                         <div class="col-md-12">
                             <a class="btn btn-warning" href="{{ route('recharges.create', $customer->id) }}"></i> Recharge Customer </a>
-                            <a class="btn btn-danger" href="{{ route('recharges.edit', $customer->id) }}"></i> Change Expiry Date </a>
+                            <a class="btn btn-danger" href="{{ route('customers.expiry-form', $customer->id) }}"></i> Change Expiry Date </a>
                         </div>
                         <form action="{{route('provide-grace', $customer->id)}}" method="POST">
                             @csrf

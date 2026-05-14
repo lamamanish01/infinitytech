@@ -38,6 +38,8 @@ Route::middleware('auth')->group(function () {
     Route::resource('/internetplan', InternetPlanController::class);
     Route::resource('/menus', MenuController::class);
     Route::resource('/customers', CustomerController::class);
+    Route::get('/customers/{customer}/expiry', [CustomerController::class, 'expiryForm'])->name('customers.expiry-form');
+    Route::post('/customers/{customer}/change-expiry', [CustomerController::class, 'changeExpiry'])->name('customers.change-expiry');
 
     Route::get('/recharges/create/{customerId}', [RechargeController::class, 'create'])->name('recharges.create');
     Route::post('/recharges', [RechargeController::class, 'store'])->name('recharges.store');

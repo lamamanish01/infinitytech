@@ -8,6 +8,7 @@ use App\Models\GracePeriod;
 use App\Models\InternetPlan;
 use App\Models\Invoice;
 use App\Models\Recharge;
+use App\Services\RadiusService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 
@@ -73,15 +74,15 @@ class RechargeController extends Controller
     public function update(Request $request, Recharge $recharge)
     {
         $request->validate([
-            'internet_plan' => 'required',
-            'expire_date' => 'required',
+            'expire_date' => 'required|date',
         ]);
 
-        $recharge->customer_id = $request->customer_id;
-        $recharge->internet_plan = $request->internet_plan;
-        $recharge->recharge_date = $request->recharge_date;
         $recharge->expire_date = $request->expire_date;
-        $recharge->save();
+
+        $customer = Customer::findOrFail($recharge->customer_id);
+        $customer->update([
+            'expire_date' => Carbon::parse($request->expire_date),
+        ]);
 
         return redirect()->route('customers.index')->with('success', 'Expiry Date changed successfully.');
     }
@@ -104,8 +105,12 @@ class RechargeController extends Controller
             ['customer_id' => $customerId],
             [
                 'grace_days' => $request->grace_days,
-                'grace_start_date' => Carbon::now()
+                'grace_start' => Carbon::now()
             ]
+        );
+
+        RadiusService::syncCustomer(
+            $customer->fresh()
         );
 
         return back()->with('success', 'Grace updated successfully');

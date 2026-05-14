@@ -8,9 +8,13 @@ Artisan::command('inspire', function () {
     $this->comment(Inspiring::quote());
 })->purpose('Display an inspiring quote')->hourly();
 
-// Schedule::command('customers:update-expired')->dailyAt('23:59');
-//Schedule::command('customers:update-expired')->everyMinute();
+
 Schedule::command('customers:clean-stale-sessions')
+    ->everyMinute()
+    ->withoutOverlapping()
+    ->runInBackground();
+
+Schedule::command('customers:update-expired')
     ->everyMinute()
     ->withoutOverlapping()
     ->runInBackground();

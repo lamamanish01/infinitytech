@@ -2,14 +2,10 @@
 
 namespace App\Console\Commands;
 
+use App\Models\Customer;
+use App\Services\RadiusService;
 use Carbon\Carbon;
-use App\Models\Nas;
-use App\Models\RadAcct;
-use App\Models\RadCheck;
-use App\Models\RadReply;
-use App\Models\Recharge;
 use Illuminate\Console\Command;
-use Illuminate\Support\Facades\DB;
 
 class UpdateExpiredCustomers extends Command
 {
@@ -30,53 +26,22 @@ class UpdateExpiredCustomers extends Command
     /**
      * Execute the console command.
      */
-    // public function handle()
-    // {
-    //     $expiredUsers = RadCheck::where('attribute', 'Expiration')->get();
-
-    //     foreach($expiredUsers as $expiredUser) {
-    //         $expiredAt = Carbon::createFromFormat('d M Y H:i:s', $expiredUser->value);
-
-    //         if($expiredAt->isPast()) {
-    //             RadCheck::updateOrCreate(
-    //                 ['username' => $expiredUser->username, 'attribute' => 'Auth-Type'],
-    //                 ['op' => ':=', 'value' => 'Reject']
-    //             );
-    //             $this->info("User {$expiredUser->username} marked as expired.");
-    //         }
-    //     }
-    //             $this->info('Done disabling expired users.');
-    // }
-
     public function handle()
     {
-    $this->info('Checking for expired users...');
+        $customers = Customer::whereDate('expire_date', '<', now())
+            ->where('status', 'active')
+            ->get();
 
-    $expiredUsers = RadCheck::where('attribute', 'Expiration')->get();
+        foreach ($customers as $customer) {
 
-    foreach ($expiredUsers as $expiredUser) {
-        try {
-            $expiredAt = Carbon::createFromFormat('d M Y H:i:s', $expiredUser->value);
+            $customer->update([
+                'status' => 'expired'
+            ]);
 
-            if ($expiredAt->isPast()) {
-                RadCheck::updateOrCreate(
-                    [
-                        'username'  => $expiredUser->username,
-                        'attribute' => 'Auth-Type'
-                    ],
-                    [
-                        'op'    => ':=',
-                        'value' => 'Reject'
-                    ]
-                );
-
-                $this->info("User {$expiredUser->username} marked as expired.");
-            }
-        } catch (\Exception $e) {
-            $this->error("Failed to process user {$expiredUser->username}: " . $e->getMessage());
+            RadiusService::removeCustomer($customer);
         }
+
+        $this->info("Expired users removed from FreeRADIUS");
     }
-    $this->info('Done disabling expired users.');
-}
 
 }

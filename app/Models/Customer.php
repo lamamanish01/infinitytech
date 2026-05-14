@@ -2,12 +2,13 @@
 
 namespace App\Models;
 
-use Carbon\Carbon;
+use App\Models\InternetPlan;
 use App\Models\RadCheck;
+use App\Models\RadPostAuth;
 use App\Models\RadReply;
 use App\Models\Recharge;
-use App\Models\RadPostAuth;
-use App\Models\InternetPlan;
+use App\Services\RadiusService;
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
 
 class Customer extends Model
@@ -133,6 +134,18 @@ class Customer extends Model
         return 'expired';
     }
 
+    public function checkStatus(Customer $customer)
+    {
+        if ($customer->isExpired()) {
+
+            $customer->update([
+                'status' => 'expired'
+            ]);
+
+            RadiusService::removeCustomer($customer);
+        }
+    }
+
     public function radAccts()
     {
         return $this->hasMany(RadAcct::class, 'username', 'username');
@@ -156,30 +169,6 @@ class Customer extends Model
     public function billings()
     {
         return $this->hasMany(Billing::class);
-    }
-
-    public function syncWithRad($username, $password, $rate_limit)
-    {
-        RadCheck::updateOrCreate([
-            'username' => $username,
-            'attribute' => 'Cleartext-Password',
-            'op' => ':=',
-            'value' => $password
-        ]);
-
-        RadReply::updateOrCreate([
-            'username' => $username,
-            'attribute' => 'Mikrotik-Rate-Limit',
-            'op' => ':=',
-            'value' => $rate_limit,
-        ]);
-
-        RadReply::updateOrCreate([
-            'username' => $username,
-            'attribute' => 'Framed-Pool',
-            'op' => ':=',
-            'value' => 'PPPoE-Pool',
-        ]);
     }
 
     public function activeSession()

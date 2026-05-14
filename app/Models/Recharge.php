@@ -2,8 +2,9 @@
 
 namespace App\Models;
 
-use Carbon\Carbon;
 use App\Models\InternetPlan;
+use App\Services\RadiusService;
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
 
 class Recharge extends Model
@@ -94,13 +95,10 @@ class Recharge extends Model
             'status' => 'active',
         ]);
 
-        if ($customer->gracePeriod) {
-            $customer->gracePeriod->updateOrCreate([
-                'customer_id' => $customer->id,
-                'grace_days' => 0,
-                'grace_start' => null
-            ]);
-        }
+        RadiusService::syncCustomer(
+            $customer->fresh()
+        );
+
         return true;
     }
 }

@@ -2,10 +2,12 @@
 
 namespace App\Http\Controllers;
 
-use Carbon\Carbon;
 use App\Models\Branch;
 use App\Models\Customer;
 use App\Models\InternetPlan;
+use App\Models\Recharge;
+use App\Services\RadiusService;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 
 class CustomerController extends Controller
@@ -57,11 +59,9 @@ class CustomerController extends Controller
             'user_id' => auth()->id(),
         ]);
 
-        $username = $customer->username;
-        $password = $customer->password;
-        $rate_limit = $customer->internetPlan->rate_limit;
-
-        $customer->syncWithRad($username, $password, $rate_limit);
+        RadiusService::syncCustomer(
+            $customer->fresh()
+        );
 
         return redirect()->route('customers.index')->with('success', 'Customer created successfully.');
     }
@@ -72,7 +72,6 @@ class CustomerController extends Controller
     public function show($id)
     {
         $customer = Customer::with(['activeSession'])->findOrFail($id);
-        // $customer->load('gracePeriod');
         $authLogs = $customer->recentAuthLogs();
         // $billings = $customer->getCustomerBilling();
 
@@ -121,6 +120,45 @@ class CustomerController extends Controller
     public function destroy(string $id)
     {
         //
+    }
+
+    public function expiryForm(Customer $customer)
+    {
+        return view('customers.expiry', compact('customer'));
+    }
+
+    public function changeExpiry(Request $request, Customer $customer)
+    {
+        $request->validate([
+            'expire_date' => 'required|date'
+        ]);
+
+        $newExpiry = Carbon::parse(
+            $request->expire_date
+        )->toDateString();
+
+        $customer->update([
+            'expire_date' => $newExpiry,
+            'status' => 'active'
+        ]);
+
+        $latestRecharge = Recharge::where(
+            'customer_id',
+            $customer->id
+        )->latest()->first();
+
+        if ($latestRecharge) {
+
+            $latestRecharge->update([
+                'expire_date' => $newExpiry
+            ]);
+        }
+
+        RadiusService::syncCustomer(
+            $customer->fresh()
+        );
+
+        return redirect()->route('customers.index')->with('success', 'Expiry Date changed successfully.');
     }
 
 }

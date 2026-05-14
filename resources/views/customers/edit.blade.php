@@ -36,14 +36,6 @@
                                     <label>Email:</label>
                                     <input value="{{$customer->email}}" class="form-control" name="email">
                                 </div>
-                                <div class="form-group">
-                                    <label>Username:</label>
-                                    <input value="{{$customer->username}}" class="form-control" name="username" readonly>
-                                </div>
-                                <div class="form-group">
-                                    <label>Change Password:</label>
-                                    <input value="{{$customer->password}}" class="form-control" name="password">
-                                </div>
                                 <div class="form-select">
                                     <label>Internet Plans:</label>
                                         <select name="internetplan" class="custom-select">
