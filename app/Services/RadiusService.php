@@ -7,21 +7,28 @@ use Illuminate\Support\Facades\Log;
 
 class RadiusService
 {
-    /* ---------------------------
+    /* ---------------------------------
      | SYNC CUSTOMER
-     * ---------------------------*/
+     * ---------------------------------*/
     public static function syncCustomer($customer)
     {
-        DB::table('radcheck')->where('username', $customer->username)->delete();
-        DB::table('radreply')->where('username', $customer->username)->delete();
+        DB::table('radcheck')
+            ->where('username', $customer->username)
+            ->delete();
 
-        // expired or no plan → disconnect
-        if (self::isExpired($customer) || !$customer->internetPlan) {
-            self::forceDisconnect($customer);
+        DB::table('radreply')
+            ->where('username', $customer->username)
+            ->delete();
+
+        if (!$customer->expire_date || now()->gt($customer->expire_date)) {
             return;
         }
 
         $plan = $customer->internetPlan;
+
+        if (!$plan) {
+            return;
+        }
 
         DB::table('radcheck')->insert([
             'username'  => $customer->username,
@@ -52,15 +59,20 @@ class RadiusService
         ]);
     }
 
-    /* ---------------------------
+    /* ---------------------------------
      | REMOVE CUSTOMER
-     * ---------------------------*/
+     * ---------------------------------*/
     public static function removeCustomer($customer)
     {
         self::forceDisconnect($customer);
 
-        DB::table('radcheck')->where('username', $customer->username)->delete();
-        DB::table('radreply')->where('username', $customer->username)->delete();
+        DB::table('radcheck')
+            ->where('username', $customer->username)
+            ->delete();
+
+        DB::table('radreply')
+            ->where('username', $customer->username)
+            ->delete();
 
         DB::table('radacct')
             ->where('username', $customer->username)
@@ -71,62 +83,122 @@ class RadiusService
             ]);
     }
 
-    /* ---------------------------
-     | FORCE DISCONNECT
-     * ---------------------------*/
-    public static function forceDisconnect($customer)
+    /* ---------------------------------
+     | SIMPLE DISCONNECT (DB ONLY)
+     * ---------------------------------*/
+    public static function disconnect($customer)
     {
-        $sessions = DB::table('radacct')
-            ->where('username', $customer->username)
-            ->whereNull('acctstoptime')
-            ->get();
+        try {
 
-        if ($sessions->isEmpty()) {
-            return ['status' => false, 'message' => 'No active session'];
-        }
-
-        foreach ($sessions as $session) {
-
-            self::sendCoA(
-                $session->nasipaddress,
-                $customer->username,
-                $session->acctsessionid
-            );
-
-            DB::table('radacct')
-                ->where('radacctid', $session->radacctid)
+            $updated = DB::table('radacct')
+                ->where('username', $customer->username)
+                ->whereNull('acctstoptime')
                 ->update([
                     'acctstoptime' => now(),
-                    'acctterminatecause' => 'Force-Disconnect'
+                    'acctterminatecause' => 'Admin-Disconnect'
                 ]);
-        }
 
-        return ['status' => true, 'message' => 'User disconnected'];
+            if ($updated === 0) {
+                return [
+                    'status' => false,
+                    'message' => 'User is not currently online'
+                ];
+            }
+
+            return [
+                'status' => true,
+                'message' => 'User disconnected successfully'
+            ];
+
+        } catch (\Exception $e) {
+
+            return [
+                'status' => false,
+                'message' => $e->getMessage()
+            ];
+        }
     }
 
-    /* ---------------------------
-     | CoA SENDER
-     * ---------------------------*/
+    /* ---------------------------------
+     | FORCE DISCONNECT (REAL CoA)
+     * ---------------------------------*/
+    public static function forceDisconnect($customer)
+    {
+        try {
+
+            $sessions = DB::table('radacct')
+                ->where('username', $customer->username)
+                ->whereNull('acctstoptime')
+                ->get();
+
+            if ($sessions->isEmpty()) {
+                return [
+                    'status' => false,
+                    'message' => 'No active session found'
+                ];
+            }
+
+            foreach ($sessions as $session) {
+
+                self::sendCoA(
+                    $session->nasipaddress,
+                    $customer->username,
+                    $session->acctsessionid
+                );
+
+                DB::table('radacct')
+                    ->where('radacctid', $session->radacctid)
+                    ->update([
+                        'acctstoptime' => now(),
+                        'acctterminatecause' => 'Force-Disconnect'
+                    ]);
+            }
+
+            return [
+                'status' => true,
+                'message' => 'User force disconnected successfully'
+            ];
+
+        } catch (\Exception $e) {
+
+            Log::error('ForceDisconnect Error', [
+                'user' => $customer->username ?? null,
+                'error' => $e->getMessage()
+            ]);
+
+            return [
+                'status' => false,
+                'message' => $e->getMessage()
+            ];
+        }
+    }
+
+    /* ---------------------------------
+     | CoA SENDER (FIXED)
+     * ---------------------------------*/
     private static function sendCoA($nasIp, $username, $sessionId)
     {
-        $nas = DB::table('nas')->where('nasname', $nasIp)->first();
-        if (!$nas) return false;
+        $nas = DB::table('nas')
+            ->where('nasname', $nasIp)
+            ->first();
+
+        if (!$nas)
+            return false;
 
         $packet = "User-Name = \"{$username}\"\nAcct-Session-Id = \"{$sessionId}\"";
 
         $cmd = "echo " . escapeshellarg($packet) .
             " | radclient -x {$nasIp}:{$nas->ports} disconnect {$nas->secret}";
 
-        exec($cmd);
+        exec($cmd, $output, $status);
 
-        return true;
-    }
+        Log::info("CoA Sent", [
+            'nas' => $nasIp,
+            'user' => $username,
+            'status' => $status,
+            'output' => $output
+        ]);
 
-    /* ---------------------------
-     | EXPIRE CHECK
-     * ---------------------------*/
-    private static function isExpired($customer)
-    {
-        return !$customer->expire_date || now()->gt($customer->expire_date);
+        return $status === 0;
     }
 }
