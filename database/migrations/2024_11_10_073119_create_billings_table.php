@@ -14,27 +14,12 @@ return new class extends Migration
         Schema::create('billings', function (Blueprint $table) {
 
             $table->id();
-
-            $table->foreignId('customer_id')
-                ->constrained('customers')
-                ->cascadeOnDelete();
-
-            $table->foreignId('recharge_id')
-                ->constrained('recharges')
-                ->cascadeOnDelete();
-
+            $table->foreignId('customer_id')->constrained('customers')->cascadeOnDelete();
+            $table->foreignId('recharge_id')->constrained('recharges')->cascadeOnDelete();
+            $table->string('billing_no')->unique();
             $table->date('billing_date');
-
             $table->decimal('amount', 10, 2);
-
-            $table->enum('status', [
-                'unpaid',
-                'paid',
-                'partial'
-            ])->default('unpaid');
-
-            $table->string('invoice_number')->nullable();
-
+            $table->enum('status', ['unpaid', 'paid', 'partial'])->default('unpaid');
             $table->timestamps();
         });
     }

@@ -3,6 +3,8 @@
 namespace App\Models;
 
 use App\Models\InternetPlan;
+use App\Services\BillingService;
+use App\Services\InvoiceService;
 use App\Services\RadiusService;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
@@ -88,6 +90,9 @@ class Recharge extends Model
             'transaction_id' => $transactionId,
             'user_id' => auth()->id(),
         ]);
+
+        $billing = BillingService::create($customer, $recharge);
+        InvoiceService::create($billing, $recharge);
 
         $customer->update([
             'internet_plan_id' => $internetPlan->id,

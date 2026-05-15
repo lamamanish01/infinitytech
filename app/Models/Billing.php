@@ -9,6 +9,7 @@ class Billing extends Model
     protected $fillable = [
         'customer_id',
         'recharge_id',
+        'billing_no',
         'billing_date',
         'amount',
         'status',
