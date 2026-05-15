@@ -28,8 +28,10 @@ Route::middleware('auth')->group(function () {
 
     Route::resource('/users', UserController::class);
 
-    Route::get('profile', [\App\Http\Controllers\ProfileController::class, 'show'])->name('profile.show');
-    Route::put('profile', [\App\Http\Controllers\ProfileController::class, 'update'])->name('profile.update');
+    Route::get('profile', [\App\Http\Controllers\ProfileController::class, 'show'])
+        ->name('profile.show');
+    Route::put('profile', [\App\Http\Controllers\ProfileController::class, 'update'])
+        ->name('profile.update');
 
     Route::resource('/roles', RoleController::class);
     Route::resource('/permissions', PermissionController::class);
@@ -38,14 +40,26 @@ Route::middleware('auth')->group(function () {
     Route::resource('/internetplan', InternetPlanController::class);
     Route::resource('/menus', MenuController::class);
     Route::resource('/customers', CustomerController::class);
-    Route::get('/customers/{customer}/expiry', [CustomerController::class, 'expiryForm'])->name('customers.expiry-form');
-    Route::post('/customers/{customer}/change-expiry', [CustomerController::class, 'changeExpiry'])->name('customers.change-expiry');
+    Route::get('/customers/{customer}/expiry', [CustomerController::class, 'expiryForm'])
+        ->name('customers.expiry-form');
+    Route::post('/customers/{customer}/change-expiry', [CustomerController::class, 'changeExpiry'])
+        ->name('customers.change-expiry');
+    Route::post('/customer/{id}/disconnect', [CustomerController::class, 'disconnect'])
+        ->name('customer.disconnect');
+    Route::post('/customer/{id}/force-disconnect', [CustomerController::class, 'forceDisconnect'])
+        ->name('customer.forceDisconnect');
 
-    Route::get('/recharges/create/{customerId}', [RechargeController::class, 'create'])->name('recharges.create');
-    Route::post('/recharges', [RechargeController::class, 'store'])->name('recharges.store');
-    Route::get('/recharges/edit/{customerId}', [RechargeController::class, 'edit'])->name('recharges.edit');
-    Route::patch('/recharges', [RechargeController::class, 'update'])->name('recharges.update');
-    Route::post('/provide-grace/{customerId}', [RechargeController::class, 'provideGrace'])->name('provide-grace');
+
+    Route::get('/recharges/create/{customerId}', [RechargeController::class, 'create'])
+        ->name('recharges.create');
+    Route::post('/recharges', [RechargeController::class, 'store'])
+        ->name('recharges.store');
+    Route::get('/recharges/edit/{customerId}', [RechargeController::class, 'edit'])
+        ->name('recharges.edit');
+    Route::patch('/recharges', [RechargeController::class, 'update'])
+        ->name('recharges.update');
+    Route::post('/provide-grace/{customerId}', [RechargeController::class, 'provideGrace'])
+        ->name('provide-grace');
 
     Route::resource('/tr069server', Tr069ServerController::class);
     Route::resource('/tr069device', Tr069DeviceController::class);
