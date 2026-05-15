@@ -53,24 +53,7 @@
                                             <td>{{$customer->name}}</td>
                                             <td>{{$customer->address}}</td>
                                             <td>{{$customer->contact_number}}</td>
-                                            <td>{{$customer->expire_date}}</td>
-                                            {{--  <td>
-                                                @if ($customer->latestRecharge)
-                                                    @if ($customer->latestRecharge->isExpired())
-                                                        <div class="btn btn-sm btn-danger">
-                                                            {{\Carbon\Carbon::parse($customer->latestRecharge->expire_date)->format('d-m-Y')}}
-                                                        </div>
-                                                    @elseif ($customer->latestRecharge->isWithinGracePeriod())
-                                                        <div class="btn btn-sm btn-warning">
-                                                            {{\Carbon\Carbon::parse($customer->latestRecharge->expire_date)->format('d-m-Y')}}
-                                                        </div>
-                                                    @else
-                                                        {{\Carbon\Carbon::parse($customer->latestRecharge->expire_date)->format('d-m-Y')}}
-                                                    @endif
-                                                @else
-                                                    <p>No recharge record found.</p>
-                                                @endif
-                                            </td>  --}}
+                                            <td>{{$customer->expire_date->format('Y-m-d')}}</td>
                                             <td>
                                                 <div class="btn-group">
                                                     <a href="{{route('customers.show', $customer->id)}}" class="btn btn-sm btn-secondary">Show</a>

@@ -12,19 +12,16 @@ class GracePeriod extends Model
         'customer_id',
         'grace_days',
         'grace_start',
+        'grace_end'
     ];
 
     protected $casts = [
         'grace_start' => 'datetime',
+        'grace_end' => 'datetime',
     ];
 
     public function customer()
     {
         return $this->belongsTo(Customer::class);
-    }
-
-    public function graceEndDate()
-    {
-        return $this->grace_start ? Carbon::parse($this->grace_start)->addDays($this->grace_days) : null;
     }
 }

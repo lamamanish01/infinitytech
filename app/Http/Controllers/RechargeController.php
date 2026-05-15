@@ -2,11 +2,8 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Billing;
 use App\Models\Customer;
 use App\Models\GracePeriod;
-use App\Models\InternetPlan;
-use App\Models\Invoice;
 use App\Models\Recharge;
 use App\Services\RadiusService;
 use Carbon\Carbon;
@@ -101,13 +98,27 @@ class RechargeController extends Controller
             'grace_days' => 'required'
         ]);
 
+        $customer = Customer::findOrFail($customerId);
+
+        $base = $customer->expire_date
+            ? Carbon::parse($customer->expire_date)
+            : now();
+
+        $newExpire = $base->addDays((int) $request->grace_days);
+
         GracePeriod::updateOrCreate(
             ['customer_id' => $customerId],
             [
                 'grace_days' => $request->grace_days,
-                'grace_start' => Carbon::now()
+                'grace_start' => Carbon::now(),
+                'grace_end' => $newExpire
             ]
         );
+
+        $customer->update([
+            'expire_date' => $newExpire,
+            'status' => 'active'
+        ]);
 
         RadiusService::syncCustomer(
             $customer->fresh()

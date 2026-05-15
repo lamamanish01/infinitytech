@@ -84,18 +84,6 @@ class Customer extends Model
         return $this->expire_date && now()->lte($this->expire_date);
     }
 
-    public function graceEndDate()
-    {
-        $grace = $this->activeGrace();
-
-        if (!$grace || !$grace->grace_start) {
-            return null;
-        }
-
-        return Carbon::parse($grace->grace_start)
-            ->addDays($grace->grace_days);
-    }
-
     public function isInGrace()
     {
         $grace = $this->activeGrace();

@@ -56,7 +56,7 @@
                                 </li>
                                 <li class="list-group-item d-flex justify-content-between align-items-center">
                                     Status :
-                                    <span class="badge badge-primary badge-pill">{{$customer->status}}</span>
+                                    <span class="badge {{ $customer->status == 'expired' ? 'badge-danger' : 'badge-primary' }} badge-pill">{{$customer->status}}</span>
                                 </li>
                                 <li class="list-group-item d-flex justify-content-between align-items-center">
                                     @php
@@ -68,17 +68,17 @@
                                     @if($grace)
                                     <li class="list-group-item d-flex justify-content-between align-items-center">
                                         Grace Start:
-                                        <span class="badge badge-warning badge-pill">{{$grace->grace_start}}</span>
+                                        <span class="badge badge-warning badge-pill">{{$grace->grace_start->format('Y-m-d')}}</span>
                                     </li>
                                         <li class="list-group-item d-flex justify-content-between align-items-center">
                                         Grace End:
-                                        <span class="badge badge-warning badge-pill">{{$customer->graceEndDate()}}</span>
+                                        <span class="badge badge-warning badge-pill">{{$grace->grace_end->format('Y-m-d')}}</span>
                                     </li>
                                     @endif
 
                                 <li class="list-group-item d-flex justify-content-between align-items-center">
                                     Expired :
-                                    <span class="badge badge-primary badge-pill">{{$customer->expire_date}}</span>
+                                    <span class="badge badge-primary badge-pill">{{$customer->expire_date->format('Y-m-d')}}</span>
                                 </li>
                                 <li class="list-group-item d-flex justify-content-between align-items-center">
                                     Registered By :
