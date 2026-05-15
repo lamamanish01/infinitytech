@@ -89,6 +89,17 @@
                         <div class="col-md-12">
                             <a class="btn btn-warning" href="{{ route('recharges.create', $customer->id) }}"></i> Recharge Customer </a>
                             <a class="btn btn-danger" href="{{ route('customers.expiry-form', $customer->id) }}"></i> Change Expiry Date </a>
+
+                            <form action="{{ route('customer.disconnect', $customer->id) }}" method="POST">
+                                @csrf
+                                <button class="btn btn-warning btn-sm">Disconnect</button>
+                            </form>
+
+                            <form action="{{ route('customer.forceDisconnect', $customer->id) }}" method="POST"
+                                onsubmit="return confirm('Force disconnect?')">
+                                @csrf
+                                <button class="btn btn-danger btn-sm">Force Disconnect</button>
+                            </form>
                         </div>
                         <form action="{{route('provide-grace', $customer->id)}}" method="POST">
                             @csrf

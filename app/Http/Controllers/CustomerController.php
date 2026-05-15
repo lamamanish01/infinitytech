@@ -161,4 +161,30 @@ class CustomerController extends Controller
         return redirect()->route('customers.index')->with('success', 'Expiry Date changed successfully.');
     }
 
+    public function disconnect($id)
+    {
+        $customer = Customer::findOrFail($id);
+
+        $result = RadiusService::disconnect($customer);
+
+        if ($result['status']) {
+            return back()->with('success', $result['message']);
+        }
+
+        return back()->with('error', $result['message']);
+    }
+
+    public function forceDisconnect($id)
+    {
+        $customer = Customer::findOrFail($id);
+
+        $result = RadiusService::forceDisconnect($customer);
+
+        if ($result['status']) {
+            return back()->with('success', $result['message']);
+        }
+
+        return back()->with('error', $result['message']);
+    }
+
 }

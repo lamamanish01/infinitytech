@@ -21,7 +21,7 @@ class UpdateExpiredCustomers extends Command
      *
      * @var string
      */
-    protected $description = 'Check and update exipred customers & change  Framed-Pool in radreply';
+    protected $description = 'Disconnect expired users';
 
     /**
      * Execute the console command.
@@ -34,14 +34,11 @@ class UpdateExpiredCustomers extends Command
 
         foreach ($customers as $customer) {
 
-            $customer->update([
-                'status' => 'expired'
-            ]);
+            $customer->update(['status' => 'expired']);
 
-            RadiusService::removeCustomer($customer);
+            RadiusService::disconnect($customer);
         }
 
-        $this->info("Expired users removed from FreeRADIUS");
+        $this->info("Expired users processed");
     }
-
 }
