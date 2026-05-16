@@ -13,9 +13,7 @@ return new class extends Migration
     {
         Schema::create('tickets', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('customer_id')
-                ->constrained()
-                ->onDelete('cascade');
+            $table->foreignId('customer_id')->constrained()->onDelete('cascade');
             $table->foreignId('user_id')->nullable();
             $table->string('subject');
             $table->text('message');

@@ -3,7 +3,6 @@
 namespace App\Services;
 
 use App\Models\Billing;
-use App\Services\NumberService;
 
 class BillingService
 {
@@ -12,13 +11,18 @@ class BillingService
      */
     public static function create($customer, $recharge)
     {
-        return Billing::create([
+        $billing = Billing::create([
             'customer_id' => $customer->id,
             'recharge_id' => $recharge->id,
-            'billing_no'  => NumberService::billingNo($customer->id),
             'billing_date'=> now(),
             'amount'      => $recharge->price,
             'status'      => 'paid',
         ]);
+
+        $billing->update([
+            'billing_no' => 'BILL-' . now()->format('Ymd') . '-' . $billing->id
+        ]);
+
+        return $billing;
     }
 }

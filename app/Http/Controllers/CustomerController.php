@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Branch;
 use App\Models\Customer;
+use App\Models\GracePeriod;
 use App\Models\InternetPlan;
 use App\Models\Recharge;
 use App\Services\RadiusService;
@@ -73,9 +74,9 @@ class CustomerController extends Controller
     {
         $customer = Customer::with(['activeSession'])->findOrFail($id);
         $authLogs = $customer->recentAuthLogs();
-        // $billings = $customer->getCustomerBilling();
+        $billings = $customer->all();
 
-        return view('customers.show', compact('customer', 'authLogs'));
+        return view('customers.show', compact('customer', 'authLogs', 'billings'));
     }
 
     /**
@@ -159,6 +160,41 @@ class CustomerController extends Controller
         );
 
         return redirect()->route('customers.index')->with('success', 'Expiry Date changed successfully.');
+    }
+
+    public function provideGrace(Request $request, $customerId)
+    {
+        $customer = Customer::findOrFail($customerId);
+
+        $existing = GracePeriod::where('customer_id', $customerId)
+            ->where('grace_end', '>=', now())
+            ->first();
+
+        if ($existing) {
+            return back()->with('error', 'Grace already active for this customer');
+        }
+
+        $start = now();
+        $end = $start->copy()->addDays(3);
+
+        GracePeriod::updateOrCreate(
+            [
+                'customer_id' => $customerId,
+                'grace_days' => 3,
+                'grace_start' => $start,
+                'grace_end' => $end
+            ]
+        );
+
+        $customer->update([
+            'status' => 'grace'
+        ]);
+
+        RadiusService::syncCustomer(
+            $customer->fresh()
+        );
+
+        return back()->with('success', 'Grace updated successfully');
     }
 
     public function disconnect($id)

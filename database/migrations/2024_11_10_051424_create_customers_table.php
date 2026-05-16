@@ -25,7 +25,7 @@ return new class extends Migration
             $table->foreignId('user_id')->nullable()->constrained('users')->nullOnDelete();
             $table->dateTime('expire_date')->nullable();
             $table->dateTime('registered_at')->nullable();
-            $table->enum('status', ['active','expired','suspended','discontinued'])->default('active');
+            $table->enum('status', ['active', 'grace', 'expired','suspended','discontinued'])->default('active');
             $table->text('remarks')->nullable();
             $table->timestamps();
         });

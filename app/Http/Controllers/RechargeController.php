@@ -92,38 +92,38 @@ class RechargeController extends Controller
         //
     }
 
-    public function provideGrace(Request $request, $customerId)
-    {
-        $request->validate([
-            'grace_days' => 'required'
-        ]);
+    // public function provideGrace(Request $request, $customerId)
+    // {
+    //     $request->validate([
+    //         'grace_days' => 'required'
+    //     ]);
 
-        $customer = Customer::findOrFail($customerId);
+    //     $customer = Customer::findOrFail($customerId);
 
-        $base = $customer->expire_date
-            ? Carbon::parse($customer->expire_date)
-            : now();
+    //     $base = $customer->expire_date
+    //         ? Carbon::parse($customer->expire_date)
+    //         : now();
 
-        $newExpire = $base->addDays((int) $request->grace_days);
+    //     $newExpire = $base->addDays((int) $request->grace_days);
 
-        GracePeriod::updateOrCreate(
-            ['customer_id' => $customerId],
-            [
-                'grace_days' => $request->grace_days,
-                'grace_start' => Carbon::now(),
-                'grace_end' => $newExpire
-            ]
-        );
+    //     GracePeriod::updateOrCreate(
+    //         ['customer_id' => $customerId],
+    //         [
+    //             'grace_days' => $request->grace_days > 3,
+    //             'grace_start' => Carbon::now(),
+    //             'grace_end' => $newExpire
+    //         ]
+    //     );
 
-        $customer->update([
-            'expire_date' => $newExpire,
-            'status' => 'active'
-        ]);
+    //     // $customer->update([
+    //     //     'expire_date' => $newExpire,
+    //     //     'status' => 'active'
+    //     // ]);
 
-        RadiusService::syncCustomer(
-            $customer->fresh()
-        );
+    //     RadiusService::syncCustomer(
+    //         $customer->fresh()
+    //     );
 
-        return back()->with('success', 'Grace updated successfully');
-    }
+    //     return back()->with('success', 'Grace updated successfully');
+    // }
 }

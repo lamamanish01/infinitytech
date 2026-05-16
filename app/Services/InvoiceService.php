@@ -12,7 +12,7 @@ class InvoiceService
      */
     public static function create($billing, $recharge)
     {
-        return Invoice::create([
+        $invoice = Invoice::create([
             'billing_id'    => $billing->id,
             'invoice_no'    => NumberService::invoiceNo($billing->id),
             'invoice_date'  => now(),
@@ -20,6 +20,10 @@ class InvoiceService
             'status'        => 'paid',
             'payment_method'=> $recharge->payment_method ?? 'cash',
             'transaction_id'=> $recharge->transaction_id ?? null,
+        ]);
+
+        $invoice->update([
+            'invoice_no' => 'INV-' . now()->format('Ymd') . '-' . $invoice->id
         ]);
     }
 }

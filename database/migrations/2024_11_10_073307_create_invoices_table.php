@@ -15,7 +15,7 @@ return new class extends Migration
 
             $table->id();
             $table->foreignId('billing_id')->constrained('billings')->cascadeOnDelete();
-            $table->string('invoice_no')->unique();
+            $table->string('invoice_no')->nullable()->unique();
             $table->date('invoice_date');
             $table->decimal('amount', 10, 2);
             $table->enum('status', ['unpaid', 'paid'])->default('unpaid');

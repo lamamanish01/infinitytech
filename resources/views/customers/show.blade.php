@@ -78,7 +78,7 @@
 
                                 <li class="list-group-item d-flex justify-content-between align-items-center">
                                     Expired :
-                                    <span class="badge badge-primary badge-pill">{{$customer->expire_date->format('Y-m-d')}}</span>
+                                    <span class="badge badge-danger badge-pill">{{$customer->expire_date->format('Y-m-d')}}</span>
                                 </li>
                                 <li class="list-group-item d-flex justify-content-between align-items-center">
                                     Registered By :
@@ -103,11 +103,9 @@
                         </div>
                         <form action="{{route('provide-grace', $customer->id)}}" method="POST">
                             @csrf
-                            <label for="">Number of days</label>
                             <div class="input-group input-group-sm">
-                                <input type="number" min="0" class="form-control" name="grace_days">
                                 <span class="input-group-append">
-                                <button type="submit" class="btn btn-info btn-flat">Provide Grace</button>
+                                    <button type="submit" class="btn btn-info btn-flat">Provide 3 Days Grace</button>
                                 </span>
                             </div>
                         </form>
@@ -177,13 +175,14 @@
 
 
 
-                {{--  <div class="tab-pane fade" id="billing" role="tabpanel" aria-labelledby="billing-tab">
+                <div class="tab-pane fade" id="billing" role="tabpanel" aria-labelledby="billing-tab">
                     <table class="table table-hover text-nowrap">
                         <thead>
                             <tr>
                                 <th>#</th>
-                                <th>Customer</th>
-                                <th>Recharage</th>
+                                <th>Billing No</th>
+                                <th>Username</th>
+                                <th>Recharge</th>
                                 <th>Internet Plan</th>
                                 <th>Amount</th>
                             </tr>
@@ -192,15 +191,16 @@
                             @foreach ($billings as $billing)
                                 <tr>
                                     <td>{{$loop->iteration}}</td>
+                                    <td>{{$billing->billing_no}}</td>
                                     <td>{{$billing->username}}</td>
-                                    <td>{{$customer->expire_date}}</td>
-                                    <td>{{$customer->internetplan}}</td>
+                                    <td>{{$billing->expire_date->format('Y-m-d')}}</td>
+                                    <td>{{$billing->internetPlan->bandwidth_name}}</td>
                                     <td>{{$billing->amount}}</td>
                                 </tr>
                             @endforeach
                         </tbody>
                     </table>
-                </div>  --}}
+                </div>
 
 
 

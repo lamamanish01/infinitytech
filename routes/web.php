@@ -44,6 +44,8 @@ Route::middleware('auth')->group(function () {
         ->name('customers.expiry-form');
     Route::post('/customers/{customer}/change-expiry', [CustomerController::class, 'changeExpiry'])
         ->name('customers.change-expiry');
+    Route::post('/provide-grace/{customerId}', [CustomerController::class, 'provideGrace'])
+        ->name('provide-grace');
     Route::post('/customer/{id}/disconnect', [CustomerController::class, 'disconnect'])
         ->name('customer.disconnect');
     Route::post('/customer/{id}/force-disconnect', [CustomerController::class, 'forceDisconnect'])
@@ -58,8 +60,8 @@ Route::middleware('auth')->group(function () {
         ->name('recharges.edit');
     Route::patch('/recharges', [RechargeController::class, 'update'])
         ->name('recharges.update');
-    Route::post('/provide-grace/{customerId}', [RechargeController::class, 'provideGrace'])
-        ->name('provide-grace');
+    // Route::post('/provide-grace/{customerId}', [RechargeController::class, 'provideGrace'])
+    //     ->name('provide-grace');
 
     Route::resource('/tr069server', Tr069ServerController::class);
     Route::resource('/tr069device', Tr069DeviceController::class);
