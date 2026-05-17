@@ -46,7 +46,7 @@ class Customer extends Model
 
     public function internetPlan()
     {
-        return $this->belongsTo(InternetPlan::class, 'id');
+        return $this->belongsTo(InternetPlan::class, 'internet_plan_id');
     }
 
     public function user()
