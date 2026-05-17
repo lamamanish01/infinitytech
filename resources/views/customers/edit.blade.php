@@ -38,10 +38,10 @@
                                 </div>
                                 <div class="form-select">
                                     <label>Internet Plans:</label>
-                                        <select name="internetplan" class="custom-select">
-                                            <option value="">Select Internet Plans</option>
-                                            @foreach ($internetplans as $internetplan)
-                                                <option value="{{$internetplan->bandwidth_name}}">{{$internetplan->bandwidth_name}}</option>
+                                        <select name="internet_plan_id" class="custom-select">
+                                            <option>Select Internet Plans</option>
+                                            @foreach ($internet_plans as $internet_plan)
+                                                <option value="{{$internet_plan->id}}">{{$internet_plan->bandwidth_name}}</option>
                                             @endforeach
                                         </select>
                                 </div>
