@@ -134,6 +134,30 @@ class Customer extends Model
         }
     }
 
+    public function calculateStatus()
+    {
+        if (!$this->expire_date) {
+            return 'active';
+        }
+
+        $today = Carbon::today();
+        $expireDate = Carbon::parse($this->expire_date);
+
+        $graceEndDate = $expireDate
+            ->copy()
+            ->addDays($this->grace_days);
+
+        if ($today->lte($expireDate)) {
+            return 'active';
+        }
+
+        if ($today->lte($graceEndDate)) {
+            return 'grace';
+        }
+
+        return 'expired';
+    }
+
     public function radAccts()
     {
         return $this->hasMany(RadAcct::class, 'username', 'username');

@@ -28,25 +28,26 @@ class UpdateExpiredCustomers extends Command
      */
 
     public function handle()
-{
-    $customers = Customer::whereNotNull('expire_date')
-        ->whereIn('status', ['active', 'grace'])
-        ->get();
+    {
+        $customers = Customer::all();
 
-    $now = now();
+        foreach ($customers as $customer) {
 
-    foreach ($customers as $customer) {
+            $newStatus = $customer->calculateStatus();
 
-        if ($now->gt($customer->expire_date)) {
+            if ($customer->status !== $newStatus) {
 
-            $customer->update([
-                'status' => 'expired'
-            ]);
+                $customer->status = $newStatus;
+                $customer->save();
 
-            RadiusService::disconnect($customer);
+                $this->info("Customer {$customer->id} changed to {$newStatus}");
+
+                // if ($newStatus === 'expired') {
+                //     RadiusService::disconnect($customer);
+                // }
+            }
         }
-    }
 
-        $this->info("Expired users processed successfully");
+        $this->info('Customer expiry check completed.');
     }
 }
