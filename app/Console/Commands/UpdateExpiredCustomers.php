@@ -3,6 +3,7 @@
 namespace App\Console\Commands;
 
 use App\Models\Customer;
+use App\Services\MikroTikService;
 use App\Services\RadiusService;
 use Carbon\Carbon;
 use Illuminate\Console\Command;
@@ -26,28 +27,35 @@ class UpdateExpiredCustomers extends Command
     /**
      * Execute the console command.
      */
-
     public function handle()
     {
-        $customers = Customer::all();
+        $radius = app(RadiusService::class);
+        $mk = app(MikroTikService::class);
 
-        foreach ($customers as $customer) {
+        Customer::with('mikrotik','internetPlan')
+            ->chunkById(200, function ($customers) use ($radius,$mk) {
 
-            $newStatus = $customer->calculateStatus();
+                foreach ($customers as $c) {
 
-            if ($customer->status !== $newStatus) {
+                    $status = $c->calculateStatus();
 
-                $customer->status = $newStatus;
-                $customer->save();
+                    if ($c->status === $status) continue;
 
-                $this->info("Customer {$customer->id} changed to {$newStatus}");
+                    $c->update(['status'=>$status]);
 
-                // if ($newStatus === 'expired') {
-                //     RadiusService::disconnect($customer);
-                // }
-            }
-        }
+                    /*
+                    |--------------------------------------------------------------------------
+                    | 1. FREE RADIUS (AUTH ONLY)
+                    |--------------------------------------------------------------------------
+                    */
+                    $radius->syncCustomer($c);
 
-        $this->info('Customer expiry check completed.');
+                    if ($status === 'expired') {
+                        $mk->disconnectPPPoE($c->mikrotik, $c->username);
+                    }
+                }
+            });
+
+        return self::SUCCESS;
     }
 }

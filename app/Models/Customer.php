@@ -54,6 +54,11 @@ class Customer extends Model
         return $this->belongsTo(User::class);
     }
 
+    public function mikrotik()
+    {
+        return $this->belongsTo(Mikrotik::class);
+    }
+
     public function recharges()
     {
         return $this->hasMany(Recharge::class);
@@ -140,22 +145,24 @@ class Customer extends Model
             return 'active';
         }
 
-        $today = Carbon::today();
-        $expireDate = Carbon::parse($this->expire_date);
-
-        $graceEndDate = $expireDate
-            ->copy()
-            ->addDays($this->grace_days);
-
-        if ($today->lte($expireDate)) {
-            return 'active';
+        if (in_array($this->status, ['suspended', 'discontinued'])) {
+            return $this->status;
         }
 
-        if ($today->lte($graceEndDate)) {
+        $now = now();
+        $expire = $this->expire_date;
+
+        $graceEnd = $expire->copy()->addDays(3);
+
+        if ($now->greaterThan($graceEnd)) {
+            return 'expired';
+        }
+
+        if ($now->greaterThan($expire)) {
             return 'grace';
         }
 
-        return 'expired';
+        return 'active';
     }
 
     public function radAccts()

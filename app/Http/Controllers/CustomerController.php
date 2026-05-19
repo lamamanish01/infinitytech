@@ -7,6 +7,7 @@ use App\Models\Customer;
 use App\Models\GracePeriod;
 use App\Models\InternetPlan;
 use App\Models\Recharge;
+use App\Services\MikrotikService;
 use App\Services\RadiusService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -193,7 +194,8 @@ class CustomerController extends Controller
     {
         $customer = Customer::findOrFail($id);
 
-        $result = RadiusService::disconnect($customer);
+        // $result = RadiusService::disconnect($customer);
+        $result = MikrotikService::disconnectPPPoE($customer);
 
         if ($result['status']) {
             return back()->with('success', $result['message']);
@@ -206,7 +208,8 @@ class CustomerController extends Controller
     {
         $customer = Customer::findOrFail($id);
 
-        $result = RadiusService::forceDisconnect($customer);
+        // $result = RadiusService::forceDisconnect($customer);
+        $result = MikrotikService::disconnectPPPoE($customer);
 
         if ($result['status']) {
             return back()->with('success', $result['message']);

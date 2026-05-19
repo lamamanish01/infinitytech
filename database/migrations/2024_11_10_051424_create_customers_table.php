@@ -21,6 +21,7 @@ return new class extends Migration
             $table->string('username')->unique();
             $table->string('password');
             $table->foreignId('internet_plan_id')->nullable()->constrained('internet_plans')->nullOnDelete();
+            $table->foreignId('mikrotik_id')->nullable()->constrained('mikrotiks')->nullOnDelete();
             $table->foreignId('branch_id')->nullable()->constrained('branches')->nullOnDelete();
             $table->foreignId('user_id')->nullable()->constrained('users')->nullOnDelete();
             $table->dateTime('expire_date')->nullable();

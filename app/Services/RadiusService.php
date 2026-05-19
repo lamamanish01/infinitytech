@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 
 class RadiusService
@@ -9,66 +10,59 @@ class RadiusService
     /* ---------------------------------
      | SYNC CUSTOMER
      * ---------------------------------*/
-    public static function syncCustomer($customer)
+    public function syncCustomer($customer)
     {
-        DB::table('radcheck')
-            ->where('username', $customer->username)
-            ->delete();
-
-        DB::table('radreply')
-            ->where('username', $customer->username)
-            ->delete();
-
-        if (!$customer->expire_date || now()->gt($customer->expire_date)) {
-            return;
-        }
+        DB::table('radcheck')->where('username', $customer->username)->delete();
+        DB::table('radreply')->where('username', $customer->username)->delete();
 
         $plan = $customer->internetPlan;
 
-        if (!$plan) {
-            return;
+        if (!$plan) return;
+
+        // password
+        DB::table('radcheck')->insert([
+            'username' => $customer->username,
+            'attribute' => 'Cleartext-Password',
+            'op' => ':=',
+            'value' => $customer->password,
+        ]);
+
+        // single login
+        DB::table('radcheck')->insert([
+            'username' => $customer->username,
+            'attribute' => 'Simultaneous-Use',
+            'op' => ':=',
+            'value' => 1,
+        ]);
+
+        // expiration (FreeRADIUS handles auto reject)
+        if ($customer->expire_date) {
+            DB::table('radcheck')->insert([
+                'username' => $customer->username,
+                'attribute' => 'Expiration',
+                'op' => ':=',
+                'value' => Carbon::parse($customer->expire_date)->format('d M Y H:i:s'),
+            ]);
         }
 
-        DB::table('radcheck')->insert([
-            'username'  => $customer->username,
-            'attribute' => 'Cleartext-Password',
-            'op'        => ':=',
-            'value'     => $customer->password,
-        ]);
+        // ACTIVE + GRACE = same speed
+        if (in_array($customer->status, ['active', 'grace'])) {
+            DB::table('radreply')->insert([
+                'username' => $customer->username,
+                'attribute' => 'Mikrotik-Rate-Limit',
+                'op' => ':=',
+                'value' => $plan->rate_limit,
+            ]);
+        }
 
-        DB::table('radreply')->insert([
-            'username'  => $customer->username,
-            'attribute' => 'Mikrotik-Rate-Limit',
-            'op'        => ':=',
-            'value'     => $plan->rate_limit,
-        ]);
-
-        if ($customer->status === 'expired') {
-
-            DB::table('radreply')->insert(
-                [
-                    'username'  => $customer->username,
-                    'attribute' => 'Session-Timeout',
-                ],
-                [
-                    'op'    => ':=',
-                    'value' => $plan->session_time ?? 300,
-                ]
-            );
-
-            DB::table('radreply')->insert(
-                [
-                    'username'  => $customer->username,
-                    'attribute' => 'Idle-Timeout',
-                    'op'    => ':=',
-                    'value' => $plan->idle_time ?? 300,
-                ]
-            );
-        } else {
-            DB::table('radreply')
-                ->where('username', $customer->username)
-                ->whereIn('attribute', ['Session-Timeout', 'Idle-Timeout'])
-                ->delete();
+        // expired / blocked
+        if (in_array($customer->status, ['expired', 'suspended', 'discontinued'])) {
+            DB::table('radreply')->insert([
+                'username' => $customer->username,
+                'attribute' => 'Session-Timeout',
+                'op' => ':=',
+                'value' => 60,
+            ]);
         }
     }
 
@@ -77,7 +71,7 @@ class RadiusService
      * ---------------------------------*/
     public static function removeCustomer($customer)
     {
-        self::forceDisconnect($customer);
+        // self::forceDisconnect($customer);
 
         DB::table('radcheck')
             ->where('username', $customer->username)

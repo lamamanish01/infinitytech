@@ -7,12 +7,12 @@
         <div class="container-fluid">
             <div class="row mb-2">
                 <div class="col-sm-6">
-                    <h1 class="m-0">{{ __('List of Customers') }}</h1>
+                    <h1 class="m-0">{{ __('List of Mikrotiks') }}</h1>
                 </div><!-- /.col -->
             </div><!-- /.row -->
-            @can('create customer')
+            @can('create nas')
                 <div class="col-md-12 text-right">
-                    <a class="btn btn-primary" href="{{ route('customers.create') }}"></i> Create </a>
+                    <a class="btn btn-primary" href="{{ route('mikrotik.create') }}"></i> Create </a>
                 </div>
             @endcan
         </div><!-- /.container-fluid -->
@@ -35,36 +35,33 @@
                                 <thead>
                                     <tr>
                                         <th>#</th>
+                                        <th>Name</th>
+                                        <th>IP Address</th>
+                                        <th>Port</th>
                                         <th>Username</th>
-                                        <th>Internet Plan</th>
-                                        <th>Full Name</th>
-                                        <th>Address</th>
-                                        <th>Contact</th>
-                                        <th>Expire</th>
+                                        <th>Password</th>
                                         <th>Action</th>
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    @forelse($customers as $customer)
+                                    @forelse($mikrotiks as $mikrotik)
                                         <tr>
                                             <td>{{$loop->iteration}}</td>
-                                            <td>{{$customer->username}}</td>
-                                            <td>{{$customer->internetPlan->bandwidth_name}}</td>
-                                            <td>{{$customer->name}}</td>
-                                            <td>{{$customer->address}}</td>
-                                            <td>{{$customer->contact_number}}</td>
-                                            <td>{{$customer->expire_date->format('Y-m-d')}}</td>
+                                            <td>{{$mikrotik->name}}</td>
+                                            <td>{{$mikrotik->host}}</td>
+                                            <td>{{$mikrotik->port}}</td>
+                                            <td>{{$mikrotik->username}}</td>
+                                            <td>{{$mikrotik->password}}</td>
                                             <td>
                                                 <div class="btn-group">
-                                                    <a href="{{route('customers.show', $customer->id)}}" class="btn btn-sm btn-secondary">Show</a>
-                                                    @can('edit customers')
-                                                        <a href="{{route('customers.edit', $customer->id)}}" class="btn btn-sm btn-warning">Edit</a>
+                                                    @can('edit nas')
+                                                        <a href="{{route('mikrotik.edit', $mikrotik->id)}}" class="btn btn-sm btn-secondary">Edit</a>
                                                     @endcan
-                                                    @can('delete customers')
-                                                        <form action="{{route('customers.destroy', $customer->id)}}" method="post">
+                                                    @can('delete nas')
+                                                        <form action="{{route('mikrotik.destroy', $mikrotik->id)}}" method="post">
                                                             @method('Delete')
                                                             @csrf
-                                                            <button type="submit" class="btn btn-sm btn-danger" onclick="alert('Do you want to delete this Customer ?')">Delete</button>
+                                                            <button type="submit" class="btn btn-sm btn-danger" onclick="alert('Do you want to delete this mikrotik ?')">Delete</button>
                                                         </form>
                                                     @endcan
                                                 </div>
@@ -79,9 +76,10 @@
                             </table>
                         </div>
                     </div>
-                    {{$customers->links()}}
+                    {{$mikrotiks->links()}}
                 </div>
             </div>
+        </div>
             <!-- /.row -->
         </div><!-- /.container-fluid -->
     </div>
