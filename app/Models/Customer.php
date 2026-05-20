@@ -192,9 +192,13 @@ class Customer extends Model
 
     public function activeSession()
     {
+        // return $this->hasOne(RadAcct::class, 'username', 'username')
+        //     ->whereNull('acctstoptime')
+        //     ->latestOfMany('acctstarttime');
+
         return $this->hasOne(RadAcct::class, 'username', 'username')
-            ->whereNull('acctstoptime')
-            ->latestOfMany('acctstarttime');
+        ->whereNull('acctstoptime')
+        ->latest('radacctid');
     }
 
     public function previousSession()
@@ -212,11 +216,28 @@ class Customer extends Model
             return false;
         }
 
-        if (!$session->acctupdatetime) {
-            return false;
+        // session exists but no updates recently → STALE
+        $isStale = $session->acctupdatetime
+            ? $session->acctupdatetime < now()->subMinutes(5)
+            : true;
+
+        if ($isStale) {
+            return 'stale';
         }
 
-        return $session->acctupdatetime >= now()->subMinutes(5);
+        return 'true';
+
+        // $session = $this->activeSession;
+
+        // if (!$session) {
+        //     return false;
+        // }
+
+        // if (!$session->acctupdatetime) {
+        //     return false;
+        // }
+
+        // return $session->acctupdatetime >= now()->subMinutes(5);
     }
 
     public function getActiveAttribute()

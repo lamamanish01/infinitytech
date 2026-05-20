@@ -2,35 +2,78 @@
 
 namespace App\Services;
 
+use App\Models\Mikrotik;
 use RouterOS\Client;
 use RouterOS\Query;
 
 class MikroTikService
 {
-    public function connect($mk)
+    private static function client()
     {
+        /*
+        |--------------------------------------------------------------------------
+        | GET ACTIVE ROUTER
+        |--------------------------------------------------------------------------
+        */
+
+        $mk = Mikrotik::where('is_active', 1)->first();
+
+        if (!$mk) {
+            throw new \Exception('No active MikroTik found.');
+        }
+
         return new Client([
             'host' => $mk->host,
             'user' => $mk->username,
             'pass' => $mk->password,
-            'port' => $mk->port,
+            'port' => $mk->port ?? 8728,
         ]);
     }
 
-    public function disconnectPPPoE($mk, $username)
+    /*
+    |--------------------------------------------------------------------------
+    | DISCONNECT PPPoE USER
+    |--------------------------------------------------------------------------
+    */
+
+    public static function disconnectPPPoE($username)
     {
-        $client = $this->connect($mk);
+        try {
+
+        $client = self::client();
 
         $sessions = $client->query(
             (new Query('/ppp/active/print'))
                 ->where('name', $username)
         )->read();
 
-        foreach ($sessions as $s) {
+        if (empty($sessions)) {
+
+            return [
+                'status' => false,
+                'message' => 'User not online',
+            ];
+        }
+
+        foreach ($sessions as $session) {
+
             $client->query(
                 (new Query('/ppp/active/remove'))
-                    ->equal('.id', $s['.id'])
+                    ->equal('.id', $session['.id'])
             )->read();
+        }
+
+        return [
+            'status' => true,
+            'message' => 'User disconnected successfully',
+        ];
+
+        } catch (\Exception $e) {
+
+            return [
+                'status' => false,
+                'message' => $e->getMessage(),
+            ];
         }
     }
 }

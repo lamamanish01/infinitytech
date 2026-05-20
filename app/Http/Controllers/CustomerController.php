@@ -7,7 +7,7 @@ use App\Models\Customer;
 use App\Models\GracePeriod;
 use App\Models\InternetPlan;
 use App\Models\Recharge;
-use App\Services\MikrotikService;
+use App\Services\MikroTikService;
 use App\Services\RadiusService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -194,28 +194,36 @@ class CustomerController extends Controller
     {
         $customer = Customer::findOrFail($id);
 
-        // $result = RadiusService::disconnect($customer);
-        $result = MikrotikService::disconnectPPPoE($customer);
+        $result = MikroTikService::disconnectPPPoE(
+            $customer->username
+        );
 
         if ($result['status']) {
-            return back()->with('success', $result['message']);
+
+            return back()->with(
+                'success',
+                $result['message']
+            );
         }
 
-        return back()->with('error', $result['message']);
+        return back()->with(
+            'error',
+            $result['message']
+        );
     }
 
-    public function forceDisconnect($id)
-    {
-        $customer = Customer::findOrFail($id);
+    // public function forceDisconnect($id)
+    // {
+    //     $customer = Customer::findOrFail($id);
 
-        // $result = RadiusService::forceDisconnect($customer);
-        $result = MikrotikService::disconnectPPPoE($customer);
+    //     // $result = RadiusService::forceDisconnect($customer);
+    //     $result = MikroTikService::disconnectPPPoE($customer->username);
 
-        if ($result['status']) {
-            return back()->with('success', $result['message']);
-        }
+    //     if ($result['status']) {
+    //         return back()->with('success', $result['message']);
+    //     }
 
-        return back()->with('error', $result['message']);
-    }
+    //     return back()->with('error', $result['message']);
+    // }
 
 }
