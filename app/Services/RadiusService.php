@@ -10,7 +10,7 @@ class RadiusService
     /* ---------------------------------
      | SYNC CUSTOMER
      * ---------------------------------*/
-    public function syncCustomer($customer)
+    public static function syncCustomer($customer)
     {
         DB::table('radcheck')->where('username', $customer->username)->delete();
         DB::table('radreply')->where('username', $customer->username)->delete();

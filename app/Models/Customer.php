@@ -54,11 +54,6 @@ class Customer extends Model
         return $this->belongsTo(User::class);
     }
 
-    public function mikrotik()
-    {
-        return $this->belongsTo(Mikrotik::class);
-    }
-
     public function recharges()
     {
         return $this->hasMany(Recharge::class);

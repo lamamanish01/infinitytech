@@ -95,11 +95,11 @@
                                 <button class="btn btn-warning btn-sm">Disconnect</button>
                             </form>
 
-                            <form action="{{ route('customer.forceDisconnect', $customer->id) }}" method="POST"
+                            {{--  <form action="{{ route('customer.forceDisconnect', $customer->id) }}" method="POST"
                                 onsubmit="return confirm('Force disconnect?')">
                                 @csrf
                                 <button class="btn btn-danger btn-sm">Force Disconnect</button>
-                            </form>
+                            </form>  --}}
                         </div>
                         <form action="{{route('provide-grace', $customer->id)}}" method="POST">
                             @csrf
