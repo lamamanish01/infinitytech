@@ -13,7 +13,7 @@ class bindMac extends Command
      *
      * @var string
      */
-    protected $signature = 'customer:bind-mac';
+    protected $signature = 'customers:bind-mac';
 
     /**
      * The console command description.
