@@ -55,6 +55,20 @@ class RadiusService
             ]);
         }
 
+        // MAC BINDING (IMPORTANT PART)
+        if ($customer->mac_address) {
+            DB::table('radcheck')->updateOrInsert(
+                [
+                    'username'  => $customer->username,
+                    'attribute' => 'Calling-Station-Id',
+                ],
+                [
+                    'op'    => ':=',
+                    'value' => strtoupper($customer->mac_address),
+                ]
+            );
+        }
+
         // expired / blocked
         if (in_array($customer->status, ['expired', 'suspended', 'discontinued'])) {
             DB::table('radreply')->insert([

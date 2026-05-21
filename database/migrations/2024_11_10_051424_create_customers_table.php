@@ -23,6 +23,7 @@ return new class extends Migration
             $table->foreignId('internet_plan_id')->nullable()->constrained('internet_plans')->nullOnDelete();
             $table->foreignId('branch_id')->nullable()->constrained('branches')->nullOnDelete();
             $table->foreignId('user_id')->nullable()->constrained('users')->nullOnDelete();
+            $table->string('mac_address')->nullable()->index();
             $table->dateTime('expire_date')->nullable();
             $table->dateTime('registered_at')->nullable();
             $table->enum('status', ['active', 'grace', 'expired','suspended','discontinued'])->default('active');

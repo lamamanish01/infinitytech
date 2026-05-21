@@ -30,6 +30,11 @@ class Billing extends Model
         return $this->belongsTo(Recharge::class);
     }
 
+    public function internetPlan()
+    {
+        return $this->belongsTo(InternetPlan::class, 'id');
+    }
+
     public function invoice()
     {
         return $this->hasOne(Invoice::class);

@@ -52,6 +52,8 @@ Route::middleware('auth')->group(function () {
         ->name('customer.disconnect');
     Route::post('/customer/{id}/force-disconnect', [CustomerController::class, 'forceDisconnect'])
         ->name('customer.forceDisconnect');
+    Route::post('/customers/{id}/mac/bind', [CustomerController::class, 'bindMac']);
+    Route::post('/customers/{id}/mac/unbind', [CustomerController::class, 'unbindMac']);
 
 
     Route::get('/recharges/create/{customerId}', [RechargeController::class, 'create'])

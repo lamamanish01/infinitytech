@@ -20,6 +20,7 @@ class Customer extends Model
         'contact_number',
         'username',
         'password',
+        'mac_address',
         'internet_plan_id',
         'branch_id',
         'user_id',
@@ -182,7 +183,7 @@ class Customer extends Model
 
     public function billings()
     {
-        return $this->hasMany(Billing::class);
+        return $this->hasMany(Billing::class)->latest();
     }
 
     public function activeSession()
@@ -248,9 +249,9 @@ class Customer extends Model
     public function recentAuthLogs($limit = 25)
     {
         return $this->authLogs()
-            ->select('username', 'reply', 'authdate')
-            ->orderBy('authdate', 'desc')
-            ->take($limit)
+            ->select('id', 'username', 'reply', 'authdate')
+            ->orderByDesc('authdate')
+            ->limit($limit)
             ->get();
     }
 }

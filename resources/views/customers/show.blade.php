@@ -20,6 +20,8 @@
         </div>
         <!-- /.content-header -->
 
+        {{--  Customer Info  --}}
+
         <div class="card p-3">
             <ul class="nav nav-tabs" id="myTab" role="tablist">
                 <li class="nav-item" role="presentation">
@@ -76,6 +78,31 @@
                                     </li>
                                     @endif
 
+                                    @if($grace)
+                                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                                        Mac Address:
+                                        <!-- BIND BUTTON -->
+                                        <form method="POST" action="{{ url('/customers/'.$customer->id.'/mac/bind') }}">
+                                            @csrf
+                                            <button class="btn btn-sm
+                                            btn-primary">
+                                                Bind MAC
+                                            </button>
+                                        </form>
+                                    </li>
+                                    @else
+                                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                                        <!-- UNBIND BUTTON -->
+                                        <strong>MAC:</strong> {{ $customer->mac_address }}
+                                        <form method="POST" action="{{ url('/customers/'.$customer->id.'/mac/unbind') }}">
+                                            @csrf
+                                            <button class="btn btn-sm btn-danger">
+                                                Unbind MAC
+                                            </button>
+                                        </form>
+                                        </li>
+                                    @endif
+
                                 <li class="list-group-item d-flex justify-content-between align-items-center">
                                     Expired :
                                     <span class="badge badge-danger badge-pill">{{$customer->expire_date->format('Y-m-d')}}</span>
@@ -101,6 +128,7 @@
                                 <button class="btn btn-danger btn-sm">Force Disconnect</button>
                             </form>  --}}
                         </div>
+
                         <form action="{{route('provide-grace', $customer->id)}}" method="POST">
                             @csrf
                             <div class="input-group input-group-sm">
@@ -112,10 +140,10 @@
                     </div>
                 </div>
 
-
+                {{--  Session Section  --}}
 
                 <div class="tab-pane fade" id="session" role="tabpanel" aria-labelledby="session-tab">
-                    <table class="table table-hover text-nowrap">
+                    <table class="table table-hover text-nowrap table-responsive">
                         <thead>
                             <tr>
                                 <th>#</th>
@@ -172,11 +200,11 @@
                     </table>
                 </div>
 
-
+                {{--  Billings Section  --}}
 
 
                 <div class="tab-pane fade" id="billing" role="tabpanel" aria-labelledby="billing-tab">
-                    <table class="table table-hover text-nowrap">
+                    <table class="table table-hover text-nowrap table-responsive">
                         <thead>
                             <tr>
                                 <th>#</th>
@@ -188,13 +216,13 @@
                             </tr>
                         </thead>
                         <tbody>
-                            @foreach ($billings as $billing)
+                            @foreach ($customer->billings as $billing)
                                 <tr>
                                     <td>{{$loop->iteration}}</td>
                                     <td>{{$billing->billing_no}}</td>
-                                    <td>{{$billing->username}}</td>
-                                    <td>{{$billing->expire_date->format('Y-m-d')}}</td>
-                                    <td>{{$billing->internetPlan->bandwidth_name}}</td>
+                                    <td>{{$billing->customer->username}}</td>
+                                    <td>{{$billing->recharge->expire_date->format('Y-m-d')}}</td>
+                                    <td>{{$billing->customer->internetPlan->bandwidth_name ?? ''}}</td>
                                     <td>{{$billing->amount}}</td>
                                 </tr>
                             @endforeach
@@ -202,11 +230,10 @@
                     </table>
                 </div>
 
+                {{--  Activity Logs  --}}
 
-
-
-                {{--  <div class="tab-pane fade" id="logs" role="tabpanel" aria-labelledby="logs-tab">
-                    <table class="table table-hover text-nowrap">
+                <div class="tab-pane fade" id="logs" role="tabpanel" aria-labelledby="logs-tab">
+                    <table class="table table-hover text-nowrap table-responsive">
                         <thead>
                             <tr>
                                 <th>#</th>
@@ -217,10 +244,11 @@
                             </tr>
                         </thead>
                         <tbody>
-                            @foreach ($authLogs as $authLog)
+                            @foreach ($customer->authLogs as $authLog)
                                 <tr>
                                     <td>{{$loop->iteration}}</td>
                                     <td>{{$authLog->username}}</td>
+                                    <td>{{$authLog->pass}}</td>
                                     <td>{{$authLog->reply}}</td>
                                     <td>{{$authLog->reply_message}}</td>
                                     <td>{{$authLog->authdate}}</td>
@@ -228,7 +256,7 @@
                             @endforeach
                         </tbody>
                     </table>
-                </div>  --}}
+                </div>
 
               </div>
         </div>

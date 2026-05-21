@@ -11,6 +11,7 @@ use App\Services\MikroTikService;
 use App\Services\RadiusService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class CustomerController extends Controller
 {
@@ -61,10 +62,6 @@ class CustomerController extends Controller
             'user_id' => auth()->id(),
         ]);
 
-        RadiusService::syncCustomer(
-            $customer->fresh()
-        );
-
         return redirect()->route('customers.index')->with('success', 'Customer created successfully.');
     }
 
@@ -73,11 +70,16 @@ class CustomerController extends Controller
      */
     public function show($id)
     {
-        $customer = Customer::with(['activeSession'])->findOrFail($id);
-        $authLogs = $customer->recentAuthLogs();
-        $billings = $customer->all();
+        $customer = Customer::with([
+            'activeSession',
+            'internetPlan',
+            'billings.internetPlan',
+            'authLogs' => function ($q) {
+                $q->orderByDesc('authdate')->limit(25);
+            },
+        ])->findOrFail($id);
 
-        return view('customers.show', compact('customer', 'authLogs', 'billings'));
+        return view('customers.show', compact('customer'));
     }
 
     /**
@@ -210,6 +212,42 @@ class CustomerController extends Controller
             'error',
             $result['message']
         );
+    }
+
+    public function bindMac($id)
+    {
+        $customer = Customer::findOrFail($id);
+
+        $session = DB::table('radacct')
+            ->where('username', $customer->username)
+            ->whereNull('acctstoptime')
+            ->latest()
+            ->first();
+
+        if (!$session || !$session->callingstationid) {
+            return back()->with('error', 'No active session found');
+        }
+
+        $customer->update([
+            'mac_address' => strtoupper($session->callingstationid)
+        ]);
+
+        \App\Services\RadiusService::sync($customer);
+
+        return back()->with('success', 'MAC Bound Successfully');
+    }
+
+    public function unbindMac($id)
+    {
+        $customer = Customer::findOrFail($id);
+
+        $customer->update([
+            'mac_address' => null
+        ]);
+
+        RadiusService::sync($customer);
+
+        return back()->with('success', 'MAC Unbound Successfully');
     }
 
     // public function forceDisconnect($id)
