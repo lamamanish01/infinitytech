@@ -84,8 +84,7 @@
                                         <!-- BIND BUTTON -->
                                         <form method="POST" action="{{ url('/customers/'.$customer->id.'/mac/bind') }}">
                                             @csrf
-                                            <button class="btn btn-sm
-                                            btn-primary">
+                                            <button class="badge bg-primary">
                                                 Bind MAC
                                             </button>
                                         </form>
@@ -96,7 +95,7 @@
                                         <strong>MAC:</strong> {{ $customer->mac_address }}
                                         <form method="POST" action="{{ url('/customers/'.$customer->id.'/mac/unbind') }}">
                                             @csrf
-                                            <button class="btn btn-sm btn-danger">
+                                            <button class="badge bg-danger">
                                                 Unbind MAC
                                             </button>
                                         </form>

@@ -232,7 +232,7 @@ class CustomerController extends Controller
             'mac_address' => strtoupper($session->callingstationid)
         ]);
 
-        \App\Services\RadiusService::sync($customer);
+        RadiusService::syncCustomer($customer);
 
         return back()->with('success', 'MAC Bound Successfully');
     }
@@ -245,7 +245,7 @@ class CustomerController extends Controller
             'mac_address' => null
         ]);
 
-        RadiusService::sync($customer);
+        RadiusService::syncCustomer($customer);
 
         return back()->with('success', 'MAC Unbound Successfully');
     }
