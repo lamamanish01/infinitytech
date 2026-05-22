@@ -7,7 +7,6 @@ use App\Models\Customer;
 use App\Models\GracePeriod;
 use App\Models\InternetPlan;
 use App\Models\Recharge;
-use App\Services\MikroTikService;
 use App\Services\RadiusService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -196,7 +195,8 @@ class CustomerController extends Controller
     {
         $customer = Customer::findOrFail($id);
 
-        $result = MikroTikService::disconnectPPPoE(
+        $mikrotiks = app(\App\Services\MikroTikService::class);
+        $result = $mikrotiks::disconnectPPPoE(
             $customer->username
         );
 
@@ -218,19 +218,13 @@ class CustomerController extends Controller
     {
         $customer = Customer::findOrFail($id);
 
-        $session = DB::table('radacct')
-            ->where('username', $customer->username)
-            ->whereNull('acctstoptime')
-            ->latest()
-            ->first();
+        $mac = get_active_mac($customer->username);
 
-        if (!$session || !$session->callingstationid) {
+        if (!$mac) {
             return back()->with('error', 'No active session found');
         }
 
-        $customer->update([
-            'mac_address' => strtoupper($session->callingstationid)
-        ]);
+        force_bind_mac($customer, $mac);
 
         RadiusService::syncCustomer($customer);
 
@@ -241,9 +235,7 @@ class CustomerController extends Controller
     {
         $customer = Customer::findOrFail($id);
 
-        $customer->update([
-            'mac_address' => null
-        ]);
+        unbind_mac($customer);
 
         RadiusService::syncCustomer($customer);
 

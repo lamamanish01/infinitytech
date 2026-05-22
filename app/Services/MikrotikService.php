@@ -8,20 +8,8 @@ use RouterOS\Query;
 
 class MikroTikService
 {
-    private static function client()
+    private static function client($mk)
     {
-        /*
-        |--------------------------------------------------------------------------
-        | GET ACTIVE ROUTER
-        |--------------------------------------------------------------------------
-        */
-
-        $mk = Mikrotik::where('is_active', 1)->first();
-
-        if (!$mk) {
-            throw new \Exception('No active MikroTik found.');
-        }
-
         return new Client([
             'host' => $mk->host,
             'user' => $mk->username,
@@ -35,38 +23,54 @@ class MikroTikService
     | DISCONNECT PPPoE USER
     |--------------------------------------------------------------------------
     */
-
     public static function disconnectPPPoE($username)
     {
         try {
 
-        $client = self::client();
+            $routers = Mikrotik::where('is_active', 1)->get();
 
-        $sessions = $client->query(
-            (new Query('/ppp/active/print'))
-                ->where('name', $username)
-        )->read();
+            $found = false;
 
-        if (empty($sessions)) {
+            foreach ($routers as $mk) {
+
+                $client = self::client($mk);
+
+                // check session in this router
+                $sessions = $client->query(
+                    (new Query('/ppp/active/print'))
+                        ->where('name', $username)
+                )->read();
+
+                if (empty($sessions)) {
+                    continue;
+                }
+
+                $found = true;
+
+                foreach ($sessions as $session) {
+
+                    if (!isset($session['.id'])) {
+                        continue;
+                    }
+
+                    $client->query(
+                        (new Query('/ppp/active/remove'))
+                            ->equal('.id', $session['.id'])
+                    )->read();
+                }
+            }
+
+            if (!$found) {
+                return [
+                    'status' => false,
+                    'message' => 'User not found on any MikroTik',
+                ];
+            }
 
             return [
-                'status' => false,
-                'message' => 'User not online',
+                'status' => true,
+                'message' => 'User disconnected successfully',
             ];
-        }
-
-        foreach ($sessions as $session) {
-
-            $client->query(
-                (new Query('/ppp/active/remove'))
-                    ->equal('.id', $session['.id'])
-            )->read();
-        }
-
-        return [
-            'status' => true,
-            'message' => 'User disconnected successfully',
-        ];
 
         } catch (\Exception $e) {
 

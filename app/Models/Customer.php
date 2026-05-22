@@ -60,6 +60,11 @@ class Customer extends Model
         return $this->hasMany(Recharge::class);
     }
 
+    public function mikrotik()
+    {
+        return $this->belongsTo(Mikrotik::class);
+    }
+
     public function latestRecharge()
     {
         return $this->hasOne(Recharge::class)->latestOfMany('expire_date');
@@ -146,7 +151,7 @@ class Customer extends Model
         }
 
         $now = now();
-        $expire = $this->expire_date;
+        $expire = $this->expire_date; // now Carbon because of casting
 
         $graceEnd = $expire->copy()->addDays(3);
 

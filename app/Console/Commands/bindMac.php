@@ -6,47 +6,49 @@ use App\Models\Customer;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
 
-class bindMac extends Command
+class BindMac extends Command
 {
-    /**
-     * The name and signature of the console command.
-     *
-     * @var string
-     */
     protected $signature = 'customers:bind-mac';
 
-    /**
-     * The console command description.
-     *
-     * @var string
-     */
-    protected $description = 'Auto bind missing MAC from active sessions';
+    protected $description = 'Auto bind missing MAC from active RADIUS sessions';
 
-    /**
-     * Execute the console command.
-     */
+    private function normalizeMac($mac)
+    {
+        return strtoupper(str_replace([':', '-', '.'], '', $mac));
+    }
+
     public function handle()
     {
-        $customers = Customer::whereNull('mac_address')->get();
+        Customer::whereNull('mac_address')
+            ->chunkById(200, function ($customers) {
 
-        foreach ($customers as $customer) {
+                foreach ($customers as $customer) {
 
-            $session = DB::table('radacct')
-                ->where('username', $customer->username)
-                ->whereNull('acctstoptime')
-                ->first();
+                    $session = DB::table('radacct')
+                        ->where('username', $customer->username)
+                        ->whereNull('acctstoptime')
+                        ->latest()
+                        ->first();
 
-            if (!$session || !$session->callingstationid) {
-                continue;
-            }
+                    if (!$session || !$session->callingstationid) {
+                        continue;
+                    }
 
-            $customer->update([
-                'mac_address' => strtoupper($session->callingstationid)
-            ]);
+                    $mac = $this->normalizeMac($session->callingstationid);
 
-            $this->info("MAC bound: {$customer->username}");
-        }
+                    // avoid invalid empty MAC
+                    if (!$mac) {
+                        continue;
+                    }
 
-        return 0;
+                    $customer->update([
+                        'mac_address' => $mac
+                    ]);
+
+                    $this->info("MAC bound: {$customer->username} => {$mac}");
+                }
+            });
+
+        return Command::SUCCESS;
     }
 }

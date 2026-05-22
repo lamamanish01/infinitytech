@@ -78,9 +78,9 @@
                                     </li>
                                     @endif
 
-                                    @if($grace)
+                                    @if($customer->mac_address)
                                     <li class="list-group-item d-flex justify-content-between align-items-center">
-                                            MAC:
+                                            MAC: {{ $customer->mac_address }}
                                             <!-- BIND BUTTON -->
                                             <form method="POST" action="{{ url('/customers/'.$customer->id.'/mac/bind') }}">
                                                 @csrf
