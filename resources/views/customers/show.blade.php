@@ -80,25 +80,25 @@
 
                                     @if($grace)
                                     <li class="list-group-item d-flex justify-content-between align-items-center">
-                                        Mac Address:
-                                        <!-- BIND BUTTON -->
-                                        <form method="POST" action="{{ url('/customers/'.$customer->id.'/mac/bind') }}">
-                                            @csrf
-                                            <button class="badge bg-primary">
-                                                Bind MAC
-                                            </button>
-                                        </form>
+                                            MAC:
+                                            <!-- BIND BUTTON -->
+                                            <form method="POST" action="{{ url('/customers/'.$customer->id.'/mac/bind') }}">
+                                                @csrf
+                                                <button class="badge bg-primary">
+                                                    Bind MAC
+                                                </button>
+                                            </form>
                                     </li>
                                     @else
                                         <li class="list-group-item d-flex justify-content-between align-items-center">
-                                        <!-- UNBIND BUTTON -->
-                                        <strong>MAC:</strong> {{ $customer->mac_address }}
-                                        <form method="POST" action="{{ url('/customers/'.$customer->id.'/mac/unbind') }}">
-                                            @csrf
-                                            <button class="badge bg-danger">
-                                                Unbind MAC
-                                            </button>
-                                        </form>
+                                            <!-- UNBIND BUTTON -->
+                                            MAC: {{ $customer->mac_address }}
+                                            <form method="POST" action="{{ url('/customers/'.$customer->id.'/mac/unbind') }}">
+                                                @csrf
+                                                <button class="badge bg-danger">
+                                                    Unbind MAC
+                                                </button>
+                                            </form>
                                         </li>
                                     @endif
 
