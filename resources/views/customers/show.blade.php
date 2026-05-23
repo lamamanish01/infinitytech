@@ -22,7 +22,7 @@
 
         {{--  Customer Info  --}}
 
-        <div class="card p-3">
+        <div class="card">
             <ul class="nav nav-tabs" id="myTab" role="tablist">
                 <li class="nav-item" role="presentation">
                   <a class="nav-link active" id="info-tab" data-bs-toggle="tab" data-bs-target="#info" type="button" role="tab" aria-controls="info" aria-selected="true">Customer Info</a>
@@ -251,7 +251,7 @@
                                     <td>{{$authLog->pass}}</td>
                                     <td>{{$authLog->reply}}</td>
                                     <td>{{$authLog->reply_message}}</td>
-                                    <td>{{$authLog->authdate}}</td>
+                                    <td>{{$authLog->authdate->toDateTimeString()}}</td>
                                 </tr>
                             @endforeach
                         </tbody>
