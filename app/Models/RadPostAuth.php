@@ -9,4 +9,8 @@ class RadPostAuth extends Model
     protected $table = "radpostauth";
     protected $guarded = [];
     public $timestamps = false;
+
+    protected $casts = [
+        'authdate' => 'datetime',
+    ];
 }

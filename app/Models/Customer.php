@@ -33,7 +33,6 @@ class Customer extends Model
     protected $casts = [
         'expire_date' => 'datetime',
         'registered_at' => 'datetime',
-        'authdate' => 'datetime',
     ];
 
     public function branch()
