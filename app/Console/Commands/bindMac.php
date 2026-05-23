@@ -3,13 +3,13 @@
 namespace App\Console\Commands;
 
 use App\Models\Customer;
+use App\Models\CronLog;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
 
 class BindMac extends Command
 {
     protected $signature = 'customers:bind-mac';
-
     protected $description = 'Auto bind missing MAC from active RADIUS sessions';
 
     private function normalizeMac($mac)
@@ -19,36 +19,68 @@ class BindMac extends Command
 
     public function handle()
     {
-        Customer::whereNull('mac_address')
-            ->chunkById(200, function ($customers) {
+        $bound = 0;
 
-                foreach ($customers as $customer) {
+        try {
 
-                    $session = DB::table('radacct')
-                        ->where('username', $customer->username)
-                        ->whereNull('acctstoptime')
-                        ->latest()
-                        ->first();
+            Customer::whereNull('mac_address')
+                ->chunkById(200, function ($customers) use (&$bound) {
 
-                    if (!$session || !$session->callingstationid) {
-                        continue;
+                    foreach ($customers as $customer) {
+
+                        $session = DB::table('radacct')
+                            ->where('username', $customer->username)
+                            ->whereNull('acctstoptime')
+                            ->latest()
+                            ->first();
+
+                        if (!$session || !$session->callingstationid) {
+                            continue;
+                        }
+
+                        $mac = $this->normalizeMac($session->callingstationid);
+
+                        if (!$mac) {
+                            continue;
+                        }
+
+                        $customer->update([
+                            'mac_address' => $mac
+                        ]);
+
+                        $bound++;
+
+                        $this->info("MAC bound: {$customer->username} => {$mac}");
                     }
+                });
 
-                    $mac = $this->normalizeMac($session->callingstationid);
+            /*
+            |--------------------------------------------------------------------------
+            | SUCCESS CRON LOG
+            |--------------------------------------------------------------------------
+            */
+            CronLog::create([
+                'command' => $this->signature,
+                'status'  => 'success',
+                'message' => "MAC bound for {$bound} customers"
+            ]);
 
-                    // avoid invalid empty MAC
-                    if (!$mac) {
-                        continue;
-                    }
+            return Command::SUCCESS;
 
-                    $customer->update([
-                        'mac_address' => $mac
-                    ]);
+        } catch (\Exception $e) {
 
-                    $this->info("MAC bound: {$customer->username} => {$mac}");
-                }
-            });
+            /*
+            |--------------------------------------------------------------------------
+            | FAILED CRON LOG
+            |--------------------------------------------------------------------------
+            */
+            CronLog::create([
+                'command' => $this->signature,
+                'status'  => 'failed',
+                'message' => $e->getMessage()
+            ]);
 
-        return Command::SUCCESS;
+            return Command::FAILURE;
+        }
     }
 }
