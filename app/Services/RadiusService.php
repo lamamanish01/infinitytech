@@ -32,7 +32,7 @@ class RadiusService
             'username' => $customer->username,
             'attribute' => 'Simultaneous-Use',
             'op' => ':=',
-            'value' => 2,
+            'value' => 1,
         ]);
 
         DB::table('radcheck')->insert([
