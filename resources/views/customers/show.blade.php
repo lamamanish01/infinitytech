@@ -116,11 +116,6 @@
                             <a class="btn btn-warning" href="{{ route('recharges.create', $customer->id) }}"></i> Recharge Customer </a>
                             <a class="btn btn-danger" href="{{ route('customers.expiry-form', $customer->id) }}"></i> Change Expiry Date </a>
 
-                            <form action="{{ route('customer.disconnect', $customer->id) }}" method="POST">
-                                @csrf
-                                <button class="btn btn-warning btn-sm">Disconnect</button>
-                            </form>
-
                             {{--  <form action="{{ route('customer.forceDisconnect', $customer->id) }}" method="POST"
                                 onsubmit="return confirm('Force disconnect?')">
                                 @csrf
@@ -171,6 +166,12 @@
                                     <td>{{ $customer->active->mac_address}}</td>
                                     <td>{{ $customer->active->nas_ip}}</td>
                                     <td>{{ $customer->active->ppp_server}}</td>
+                                    <td>
+                                        <form action="{{ route('customer.disconnect', $customer->id) }}" method="POST">
+                                            @csrf
+                                            <button class="btn btn-danger btn-sm">Disconnect</button>
+                                        </form>
+                                    </td>
                                 </tr>
                             @else
 
@@ -200,7 +201,6 @@
                 </div>
 
                 {{--  Billings Section  --}}
-
 
                 <div class="tab-pane fade" id="billing" role="tabpanel" aria-labelledby="billing-tab">
                     <table class="table table-hover text-nowrap table-responsive">
@@ -237,6 +237,7 @@
                             <tr>
                                 <th>#</th>
                                 <th>Username</th>
+                                <th>Password</th>
                                 <th>Reply</th>
                                 <th>Reply Message</th>
                                 <th>Auth Date</th>

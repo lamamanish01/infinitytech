@@ -20,7 +20,7 @@ class UpdateExpiredCustomers extends Command
      *
      * @var string
      */
-    protected $description = 'Disconnect expired users';
+    protected $description = 'Disconnect expired users and sync status';
 
     /**
      * Execute the console command.
@@ -30,26 +30,27 @@ class UpdateExpiredCustomers extends Command
         $radius = app(\App\Services\RadiusService::class);
         $mk = app(\App\Services\MikroTikService::class);
 
-        Customer::with('mikrotik', 'internetPlan')
+        Customer::with(['mikrotik', 'internetPlan'])
             ->chunkById(200, function ($customers) use ($radius, $mk) {
 
                 foreach ($customers as $c) {
-
                     $status = $c->calculateStatus();
-
                     $oldStatus = $c->status;
 
-                    // ALWAYS handle expired users (even if already expired)
                     if ($status === 'expired') {
-                        $mk->disconnectPPPoE(
-                            $c->mikrotik,
-                            $c->username
-                        );
+
+                        if ($c->mikrotik) {
+                            $mk->disconnectPPPoE($c->mikrotik, $c->username);
+                        }
+
+                        $radius->removeCustomer($c);
                     }
 
-                    // always update status if changed
                     if ($oldStatus !== $status) {
-                        $c->update(['status' => $status]);
+
+                        $c->update([
+                            'status' => $status
+                        ]);
 
                         $this->info("Customer {$c->id}: {$oldStatus} → {$status}");
 

@@ -27,12 +27,19 @@ class RadiusService
             'value' => $customer->password,
         ]);
 
-        // single login
+        // double login
         DB::table('radcheck')->insert([
             'username' => $customer->username,
             'attribute' => 'Simultaneous-Use',
             'op' => ':=',
-            'value' => 1,
+            'value' => 2,
+        ]);
+
+        DB::table('radcheck')->insert([
+            'username' => $customer->username,
+            'attribute' => 'Framed-Pool',
+            'op' => ':=',
+            'value' => 'PPPoE-Pool',
         ]);
 
         // expiration (FreeRADIUS handles auto reject)

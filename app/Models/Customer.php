@@ -128,30 +128,15 @@ class Customer extends Model
         return 'expired';
     }
 
-    public function checkStatus(Customer $customer)
-    {
-        if ($customer->isExpired()) {
-
-            $customer->update([
-                'status' => 'expired'
-            ]);
-
-            RadiusService::removeCustomer($customer);
-        }
-    }
-
     public function calculateStatus()
     {
         if (!$this->expire_date) {
             return 'active';
         }
 
-        if (in_array($this->status, ['suspended', 'discontinued'])) {
-            return $this->status;
-        }
-
         $now = now();
-        $expire = $this->expire_date; // now Carbon because of casting
+
+        $expire = $this->expire_date->copy()->endOfDay();
 
         $graceEnd = $expire->copy()->addDays(3);
 

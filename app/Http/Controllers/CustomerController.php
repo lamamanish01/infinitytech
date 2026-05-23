@@ -7,6 +7,7 @@ use App\Models\Customer;
 use App\Models\GracePeriod;
 use App\Models\InternetPlan;
 use App\Models\Recharge;
+use App\Services\MikroTikService;
 use App\Services\RadiusService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -195,8 +196,7 @@ class CustomerController extends Controller
     {
         $customer = Customer::findOrFail($id);
 
-        $mikrotiks = app(\App\Services\MikroTikService::class);
-        $result = $mikrotiks::disconnectPPPoE(
+        $result = MikroTikService::disconnectPPPoE(
             $customer->username
         );
 
