@@ -6,7 +6,7 @@ use App\Models\Mikrotik;
 use RouterOS\Client;
 use RouterOS\Query;
 
-class MikroTikService
+class MikrotikService
 {
     private static function client($mk)
     {
