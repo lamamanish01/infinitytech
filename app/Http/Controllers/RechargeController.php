@@ -3,9 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Customer;
-use App\Models\GracePeriod;
 use App\Models\Recharge;
-use App\Services\RadiusService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 
@@ -31,21 +29,28 @@ class RechargeController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request, Recharge $recharge)
+    public function store(Request $request)
     {
         $request->validate([
             'customer_id' => 'required|exists:customers,id',
             'internet_plan_id' => 'required|exists:internet_plans,id',
+            'payment_method' => 'nullable',
+            'transaction_id' => 'nullable|unique:recharges,transaction_id',
         ]);
 
-        Recharge::makeRecharge(
-            $request->customer_id,
-            $request->internet_plan_id,
-            $request->payment_method,
-            $request->transaction_id
-        );
+        try {
+            $recharge = Recharge::makeRecharge(
+                $request->customer_id,
+                $request->internet_plan_id,
+                $request->payment_method,
+                $request->transaction_id
+            );
 
-        return redirect()->route('customers.index')->with('success', 'Customer recharge successful');
+            return back()->with('success', 'Recharge successful');
+
+        } catch (\Exception $e) {
+            return back()->with('error', $e->getMessage());
+        }
     }
 
     /**
@@ -91,39 +96,4 @@ class RechargeController extends Controller
     {
         //
     }
-
-    // public function provideGrace(Request $request, $customerId)
-    // {
-    //     $request->validate([
-    //         'grace_days' => 'required'
-    //     ]);
-
-    //     $customer = Customer::findOrFail($customerId);
-
-    //     $base = $customer->expire_date
-    //         ? Carbon::parse($customer->expire_date)
-    //         : now();
-
-    //     $newExpire = $base->addDays((int) $request->grace_days);
-
-    //     GracePeriod::updateOrCreate(
-    //         ['customer_id' => $customerId],
-    //         [
-    //             'grace_days' => $request->grace_days > 3,
-    //             'grace_start' => Carbon::now(),
-    //             'grace_end' => $newExpire
-    //         ]
-    //     );
-
-    //     // $customer->update([
-    //     //     'expire_date' => $newExpire,
-    //     //     'status' => 'active'
-    //     // ]);
-
-    //     RadiusService::syncCustomer(
-    //         $customer->fresh()
-    //     );
-
-    //     return back()->with('success', 'Grace updated successfully');
-    // }
 }

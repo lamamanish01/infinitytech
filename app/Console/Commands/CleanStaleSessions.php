@@ -15,37 +15,39 @@ class CleanStaleSessions extends Command
     {
         try {
 
+            $cutoff = now()->subMinutes(5);
+
             $updated = DB::table('radacct')
                 ->whereNull('acctstoptime')
-                ->where(function ($q) {
-                    $q->where('acctupdatetime', '<', now()->subMinutes(5))
-                      ->orWhereNull('acctupdatetime');
+                ->where(function ($q) use ($cutoff) {
+                    $q->where('acctupdatetime', '<', $cutoff)
+                    ->orWhereNull('acctupdatetime');
                 })
                 ->update([
-                    'acctstoptime' => now(),
-                    'acctterminatecause' => 'Stale-Session'
+                    'acctstoptime'        => now(),
+                    'acctterminatecause'  => 'Stale-Session'
                 ]);
 
             /*
             |--------------------------------------------------------------------------
-            | SUCCESS CRON LOG
+            | SUCCESS LOG
             |--------------------------------------------------------------------------
             */
             CronLog::create([
                 'command' => $this->signature,
                 'status'  => 'success',
-                'message' => "Cleaned {$updated} stale sessions"
+                'message' => "Stale sessions closed: {$updated}"
             ]);
 
-            $this->info("Cleaned {$updated} stale sessions.");
+            $this->info("Stale sessions closed: {$updated}");
 
             return Command::SUCCESS;
 
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
 
             /*
             |--------------------------------------------------------------------------
-            | FAILED CRON LOG
+            | ERROR LOG
             |--------------------------------------------------------------------------
             */
             CronLog::create([

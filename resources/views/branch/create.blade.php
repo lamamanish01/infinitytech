@@ -38,6 +38,9 @@
                                 <div class="form-group">
                                     <label>Contact Number:</label>
                                     <input type="text" class="form-control" name="contact_number" placeholder="Enter Contact">
+                                </div><div class="form-group">
+                                    <label>Balance:</label>
+                                    <input type="number" class="form-control" name="balance" placeholder="Enter Branch Balance">
                                 </div>
                                 <div class="form-group">
                                     <label>Remarks:</label>
@@ -56,6 +59,5 @@
         </div>
             <!-- /.row -->
         </div><!-- /.container-fluid -->
-    </div>
     <!-- /.content -->
 @endsection

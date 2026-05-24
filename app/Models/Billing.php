@@ -39,4 +39,34 @@ class Billing extends Model
     {
         return $this->hasOne(Invoice::class);
     }
+
+    public static function createBilling($customer, $recharge)
+    {
+        $billing = self::create([
+            'customer_id'  => $customer->id,
+            'recharge_id'  => $recharge->id,
+            'amount'       => $recharge->price,
+            'billing_date' => now(),
+            'status'       => 'paid',
+        ]);
+
+        // generate billing number immediately
+        $billing->generateNumber();
+
+        return $billing;
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | BILLING NUMBER GENERATOR
+    |--------------------------------------------------------------------------
+    */
+
+    public function generateNumber()
+    {
+        $this->update([
+            'billing_no' =>
+                'BILL-' . now()->format('Ymd') . '-' . $this->id
+        ]);
+    }
 }

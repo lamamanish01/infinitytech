@@ -12,57 +12,104 @@ class RadiusService
      * ---------------------------------*/
     public static function syncCustomer($customer)
     {
-        DB::table('radcheck')->where('username', $customer->username)->delete();
-        DB::table('radreply')->where('username', $customer->username)->delete();
-
         $plan = $customer->internetPlan;
 
         if (!$plan) return;
 
-        // password
+        // 🔥 Clean previous config
+        DB::table('radcheck')->where('username', $customer->username)->delete();
+        DB::table('radreply')->where('username', $customer->username)->delete();
+
+        /*
+        |--------------------------------------------------------------------------
+        | BASIC AUTH
+        |--------------------------------------------------------------------------
+        */
+
         DB::table('radcheck')->insert([
-            'username' => $customer->username,
+            'username'  => $customer->username,
             'attribute' => 'Cleartext-Password',
-            'op' => ':=',
-            'value' => $customer->password,
+            'op'        => ':=',
+            'value'     => $customer->password,
         ]);
 
-        // double login
         DB::table('radcheck')->insert([
-            'username' => $customer->username,
+            'username'  => $customer->username,
             'attribute' => 'Simultaneous-Use',
-            'op' => ':=',
-            'value' => 1,
+            'op'        => ':=',
+            'value'     => 1,
         ]);
 
-        DB::table('radcheck')->insert([
-            'username' => $customer->username,
+        /*
+        |--------------------------------------------------------------------------
+        | REQUIRED FOR PPPoE (VERY IMPORTANT)
+        |--------------------------------------------------------------------------
+        */
+
+        DB::table('radreply')->insert([
+            'username'  => $customer->username,
+            'attribute' => 'Service-Type',
+            'op'        => ':=',
+            'value'     => 'Framed-User',
+        ]);
+
+        DB::table('radreply')->insert([
+            'username'  => $customer->username,
+            'attribute' => 'Framed-Protocol',
+            'op'        => ':=',
+            'value'     => 'PPP',
+        ]);
+
+        /*
+        |--------------------------------------------------------------------------
+        | IP ASSIGNMENT (THIS FIXES YOUR ISSUE)
+        |--------------------------------------------------------------------------
+        */
+
+        DB::table('radreply')->insert([
+            'username'  => $customer->username,
             'attribute' => 'Framed-Pool',
-            'op' => ':=',
-            'value' => 'PPPoE-Pool',
+            'op'        => ':=',
+            'value'     => 'PPPoE-Pool',
         ]);
 
-        // expiration (FreeRADIUS handles auto reject)
+        /*
+        |--------------------------------------------------------------------------
+        | EXPIRATION
+        |--------------------------------------------------------------------------
+        */
+
         if ($customer->expire_date) {
             DB::table('radcheck')->insert([
-                'username' => $customer->username,
+                'username'  => $customer->username,
                 'attribute' => 'Expiration',
-                'op' => ':=',
-                'value' => Carbon::parse($customer->expire_date)->format('d M Y H:i:s'),
+                'op'        => ':=',
+                'value'     => \Carbon\Carbon::parse($customer->expire_date)
+                    ->format('d M Y H:i:s'),
             ]);
         }
 
-        // ACTIVE + GRACE = same speed
+        /*
+        |--------------------------------------------------------------------------
+        | RATE LIMIT (ACTIVE + GRACE)
+        |--------------------------------------------------------------------------
+        */
+
         if (in_array($customer->status, ['active', 'grace'])) {
             DB::table('radreply')->insert([
-                'username' => $customer->username,
+                'username'  => $customer->username,
                 'attribute' => 'Mikrotik-Rate-Limit',
-                'op' => ':=',
-                'value' => $plan->rate_limit,
+                'op'        => ':=',
+                'value'     => $plan->rate_limit,
             ]);
         }
 
-        // MAC BINDING (IMPORTANT PART)
+        /*
+        |--------------------------------------------------------------------------
+        | MAC BINDING (SAFE UPSERT)
+        |--------------------------------------------------------------------------
+        */
+
         if ($customer->mac_address) {
             DB::table('radcheck')->updateOrInsert(
                 [
@@ -76,13 +123,18 @@ class RadiusService
             );
         }
 
-        // expired / blocked
+        /*
+        |--------------------------------------------------------------------------
+        | BLOCKED USERS
+        |--------------------------------------------------------------------------
+        */
+
         if (in_array($customer->status, ['expired', 'suspended', 'discontinued'])) {
             DB::table('radreply')->insert([
-                'username' => $customer->username,
+                'username'  => $customer->username,
                 'attribute' => 'Session-Timeout',
-                'op' => ':=',
-                'value' => 60,
+                'op'        => ':=',
+                'value'     => 60,
             ]);
         }
     }

@@ -16,7 +16,7 @@ return new class extends Migration
             $table->string('name');
             $table->string('address');
             $table->bigInteger('contact_number')->nullable();
-            $table->integer('balance')->nullable();
+            $table->decimal('balance', 12, 2)->default(0);
             $table->string('remarks')->nullable();
             $table->timestamps();
         });

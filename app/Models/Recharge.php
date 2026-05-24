@@ -8,6 +8,7 @@ use App\Services\InvoiceService;
 use App\Services\RadiusService;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\DB;
 
 class Recharge extends Model
 {
@@ -38,72 +39,83 @@ class Recharge extends Model
         return $this->belongsTo(InternetPlan::class);
     }
 
-    public static function makeRecharge($customerId, $internetplanId, $paymentMethod = null, $transactionId = null)
+    public static function makeRecharge($customerId, $planId, $paymentMethod = null, $transactionId = null)
     {
-        $customer = Customer::findOrFail($customerId);
-        $internetPlan = InternetPlan::findOrFail($internetplanId);
+        return DB::transaction(function () use (
+            $customerId,
+            $planId,
+            $paymentMethod,
+            $transactionId
+        ) {
 
-        GracePeriod::where('customer_id', $customer->id)->delete();
+            // ✅ FIX: convert IDs to MODELS
+            $customer = Customer::lockForUpdate()->findOrFail($customerId);
+            $plan = InternetPlan::findOrFail($planId);
+            $branch = Branch::lockForUpdate()->findOrFail($customer->branch_id);
 
-        if ($customer->expire_date && Carbon::parse($customer->expire_date)->isFuture())
-        {
-            $expireDate = Carbon::parse($customer->expire_date);
+            // ❌ duplicate check
+            if ($transactionId) {
+                $exists = self::where('transaction_id', $transactionId)->exists();
+                if ($exists) {
+                    throw new \Exception("Duplicate transaction detected");
+                }
+            }
 
-        } else {
-            $expireDate = now();
-        }
+            // ❌ balance check
+            if ($branch->balance < $plan->price) {
+                throw new \Exception("Insufficient branch balance");
+            }
 
-        switch ($internetPlan->type) {
-            case 'day':
-                $expireDate->addDays(
-                    (int) $internetPlan->duration
-                );
-            break;
+             /*
+            |--------------------------------------------------------------------------
+            | RESET TEMP STATES (IMPORTANT FIX)
+            |--------------------------------------------------------------------------
+            */
+            GracePeriod::where('customer_id', $customer->id)->delete();
 
-            case 'month':
-                $expireDate->addMonths(
-                    (int) $internetPlan->duration
-                );
-            break;
+            // expiry
+            $expireDate = $customer->expire_date
+                ? Carbon::parse($customer->expire_date)->copy()
+                : now();
 
-            case 'year':
-                $expireDate->addYears(
-                    (int) $internetPlan->duration
-                );
-            break;
+            match ($plan->type) {
+                'month' => $expireDate->addMonths($plan->duration),
+                'year'  => $expireDate->addYears($plan->duration),
+                default => $expireDate->addDays($plan->duration),
+            };
 
-            default:
-                $expireDate->addDays(
-                    (int) $internetPlan->duration
-                );
-            break;
-        }
+            // recharge
+            $recharge = self::create([
+                'customer_id' => $customer->id,
+                'internet_plan_id' => $plan->id,
+                'price' => $plan->price,
+                'recharge_date' => now(),
+                'expire_date' => $expireDate,
+                'status' => 'active',
+                'payment_method' => $paymentMethod,
+                'transaction_id' => $transactionId,
+                'user_id' => auth()->id(),
+            ]);
 
-        $recharge = self::create([
-            'customer_id' => $customer->id,
-            'internet_plan_id' => $internetPlan->id,
-            'price' => $internetPlan->price,
-            'recharge_date' => now(),
-            'expire_date' => $expireDate,
-            'status' => 'active',
-            'payment_method' => $paymentMethod,
-            'transaction_id' => $transactionId,
-            'user_id' => auth()->id(),
-        ]);
+            // billing
+            $billing = Billing::createBilling($customer, $recharge);
 
-        $billing = BillingService::create($customer, $recharge);
-        InvoiceService::create($billing, $recharge);
+            // invoice
+            $invoice = Invoice::createInvoice($billing, $recharge);
 
-        $customer->update([
-            'internet_plan_id' => $internetPlan->id,
-            'expire_date' => $expireDate,
-            'status' => 'active',
-        ]);
+            // debit
+            $branch->decrement('balance', $plan->price);
 
-        RadiusService::syncCustomer(
-            $customer->fresh()
-        );
+            // update customer
+            $customer->update([
+                'internet_plan_id' => $plan->id,
+                'expire_date' => $expireDate,
+                'status' => 'active',
+            ]);
 
-        return true;
+            RadiusService::syncCustomer($customer->fresh());
+
+            return $recharge;
+        });
     }
 }

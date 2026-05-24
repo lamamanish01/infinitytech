@@ -14,118 +14,87 @@ class UpdateExpiredCustomers extends Command
     public function handle()
     {
         $radius = app(\App\Services\RadiusService::class);
-        $mk = app(\App\Services\MikroTikService::class);
+        $mk     = app(\App\Services\MikroTikService::class);
 
-        $processed = 0;
-        $updated = 0;
-        $expired = 0;
-        $failed = 0;
+        $stats = [
+            'processed' => 0,
+            'updated'   => 0,
+            'expired'   => 0,
+            'failed'    => 0,
+        ];
 
-        try {
+        Customer::with(['mikrotik'])
+            ->chunkById(200, function ($customers) use ($radius, $mk, &$stats) {
 
-            Customer::with(['mikrotik', 'internetPlan'])
-                ->chunkById(200, function ($customers) use (
-                    $radius,
-                    $mk,
-                    &$processed,
-                    &$updated,
-                    &$expired,
-                    &$failed
-                ) {
+                foreach ($customers as $customer) {
 
-                    foreach ($customers as $c) {
+                    try {
+                        $stats['processed']++;
 
-                        try {
+                        // 🔥 always fresh data
+                        $customer->refresh();
 
-                            $status = $c->calculateStatus();
-                            $oldStatus = $c->status;
+                        // 🎯 single truth
+                        $newStatus = $customer->calculateStatus();
+                        $oldStatus = $customer->status;
 
-                            $processed++;
-
-                            /*
-                            |--------------------------------------------------------------------------
-                            | EXPIRED HANDLING (SESSION BASED)
-                            |--------------------------------------------------------------------------
-                            */
-                            if ($status === 'expired' && $oldStatus !== 'expired') {
-
-                                // Get ACTIVE session from radius
-                                $session = \DB::table('radacct')
-                                    ->where('username', $c->username)
-                                    ->whereNull('acctstoptime')
-                                    ->latest()
-                                    ->first();
-
-                                // Disconnect only if session exists
-                                if ($c->mikrotik && $session) {
-                                    $mk->disconnectPPPoE(
-                                        $c->mikrotik,
-                                        $session->username
-                                    );
-                                }
-
-                                $radius->removeCustomer($c);
-
-                                $expired++;
-                            }
-
-                            /*
-                            |--------------------------------------------------------------------------
-                            | STATUS UPDATE
-                            |--------------------------------------------------------------------------
-                            */
-                            if ($oldStatus !== $status) {
-
-                                $c->update([
-                                    'status' => $status
-                                ]);
-
-                                $updated++;
-
-                                $this->info("Customer {$c->id}: {$oldStatus} → {$status}");
-
-                                $radius->syncCustomer($c);
-                            }
-
-                        } catch (\Exception $e) {
-
-                            $failed++;
-
-                            \Log::error('Cron customer error', [
-                                'customer_id' => $c->id,
-                                'message' => $e->getMessage()
-                            ]);
+                        // skip if no change
+                        if ($newStatus === $oldStatus) {
+                            continue;
                         }
+
+                        // update status
+                        $customer->update([
+                            'status' => $newStatus
+                        ]);
+
+                        $stats['updated']++;
+
+                        $radius->syncCustomer($customer);
+
+                        // ❌ expired handling
+                        if ($newStatus === 'expired') {
+
+                            $session = \DB::table('radacct')
+                                ->where('username', $customer->username)
+                                ->whereNull('acctstoptime')
+                                ->latest()
+                                ->first();
+
+                            if ($session && $customer->mikrotik) {
+                                $mk->disconnectPPPoE(
+                                    $customer->mikrotik,
+                                    $session->username
+                                );
+                            }
+
+                            $radius->removeCustomer($customer);
+
+                            $stats['expired']++;
+                        }
+
+                    } catch (\Throwable $e) {
+
+                        $stats['failed']++;
+
+                        \Log::error('Customer cron error', [
+                            'customer_id' => $customer->id,
+                            'error' => $e->getMessage()
+                        ]);
                     }
-                });
+                }
+            });
 
-            /*
-            |--------------------------------------------------------------------------
-            | CRON SUCCESS LOG
-            |--------------------------------------------------------------------------
-            */
-            CronLog::create([
-                'command' => $this->signature,
-                'status'  => 'success',
-                'message' => "Processed: $processed | Updated: $updated | Expired: $expired | Failed: $failed"
-            ]);
+        CronLog::create([
+            'command' => $this->signature,
+            'status'  => 'success',
+            'message' =>
+                "Processed: {$stats['processed']} | " .
+                "Updated: {$stats['updated']} | " .
+                "Expired: {$stats['expired']} | " .
+                "Failed: {$stats['failed']}"
+        ]);
 
-            return Command::SUCCESS;
-
-        } catch (\Exception $e) {
-
-            /*
-            |--------------------------------------------------------------------------
-            | CRON FAILED LOG
-            |--------------------------------------------------------------------------
-            */
-            CronLog::create([
-                'command' => $this->signature,
-                'status'  => 'failed',
-                'message' => $e->getMessage()
-            ]);
-
-            return Command::FAILURE;
-        }
+        return Command::SUCCESS;
     }
 }

@@ -22,7 +22,7 @@
 
         {{--  Customer Info  --}}
 
-        <div class="card">
+        <div class="card p-3">
             <ul class="nav nav-tabs" id="myTab" role="tablist">
                 <li class="nav-item" role="presentation">
                   <a class="nav-link active" id="info-tab" data-bs-toggle="tab" data-bs-target="#info" type="button" role="tab" aria-controls="info" aria-selected="true">Customer Info</a>
@@ -78,29 +78,38 @@
                                     </li>
                                     @endif
 
-                                    @if($customer->mac_address)
                                     <li class="list-group-item d-flex justify-content-between align-items-center">
-                                            MAC: {{ $customer->mac_address }}
-                                            <!-- BIND BUTTON -->
-                                            <form method="POST" action="{{ url('/customers/'.$customer->id.'/mac/bind') }}">
+                                        <div>
+                                            <strong>MAC:</strong>
+                                            @if($customer->mac_address)
+                                                <span class="text-success">{{ $customer->mac_address }}</span>
+                                            @else
+                                                <span class="text-danger">Not Bound</span>
+                                            @endif
+                                        </div>
+
+                                        <div class="d-flex gap-2">
+                                            {{-- BIND BUTTON --}}
+                                            <form action="{{ route('customer.bind-mac', $customer->id) }}" method="POST">
                                                 @csrf
-                                                <button class="badge bg-primary">
+                                                <button class="btn btn-sm btn-primary"
+                                                    @if(!$session || $customer->mac_address) disabled @endif>
                                                     Bind MAC
                                                 </button>
                                             </form>
-                                    </li>
-                                    @else
-                                        <li class="list-group-item d-flex justify-content-between align-items-center">
-                                            <!-- UNBIND BUTTON -->
-                                            MAC: {{ $customer->mac_address }}
-                                            <form method="POST" action="{{ url('/customers/'.$customer->id.'/mac/unbind') }}">
+
+                                            {{-- UNBIND BUTTON --}}
+                                            <form action="{{ route('customer.unbind-mac', $customer->id) }}" method="POST">
                                                 @csrf
-                                                <button class="badge bg-danger">
+                                                <button class="btn btn-sm btn-danger"
+                                                    @if(!$customer->mac_address) disabled @endif>
                                                     Unbind MAC
                                                 </button>
                                             </form>
-                                        </li>
-                                    @endif
+
+                                        </div>
+
+                                    </li>
 
                                 <li class="list-group-item d-flex justify-content-between align-items-center">
                                     Expired :

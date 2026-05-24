@@ -7,6 +7,7 @@ use App\Models\RadCheck;
 use App\Models\RadPostAuth;
 use App\Models\RadReply;
 use App\Models\Recharge;
+use App\Services\MacService;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
 
@@ -49,6 +50,11 @@ class Customer extends Model
         return $this->belongsTo(InternetPlan::class, 'internet_plan_id');
     }
 
+    public function isMacValid($mac): bool
+    {
+        return MacService::check($this, $mac);
+    }
+
     public function user()
     {
         return $this->belongsTo(User::class);
@@ -84,59 +90,56 @@ class Customer extends Model
         return $this->gracePeriods()->latest()->first();
     }
 
-     public function isActive()
-    {
-        return $this->expire_date && now()->lte($this->expire_date);
-    }
+    // public function isActive()
+    // {
+    //     return $this->expire_date && now()->lte($this->expire_date);
+    // }
 
-    public function isInGrace()
-    {
-        $grace = $this->activeGrace();
+    // public function isInGrace()
+    // {
+    //     $grace = $this->activeGrace();
 
-        if (!$grace || !$this->expire_date) {
-            return false;
-        }
+    //     if (!$grace || !$this->expire_date) {
+    //         return false;
+    //     }
 
-        return now()->gt($this->expire_date)
-            && now()->lte($this->graceEndDate());
-    }
+    //     return now()->gt($this->expire_date)
+    //         && now()->lte($this->graceEndDate());
+    // }
 
-    public function isExpired()
-    {
-        if (!$this->expire_date)
-            return true;
+    // public function isExpired()
+    // {
+    //     if (!$this->expire_date)
+    //         return true;
 
-        $grace = $this->activeGrace();
+    //     $grace = $this->activeGrace();
 
-        if ($grace) {
-            return now()->gt($this->graceEndDate());
-        }
+    //     if ($grace) {
+    //         return now()->gt($this->graceEndDate());
+    //     }
 
-        return now()->gt($this->expire_date);
-    }
+    //     return now()->gt($this->expire_date);
+    // }
 
-    public function status()
-    {
-        if ($this->status === 'suspended')
-            return 'suspended';
-        if ($this->isActive())
-            return 'active';
-        if ($this->isInGrace())
-            return 'grace';
+    // public function status()
+    // {
+    //     if ($this->status === 'suspended')
+    //         return 'suspended';
+    //     if ($this->isActive())
+    //         return 'active';
+    //     if ($this->isInGrace())
+    //         return 'grace';
 
-        return 'expired';
-    }
+    //     return 'expired';
+    // }
 
     public function calculateStatus()
     {
         if (!$this->expire_date) {
             return 'active';
         }
-
         $now = now();
-
         $expire = $this->expire_date->copy()->endOfDay();
-
         $graceEnd = $expire->copy()->addDays(3);
 
         if ($now->greaterThan($graceEnd)) {
@@ -177,20 +180,16 @@ class Customer extends Model
 
     public function activeSession()
     {
-        // return $this->hasOne(RadAcct::class, 'username', 'username')
-        //     ->whereNull('acctstoptime')
-        //     ->latestOfMany('acctstarttime');
-
         return $this->hasOne(RadAcct::class, 'username', 'username')
-        ->whereNull('acctstoptime')
-        ->latest('radacctid');
+            ->whereNull('acctstoptime')
+            ->latestOfMany('radacctid');
     }
 
     public function previousSession()
     {
         return $this->hasOne(RadAcct::class, 'username', 'username')
             ->whereNotNull('acctstoptime')
-            ->latestOfMany('acctstoptime');
+            ->orderByDesc('acctstoptime');
     }
 
     public function getIsOnlineAttribute()
@@ -198,31 +197,22 @@ class Customer extends Model
         $session = $this->activeSession;
 
         if (!$session) {
-            return false;
+            return false; // OFFLINE
         }
 
-        // session exists but no updates recently → STALE
-        $isStale = $session->acctupdatetime
-            ? $session->acctupdatetime < now()->subMinutes(5)
-            : true;
+        $lastSeen = $session->acctupdatetime;
+
+        if (!$lastSeen) {
+            return 'stale';
+        }
+
+        $isStale = $lastSeen->lt(now()->subMinutes(5));
 
         if ($isStale) {
             return 'stale';
         }
 
-        return 'true';
-
-        // $session = $this->activeSession;
-
-        // if (!$session) {
-        //     return false;
-        // }
-
-        // if (!$session->acctupdatetime) {
-        //     return false;
-        // }
-
-        // return $session->acctupdatetime >= now()->subMinutes(5);
+        return true; // ONLINE
     }
 
     public function getActiveAttribute()

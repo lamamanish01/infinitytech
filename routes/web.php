@@ -42,7 +42,14 @@ Route::middleware('auth')->group(function () {
     Route::resource('/roles', RoleController::class);
     Route::resource('/permissions', PermissionController::class);
 
+    Route::post('/branch/add-balance', [BranchController::class, 'addBalance'])
+        ->name('branch.addBalance');
+    Route::get('/branch/transactions', [BranchController::class, 'transactions'])
+        ->name('branch.transactions');
+    Route::delete('/branch-transaction/{id}', [BranchController::class, 'destroy'])
+        ->name('branchTransaction.delete');
     Route::resource('/branch', BranchController::class);
+
     Route::resource('/internetplan', InternetPlanController::class);
     Route::resource('/menus', MenuController::class);
     Route::resource('/customers', CustomerController::class);
@@ -56,8 +63,8 @@ Route::middleware('auth')->group(function () {
         ->name('customer.disconnect');
     Route::post('/customer/{id}/force-disconnect', [CustomerController::class, 'forceDisconnect'])
         ->name('customer.forceDisconnect');
-    Route::post('/customers/{id}/mac/bind', [CustomerController::class, 'bindMac']);
-    Route::post('/customers/{id}/mac/unbind', [CustomerController::class, 'unbindMac']);
+    Route::post('/customers/{id}/mac/bind', [CustomerController::class, 'bindMac'])->name('customer.bind-mac');
+    Route::post('/customers/{id}/mac/unbind', [CustomerController::class, 'unbindMac'])->name('customer.unbind-mac');
 
 
     Route::get('/recharges/create/{customerId}', [RechargeController::class, 'create'])

@@ -12,11 +12,6 @@ class BindMac extends Command
     protected $signature = 'customers:bind-mac';
     protected $description = 'Auto bind missing MAC from active RADIUS sessions';
 
-    private function normalizeMac($mac)
-    {
-        return strtoupper(str_replace([':', '-', '.'], '', $mac));
-    }
-
     public function handle()
     {
         $bound = 0;
@@ -31,16 +26,19 @@ class BindMac extends Command
                         $session = DB::table('radacct')
                             ->where('username', $customer->username)
                             ->whereNull('acctstoptime')
-                            ->latest()
+                            ->orderByDesc('radacctid')
                             ->first();
 
-                        if (!$session || !$session->callingstationid) {
+                        // 🔥 FIX: correct field name fallback
+                        $mac = $session->callingstationid ?? $session->callingstation_id ?? null;
+
+                        if (!$mac) {
                             continue;
                         }
 
-                        $mac = $this->normalizeMac($session->callingstationid);
+                        $mac = $this->normalizeMac($mac);
 
-                        if (!$mac) {
+                        if (strlen($mac) < 10) {
                             continue;
                         }
 
@@ -54,11 +52,6 @@ class BindMac extends Command
                     }
                 });
 
-            /*
-            |--------------------------------------------------------------------------
-            | SUCCESS CRON LOG
-            |--------------------------------------------------------------------------
-            */
             CronLog::create([
                 'command' => $this->signature,
                 'status'  => 'success',
@@ -67,13 +60,8 @@ class BindMac extends Command
 
             return Command::SUCCESS;
 
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
 
-            /*
-            |--------------------------------------------------------------------------
-            | FAILED CRON LOG
-            |--------------------------------------------------------------------------
-            */
             CronLog::create([
                 'command' => $this->signature,
                 'status'  => 'failed',
@@ -83,4 +71,5 @@ class BindMac extends Command
             return Command::FAILURE;
         }
     }
+
 }

@@ -14,9 +14,8 @@ class InvoiceService
     {
         $invoice = Invoice::create([
             'billing_id'    => $billing->id,
-            'invoice_no'    => NumberService::invoiceNo($billing->id),
             'invoice_date'  => now(),
-            'amount'        => $billing->amount,
+            'amount'        => $recharge->price,
             'status'        => 'paid',
             'payment_method'=> $recharge->payment_method ?? 'cash',
             'transaction_id'=> $recharge->transaction_id ?? null,

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Branch;
+use App\Models\BranchTransaction;
 use Illuminate\Http\Request;
 
 class BranchController extends Controller
@@ -29,7 +30,6 @@ class BranchController extends Controller
      */
     public function store(Request $request)
     {
-        //dd($request->all());
         $request->validate([
             'name' => 'required',
             'address' => 'required',
@@ -51,7 +51,8 @@ class BranchController extends Controller
      */
     public function show(string $id)
     {
-        //
+        $branch = Branch::findOrFail($id);
+        return view('branch.show', compact('branch'));
     }
 
     /**
@@ -84,10 +85,29 @@ class BranchController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(Branch $branch)
+    public function destroy($id)
     {
-        $branch->delete();
+        $txn = BranchTransaction::findOrFail($id);
 
-        return redirect()->route('branch.index')->with('success', 'Branches deleted successfully.');
+        $txn->reverse(); // 🔥 ALL LOGIC INSIDE MODEL
+
+        return back()->with('success', 'Transaction reversed');
+    }
+
+    public function addBalance(Request $request)
+    {
+        $request->validate([
+            'branch_id' => 'required|exists:branches,id',
+            'amount' => 'required|numeric|min:1'
+        ]);
+
+        $branch = Branch::findOrFail($request->branch_id);
+
+        $branch->addBalance(
+            $request->amount,
+            'Balance added by admin'
+        );
+
+        return back()->with('success', 'Balance added successfully');
     }
 }

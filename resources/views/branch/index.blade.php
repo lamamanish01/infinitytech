@@ -38,6 +38,7 @@
                                         <th>Name</th>
                                         <th>Address</th>
                                         <th>Contact Number</th>
+                                        <th>Balance</th>
                                         <th>Action</th>
                                     </tr>
                                 </thead>
@@ -48,9 +49,11 @@
                                             <td>{{$branch->name}}</td>
                                             <td>{{$branch->address}}</td>
                                             <td>{{$branch->contact_number}}</td>
+                                            <td>{{$branch->balance}}</td>
                                             <td>
                                                 <div class="btn-group">
                                                     @can('edit roles')
+                                                        <a href="{{route('branch.show', $branch->id)}}" class="btn btn-sm btn-primary">Show</a>
                                                         <a href="{{route('branch.edit', $branch->id)}}" class="btn btn-sm btn-warning">Edit</a>
                                                     @endcan
                                                     @can('delete roles')
@@ -78,7 +81,6 @@
         </div>
             <!-- /.row -->
         </div><!-- /.container-fluid -->
-    </div>
     <!-- /.content -->
 
 @endsection

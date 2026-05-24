@@ -3,14 +3,52 @@
 namespace App\Services;
 
 use App\Models\Customer;
+use Illuminate\Support\Facades\DB;
 
 class MacService
 {
-    public static function check(Customer $customer, string $mac): bool
+    /*
+    |--------------------------------------------------------------------------
+    | NORMALIZE MAC
+    |--------------------------------------------------------------------------
+    */
+    public static function normalize($mac)
     {
-        $mac = strtoupper($mac);
+        if (!$mac) return null;
 
-        // FIRST LOGIN → bind MAC automatically
+        return strtoupper(str_replace([':', '-', '.'], '', $mac));
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | GET ACTIVE MAC FROM RADIUS
+    |--------------------------------------------------------------------------
+    */
+    public static function getActiveMac($username)
+    {
+        $session = DB::table('radacct')
+            ->where('username', $username)
+            ->whereNull('acctstoptime')
+            ->orderByDesc('radacctid')
+            ->first();
+
+        return $session->callingstationid ?? null
+            ? self::normalize($session->callingstationid)
+            : null;
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | CHECK MAC
+    |--------------------------------------------------------------------------
+    */
+    public static function check(Customer $customer, $mac): bool
+    {
+        $mac = self::normalize($mac);
+
+        if (!$mac) return false;
+
+        // FIRST LOGIN → auto bind
         if (!$customer->mac_address) {
             $customer->update([
                 'mac_address' => $mac
@@ -19,7 +57,34 @@ class MacService
             return true;
         }
 
-        // CHECK MATCH
-        return $customer->mac_address === $mac;
+        return self::normalize($customer->mac_address) === $mac;
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | FORCE BIND MAC
+    |--------------------------------------------------------------------------
+    */
+    public static function bind(Customer $customer, $mac): bool
+    {
+        $mac = self::normalize($mac);
+
+        if (!$mac) return false;
+
+        return $customer->update([
+            'mac_address' => $mac
+        ]);
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | UNBIND MAC
+    |--------------------------------------------------------------------------
+    */
+    public static function unbind(Customer $customer): bool
+    {
+        return $customer->update([
+            'mac_address' => null
+        ]);
     }
 }

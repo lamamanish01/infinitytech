@@ -7,11 +7,11 @@ use App\Models\Customer;
 use App\Models\GracePeriod;
 use App\Models\InternetPlan;
 use App\Models\Recharge;
+use App\Services\MacService;
 use App\Services\MikrotikService;
 use App\Services\RadiusService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 
 class CustomerController extends Controller
 {
@@ -79,7 +79,9 @@ class CustomerController extends Controller
             },
         ])->findOrFail($id);
 
-        return view('customers.show', compact('customer'));
+        $session = get_active_mac($customer->username);
+
+        return view('customers.show', compact('customer', 'session'));
     }
 
     /**
@@ -218,14 +220,13 @@ class CustomerController extends Controller
     {
         $customer = Customer::findOrFail($id);
 
-        $mac = get_active_mac($customer->username);
+        $mac = MacService::getActiveMac($customer->username);
 
         if (!$mac) {
             return back()->with('error', 'No active session found');
         }
 
-        force_bind_mac($customer, $mac);
-
+        MacService::bind($customer, $mac);
         RadiusService::syncCustomer($customer);
 
         return back()->with('success', 'MAC Bound Successfully');
@@ -235,8 +236,7 @@ class CustomerController extends Controller
     {
         $customer = Customer::findOrFail($id);
 
-        unbind_mac($customer);
-
+        MacService::unbind($customer);
         RadiusService::syncCustomer($customer);
 
         return back()->with('success', 'MAC Unbound Successfully');
