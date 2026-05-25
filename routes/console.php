@@ -19,7 +19,7 @@ Schedule::command('customers:update-expired')
     ->withoutOverlapping()
     ->runInBackground();
 
-    Schedule::command('customers:bind-mac')
+Schedule::command('customers:bind-mac')
     ->everyMinute()
     ->withoutOverlapping()
     ->runInBackground();

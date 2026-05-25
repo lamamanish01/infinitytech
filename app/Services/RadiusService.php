@@ -7,24 +7,14 @@ use Illuminate\Support\Facades\DB;
 
 class RadiusService
 {
-    /* ---------------------------------
-     | SYNC CUSTOMER
-     * ---------------------------------*/
     public static function syncCustomer($customer)
     {
         $plan = $customer->internetPlan;
 
         if (!$plan) return;
 
-        // 🔥 Clean previous config
         DB::table('radcheck')->where('username', $customer->username)->delete();
         DB::table('radreply')->where('username', $customer->username)->delete();
-
-        /*
-        |--------------------------------------------------------------------------
-        | BASIC AUTH
-        |--------------------------------------------------------------------------
-        */
 
         DB::table('radcheck')->insert([
             'username'  => $customer->username,
@@ -33,24 +23,12 @@ class RadiusService
             'value'     => $customer->password,
         ]);
 
-        /*
-        |--------------------------------------------------------------------------
-        | IP ASSIGNMENT (THIS FIXES YOUR ISSUE)
-        |--------------------------------------------------------------------------
-        */
-
-        // DB::table('radreply')->insert([
-        //     'username'  => $customer->username,
-        //     'attribute' => 'Framed-Pool',
-        //     'op'        => ':=',
-        //     'value'     => 'PPPoE-Pool',
-        // ]);
-
-        /*
-        |--------------------------------------------------------------------------
-        | EXPIRATION
-        |--------------------------------------------------------------------------
-        */
+        DB::table('radreply')->insert([
+            'username'  => $customer->username,
+            'attribute' => 'Framed-Pool',
+            'op'        => ':=',
+            'value'     => 'pppoe-pool',
+        ]);
 
         if ($customer->expire_date) {
             DB::table('radcheck')->insert([
@@ -62,12 +40,6 @@ class RadiusService
             ]);
         }
 
-        /*
-        |--------------------------------------------------------------------------
-        | RATE LIMIT (ACTIVE + GRACE)
-        |--------------------------------------------------------------------------
-        */
-
         if (in_array($customer->status, ['active', 'grace'])) {
             DB::table('radreply')->insert([
                 'username'  => $customer->username,
@@ -76,12 +48,6 @@ class RadiusService
                 'value'     => $plan->rate_limit,
             ]);
         }
-
-        /*
-        |--------------------------------------------------------------------------
-        | MAC BINDING (SAFE UPSERT)
-        |--------------------------------------------------------------------------
-        */
 
         if ($customer->mac_address) {
             DB::table('radcheck')->updateOrInsert(
@@ -96,12 +62,6 @@ class RadiusService
             );
         }
 
-        /*
-        |--------------------------------------------------------------------------
-        | BLOCKED USERS
-        |--------------------------------------------------------------------------
-        */
-
         if (in_array($customer->status, ['expired', 'suspended', 'discontinued'])) {
             DB::table('radreply')->insert([
                 'username'  => $customer->username,
@@ -112,9 +72,6 @@ class RadiusService
         }
     }
 
-    /* ---------------------------------
-     | REMOVE CUSTOMER
-     * ---------------------------------*/
     public static function removeCustomer($customer)
     {
         // self::forceDisconnect($customer);

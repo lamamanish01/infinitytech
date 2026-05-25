@@ -2,9 +2,13 @@
 
 namespace App\Console\Commands;
 
-use App\Models\Customer;
 use App\Models\CronLog;
+use App\Models\Customer;
+use App\Services\MikrotikService;
+use App\Services\RadiusService;
 use Illuminate\Console\Command;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class UpdateExpiredCustomers extends Command
 {
@@ -13,8 +17,10 @@ class UpdateExpiredCustomers extends Command
 
     public function handle()
     {
-        $radius = app(\App\Services\RadiusService::class);
-        $mk     = app(\App\Services\MikroTikService::class);
+        Log::info('Customer expiry cron started');
+
+        $radius = app(RadiusService::class);
+        $mk     = app(MikrotikService::class);
 
         $stats = [
             'processed' => 0,
@@ -23,27 +29,23 @@ class UpdateExpiredCustomers extends Command
             'failed'    => 0,
         ];
 
-        Customer::with(['mikrotik'])
+        Customer::with(['mikrotik', 'internetPlan'])
             ->chunkById(200, function ($customers) use ($radius, $mk, &$stats) {
 
                 foreach ($customers as $customer) {
 
                     try {
+
                         $stats['processed']++;
 
-                        // 🔥 always fresh data
                         $customer->refresh();
-
-                        // 🎯 single truth
                         $newStatus = $customer->calculateStatus();
                         $oldStatus = $customer->status;
 
-                        // skip if no change
                         if ($newStatus === $oldStatus) {
                             continue;
                         }
 
-                        // update status
                         $customer->update([
                             'status' => $newStatus
                         ]);
@@ -52,23 +54,36 @@ class UpdateExpiredCustomers extends Command
 
                         $radius->syncCustomer($customer);
 
-                        // ❌ expired handling
-                        if ($newStatus === 'expired') {
+                        if (in_array($newStatus, [
+                            'expired',
+                            'suspended',
+                            'discontinued'
+                        ])) {
 
-                            $session = \DB::table('radacct')
+                            $session = DB::table('radacct')
                                 ->where('username', $customer->username)
                                 ->whereNull('acctstoptime')
-                                ->latest()
+                                ->latest('radacctid')
                                 ->first();
 
                             if ($session && $customer->mikrotik) {
-                                $mk->disconnectPPPoE(
-                                    $customer->mikrotik,
-                                    $session->username
-                                );
-                            }
 
-                            $radius->removeCustomer($customer);
+                                try {
+
+                                    $mk->disconnectPPPoE(
+                                        $customer->mikrotik,
+                                        $session->username
+                                    );
+
+                                } catch (\Throwable $e) {
+
+                                    Log::error('PPPoE disconnect failed', [
+                                        'customer_id' => $customer->id,
+                                        'username'    => $customer->username,
+                                        'error'       => $e->getMessage()
+                                    ]);
+                                }
+                            }
 
                             $stats['expired']++;
                         }
@@ -77,13 +92,20 @@ class UpdateExpiredCustomers extends Command
 
                         $stats['failed']++;
 
-                        \Log::error('Customer cron error', [
+                        Log::error('Customer cron error', [
                             'customer_id' => $customer->id,
-                            'error' => $e->getMessage()
+                            'username'    => $customer->username,
+                            'error'       => $e->getMessage(),
                         ]);
                     }
                 }
             });
+
+        /*
+        |--------------------------------------------------------------------------
+        | STORE CRON LOG
+        |--------------------------------------------------------------------------
+        */
 
         CronLog::create([
             'command' => $this->signature,
@@ -95,6 +117,8 @@ class UpdateExpiredCustomers extends Command
                 "Failed: {$stats['failed']}"
         ]);
 
-        return Command::SUCCESS;
+        Log::info('Customer expiry cron completed', $stats);
+
+        return self::SUCCESS;
     }
 }

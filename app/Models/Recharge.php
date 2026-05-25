@@ -53,7 +53,6 @@ class Recharge extends Model
             $plan = InternetPlan::findOrFail($planId);
             $branch = Branch::lockForUpdate()->findOrFail($customer->branch_id);
 
-            // ❌ duplicate check
             if ($transactionId) {
                 $exists = self::where('transaction_id', $transactionId)->exists();
                 if ($exists) {
@@ -61,30 +60,23 @@ class Recharge extends Model
                 }
             }
 
-            // ❌ balance check
             if ($branch->balance < $plan->price) {
                 throw new \Exception("Insufficient branch balance");
             }
 
-             /*
-            |--------------------------------------------------------------------------
-            | RESET TEMP STATES (IMPORTANT FIX)
-            |--------------------------------------------------------------------------
-            */
             GracePeriod::where('customer_id', $customer->id)->delete();
 
             // expiry
-            $expireDate = $customer->expire_date
-                ? Carbon::parse($customer->expire_date)->copy()
-                : now();
+            $baseDate = ($customer->expire_date && $customer->expire_date > now())
+            ? Carbon::parse($customer->expire_date)
+            : now();
 
-            match ($plan->type) {
-                'month' => $expireDate->addMonths($plan->duration),
-                'year'  => $expireDate->addYears($plan->duration),
-                default => $expireDate->addDays($plan->duration),
+            $expireDate = match ($plan->type) {
+                'month' => $baseDate->copy()->addMonths($plan->duration),
+                'year'  => $baseDate->copy()->addYears($plan->duration),
+                default => $baseDate->copy()->addDays($plan->duration),
             };
 
-            // recharge
             $recharge = self::create([
                 'customer_id' => $customer->id,
                 'internet_plan_id' => $plan->id,
@@ -97,16 +89,12 @@ class Recharge extends Model
                 'user_id' => auth()->id(),
             ]);
 
-            // billing
             $billing = Billing::createBilling($customer, $recharge);
-
-            // invoice
             $invoice = Invoice::createInvoice($billing, $recharge);
 
             // debit
             $branch->decrement('balance', $plan->price);
 
-            // update customer
             $customer->update([
                 'internet_plan_id' => $plan->id,
                 'expire_date' => $expireDate,
