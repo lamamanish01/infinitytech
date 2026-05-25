@@ -39,12 +39,12 @@ class RadiusService
         |--------------------------------------------------------------------------
         */
 
-        DB::table('radreply')->insert([
-            'username'  => $customer->username,
-            'attribute' => 'Framed-Pool',
-            'op'        => ':=',
-            'value'     => 'PPPoE-Pool',
-        ]);
+        // DB::table('radreply')->insert([
+        //     'username'  => $customer->username,
+        //     'attribute' => 'Framed-Pool',
+        //     'op'        => ':=',
+        //     'value'     => 'PPPoE-Pool',
+        // ]);
 
         /*
         |--------------------------------------------------------------------------
