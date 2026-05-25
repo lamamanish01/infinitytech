@@ -19,6 +19,14 @@
         "role": "view settings",
         "children": [
             {
+                "title": "Branch",
+                "url": "/branch",
+                "icon": null,
+                "parent_id": "2",
+                "order": "2",
+                "role": "view Branch"
+            },
+            {
                 "title": "Users",
                 "url": "/users",
                 "icon": null,
@@ -114,6 +122,25 @@
                 "parent_id": "5",
                 "order": "5",
                 "role": "view nas"
+            }
+        ]
+    },
+    {
+        "id": 6,
+        "title": "Ticket",
+        "url": "",
+        "icon": "fa-cog",
+        "parent_id": null,
+        "order": "4",
+        "role": "view setting",
+        "children": [
+            {
+                "title": "List of Ticket",
+                "url": "/ticket",
+                "icon": null,
+                "parent_id": "6",
+                "order": "6",
+                "role": "view ticket"
             }
         ]
     }
