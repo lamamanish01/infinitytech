@@ -33,33 +33,6 @@ class RadiusService
             'value'     => $customer->password,
         ]);
 
-        DB::table('radcheck')->insert([
-            'username'  => $customer->username,
-            'attribute' => 'Simultaneous-Use',
-            'op'        => ':=',
-            'value'     => 1,
-        ]);
-
-        /*
-        |--------------------------------------------------------------------------
-        | REQUIRED FOR PPPoE (VERY IMPORTANT)
-        |--------------------------------------------------------------------------
-        */
-
-        DB::table('radreply')->insert([
-            'username'  => $customer->username,
-            'attribute' => 'Service-Type',
-            'op'        => ':=',
-            'value'     => 'Framed-User',
-        ]);
-
-        DB::table('radreply')->insert([
-            'username'  => $customer->username,
-            'attribute' => 'Framed-Protocol',
-            'op'        => ':=',
-            'value'     => 'PPP',
-        ]);
-
         /*
         |--------------------------------------------------------------------------
         | IP ASSIGNMENT (THIS FIXES YOUR ISSUE)
