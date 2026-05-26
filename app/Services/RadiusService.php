@@ -23,12 +23,14 @@ class RadiusService
             'value'     => $customer->password,
         ]);
 
-        DB::table('radreply')->insert([
-            'username'  => $customer->username,
-            'attribute' => 'Framed-Pool',
-            'op'        => ':=',
-            'value'     => 'pppoe-pool',
-        ]);
+        if ($customer->expire_date) {
+                DB::table('radreply')->insert([
+                'username'  => $customer->username,
+                'attribute' => 'Framed-Pool',
+                'op'        => ':=',
+                'value'     => 'pppoe-pool',
+            ]);
+        }
 
         if ($customer->expire_date) {
             DB::table('radcheck')->insert([
