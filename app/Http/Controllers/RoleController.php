@@ -78,17 +78,30 @@ class RoleController extends Controller
     public function update(Request $request, Role $role)
     {
         $request->validate([
-            'name' => 'required|unique:roles,name,'.$role->id.',id'
+            'name' => 'required|string|max:255',
+            'permissions' => 'array'
         ]);
 
-        $role->name = $request->name;
-        $role->save();
+        // update role name
+        $role->update([
+            'name' => $request->name
+        ]);
 
-        if (!empty($request->permission)) {
-            $role->syncPermissions($request->permission);
-        } else {
-            $role->syncPermissions([]);
-        }
+        // ✅ THIS FIXES YOUR PROBLEM
+        $role->syncPermissions($request->permissions ?? []);
+
+        // $request->validate([
+        //     'name' => 'required|unique:roles,name,'.$role->id.',id'
+        // ]);
+
+        // $role->name = $request->name;
+        // $role->save();
+
+        // if (!empty($request->permission)) {
+        //     $role->syncPermissions($request->permission);
+        // } else {
+        //     $role->syncPermissions([]);
+        // }
 
         return redirect()->route('roles.index')->with('success', 'Role updated successfully');
     }

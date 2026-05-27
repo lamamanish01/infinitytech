@@ -2,85 +2,134 @@
 
 @section('content')
 
-    <!-- Content Header (Page header) -->
-    <div class="content-header">
-        <div class="container-fluid">
-            <div class="row mb-2">
-                <div class="col-sm-6">
-                    <h1 class="m-0">{{ __('List of NAS') }}</h1>
-                </div><!-- /.col -->
-            </div><!-- /.row -->
-            @can('create nas')
-                <div class="col-md-12 text-right">
-                    <a class="btn btn-primary" href="{{ route('nas.create') }}"></i> Create </a>
-                </div>
-            @endcan
-        </div><!-- /.container-fluid -->
-    </div>
-    <!-- /.content-header -->
+<div class="container-fluid">
 
-    <!-- Main content -->
-    <div class="content">
-        <div class="container-fluid">
-            <div class="row">
-                <div class="col-lg-12">
+    {{-- HEADER --}}
+    <div class="d-flex justify-content-between align-items-center mb-3">
 
-                    <div class="card card-info">
-                        {{--  <div class="card-header">
-                            <h3 class="card-title">Color &amp; Time Picker</h3>
-                        </div>  --}}
-
-                        <div class="card-body table-responsive p-0">
-                            <table class="table table-hover text-nowrap">
-                                <thead>
-                                    <tr>
-                                        <th>#</th>
-                                        <th>Short Name</th>
-                                        <th>IP Address</th>
-                                        <th>Secret</th>
-                                        <th>Type</th>
-                                        <th>Action</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    @forelse($nases as $nas)
-                                        <tr>
-                                            <td>{{$loop->iteration}}</td>
-                                            <td>{{$nas->shortname}}</td>
-                                            <td>{{$nas->nasname}}</td>
-                                            <td>{{$nas->secret}}</td>
-                                            <td>{{$nas->type}}</td>
-                                            <td>
-                                                <div class="btn-group">
-                                                    @can('edit nas')
-                                                        <a href="{{route('nas.edit', $nas->id)}}" class="btn btn-sm btn-secondary">Edit</a>
-                                                    @endcan
-                                                    @can('delete nas')
-                                                        <form action="{{route('nas.destroy', $nas->id)}}" method="post">
-                                                            @method('Delete')
-                                                            @csrf
-                                                            <button type="submit" class="btn btn-sm btn-danger" onclick="alert('Do you want to delete this NAS ?')">Delete</button>
-                                                        </form>
-                                                    @endcan
-                                                </div>
-                                            </td>
-                                        </tr>
-                                    @empty
-                                        <tr>
-                                            <td colspan="4">No Data Found</td>
-                                        </tr>
-                                    @endforelse
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                    {{$nases->links()}}
-                </div>
-            </div>
+        <div>
+            <h4 class="mb-0">NAS Devices</h4>
+            <small class="text-muted">Manage Radius NAS servers</small>
         </div>
-            <!-- /.row -->
-        </div><!-- /.container-fluid -->
+
+        @can('create nas')
+            <a href="{{ route('nas.create') }}"
+               class="btn btn-primary btn-sm">
+                + Add NAS
+            </a>
+        @endcan
+
     </div>
-    <!-- /.content -->
+
+    {{-- CARD --}}
+    <div class="card shadow-sm border-0">
+
+        <div class="card-body p-0">
+
+            <div class="table-responsive">
+
+                <table class="table table-hover align-middle mb-0">
+
+                    <thead class="table-light">
+                        <tr>
+                            <th>#</th>
+                            <th>Short Name</th>
+                            <th>IP Address</th>
+                            <th>Secret</th>
+                            <th>Type</th>
+                            <th class="text-end">Action</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+
+                        @forelse($nases as $nas)
+
+                            <tr>
+
+                                <td class="text-muted">
+                                    {{ $loop->iteration }}
+                                </td>
+
+                                <td>
+                                    <strong>{{ $nas->shortname }}</strong>
+                                </td>
+
+                                <td>
+                                    <span class="badge bg-info text-dark">
+                                        {{ $nas->nasname }}
+                                    </span>
+                                </td>
+
+                                <td>
+                                    <code>{{ $nas->secret }}</code>
+                                </td>
+
+                                <td>
+                                    <span class="badge bg-secondary">
+                                        {{ ucfirst($nas->type) }}
+                                    </span>
+                                </td>
+
+                                {{-- ACTION --}}
+                                <td class="text-end">
+
+                                    <div class="btn-group btn-group-sm">
+
+                                        @can('edit nas')
+                                            <a href="{{ route('nas.edit', $nas->id) }}"
+                                               class="btn btn-sm btn-primary">
+                                                Edit
+                                            </a>
+                                        @endcan
+
+                                        @can('delete nas')
+                                            <form action="{{ route('nas.destroy', $nas->id) }}"
+                                                  method="POST"
+                                                  onsubmit="return confirm('Delete this NAS?')">
+
+                                                @csrf
+                                                @method('DELETE')
+
+                                                <button type="submit"
+                                                        class="btn btn-sm btn-danger">
+                                                    Delete
+                                                </button>
+
+                                            </form>
+                                        @endcan
+
+                                    </div>
+
+                                </td>
+
+                            </tr>
+
+                        @empty
+
+                            <tr>
+                                <td colspan="6" class="text-center py-5 text-muted">
+                                    No NAS Devices Found
+                                </td>
+                            </tr>
+
+                        @endforelse
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    {{-- PAGINATION --}}
+    <div class="mt-3 d-flex justify-content-end">
+        {{ $nases->links() }}
+    </div>
+
+</div>
 
 @endsection

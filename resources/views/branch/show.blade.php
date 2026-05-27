@@ -1,137 +1,261 @@
 @extends('layouts.app')
 
 @section('content')
-    <!-- Content Header (Page header) -->
-    <div class="content-header">
-        <div class="container-fluid">
-            <div class="row mb-2">
-                <div class="col-sm-6">
-                    <h1 class="m-0">{{ __('Show Branch Details') }}</h1>
-                </div><!-- /.col -->
-            </div><!-- /.row -->
-        </div><!-- /.container-fluid -->
+
+<div class="content-header">
+
+    <div class="container-fluid">
+
+        <div class="row mb-2">
+
+            <div class="col-sm-6">
+
+                <h1 class="m-0">
+                    Branch Details
+                </h1>
+
+            </div>
+
+            <div class="col-sm-6 text-right">
+
+                <a href="{{ route('branch.index') }}"
+                   class="btn btn-secondary">
+
+                    Back
+
+                </a>
+
+            </div>
+
+        </div>
+
     </div>
-    <!-- /.content-header -->
 
-    <!-- Main content -->
-    <div class="content">
-        <div class="container-fluid">
-            <div class="row">
-                <div class="col-sm-6">
-                    <div class="card">
-                        <div class="card-body table-responsive p-3">
-                            <h2>{{ $branch->name }}</h2>
-                            <p>
-                                <b>Address:</b>
-                                {{ $branch->address }}
-                            </p>
-                            <p>
-                                <b>Contact:</b>
-                                {{ $branch->contact_number }}
-                            </p>
+</div>
 
-                            <hr>
+<div class="content">
 
-                            {{-- WALLET --}}
+    <div class="container-fluid">
 
-                            <h3>Wallet Balance</h3>
+        <div class="row">
 
-                            <h2 class="text-success">
-                                {{ number_format($branch->balance,2) }}
-                            </h2>
+            {{-- LEFT SIDE --}}
+            <div class="col-lg-4">
 
-                            <hr>
+                <div class="card card-info">
 
-                            {{-- ADD BALANCE --}}
-
-                            <h4>Add Balance</h4>
-                            <form method="POST" action="{{ route('branch.addBalance') }}">
-                                @csrf
-                                <input type="hidden" name="branch_id" value="{{ $branch->id }}">
-                                <div class="mb-3">
-                                    <label>Amount</label>
-                                    <input type="number" name="amount" class="form-control" required>
-                                </div>
-                                <div class="mb-3">
-                                    <label>Remarks</label>
-                                    <input type="text" name="remarks" class="form-control">
-                                </div>
-                                <button class="btn btn-success">
-                                    Add Balance
-                                </button>
-                            </form>
-                            <hr>
-                        </div>
+                    <div class="card-header">
+                        Branch Info
                     </div>
-                </div>
-                <div class="col-sm-6">
-                    <div class="card">
-                        <div class="card-body">
-                            <h4>Transaction History</h4>
-                                <table class="table table-bordered">
-                                    <thead>
-                                        <tr>
-                                            <th>ID</th>
-                                            <th>Type</th>
-                                            <th>Amount</th>
-                                            <th>Source</th>
-                                            <th>Status</th>
-                                            <th>Action</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        @foreach($branch->transactions as $txn)
-                                            <tr>
-                                                <td>{{ $txn->id }}</td>
-                                                {{-- TYPE --}}
-                                                <td>
-                                                    @if($txn->type == 'credit')
-                                                        <span class="text-success">Credit</span>
-                                                    @else
-                                                        <span class="text-danger">Debit</span>
-                                                    @endif
-                                                </td>
-                                                <td>{{ number_format($txn->amount,2) }}</td>
-                                                <td>{{ $txn->source }}</td>
 
-                                                {{-- STATUS --}}
-                                                <td>
-                                                    @if($txn->is_void)
-                                                        <span class="badge bg-secondary">
-                                                            Voided
-                                                        </span>
-                                                    @else
-                                                        <span class="badge bg-success">
-                                                            Active
-                                                        </span>
-                                                    @endif
-                                                </td>
+                    <div class="card-body">
 
-                                                {{-- ACTION --}}
-                                                <td>
-                                                    @if(!$txn->is_void)
-                                                    <form method="POST" action="{{ route('branchTransaction.delete',$txn->id) }}">
-                                                        @csrf
-                                                        @method('DELETE')
-                                                            <button class="btn btn-danger btn-sm">
-                                                                Reverse
-                                                            </button>
-                                                    </form>
-                                                    @else
-                                                        <span class="text-muted">No Action</span>
-                                                    @endif
-                                                </td>
-                                            </tr>
-                                        @endforeach
+                        <h4>{{ $branch->name }}</h4>
 
-                                    </tbody>
+                        <p><strong>Address:</strong> {{ $branch->address }}</p>
 
-                                </table>
-                        </div>
+                        <p><strong>Contact:</strong> {{ $branch->contact_number }}</p>
+
                     </div>
+
                 </div>
+
+                <div class="card card-success">
+
+                    <div class="card-header">
+                        Wallet Balance
+                    </div>
+
+                    <div class="card-body text-center">
+
+                        <h2 class="text-success">
+                            Rs. {{ number_format($branch->balance, 2) }}
+                        </h2>
+
+                    </div>
+
                 </div>
-        </div><!-- /.container-fluid -->
+
+                <div class="card card-primary">
+
+                    <div class="card-header">
+                        Add Balance
+                    </div>
+
+                    <div class="card-body">
+
+                        <form method="POST"
+                              action="{{ route('branch.addBalance') }}">
+
+                            @csrf
+
+                            <input type="hidden"
+                                   name="branch_id"
+                                   value="{{ $branch->id }}">
+
+                            <div class="form-group">
+
+                                <label>Amount</label>
+
+                                <input type="number"
+                                       step="0.01"
+                                       name="amount"
+                                       class="form-control"
+                                       required>
+
+                            </div>
+
+                            <div class="form-group">
+
+                                <label>Remarks</label>
+
+                                <input type="text"
+                                       name="remarks"
+                                       class="form-control">
+
+                            </div>
+
+                            <button class="btn btn-success">
+                                Add Balance
+                            </button>
+
+                        </form>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+            {{-- RIGHT SIDE --}}
+            <div class="col-lg-8">
+
+                <div class="card card-info">
+
+                    <div class="card-header">
+                        Transaction History
+                    </div>
+
+                    <div class="card-body table-responsive p-0">
+
+                        <table class="table table-hover text-nowrap">
+
+                            <thead>
+
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Type</th>
+                                    <th>Amount</th>
+                                    <th>Source</th>
+                                    <th>Status</th>
+                                    <th>Action</th>
+                                </tr>
+
+                            </thead>
+
+                            <tbody>
+
+                                @forelse($transactions as $txn)
+
+                                    <tr>
+
+                                        <td>{{ $txn->id }}</td>
+
+                                        <td>
+
+                                            @if($txn->type == 'credit')
+                                                <span class="badge badge-success">
+                                                    Credit
+                                                </span>
+                                            @else
+                                                <span class="badge badge-danger">
+                                                    Debit
+                                                </span>
+                                            @endif
+
+                                        </td>
+
+                                        <td>
+                                            Rs. {{ number_format($txn->amount, 2) }}
+                                        </td>
+
+                                        <td>
+                                            {{ $txn->source }}
+                                        </td>
+
+                                        <td>
+
+                                            @if($txn->is_void)
+                                                <span class="badge badge-secondary">
+                                                    Voided
+                                                </span>
+                                            @else
+                                                <span class="badge badge-success">
+                                                    Active
+                                                </span>
+                                            @endif
+
+                                        </td>
+
+                                        <td>
+
+                                            @if(!$txn->is_void)
+
+                                                <form method="POST"
+                                                      action="{{ route('branchTransaction.delete', $txn->id) }}"
+                                                      onsubmit="return confirm('Reverse this transaction?')">
+
+                                                    @csrf
+                                                    @method('DELETE')
+
+                                                    <button class="btn btn-danger btn-sm">
+                                                        Reverse
+                                                    </button>
+
+                                                </form>
+
+                                            @else
+
+                                                <span class="text-muted">
+                                                    No Action
+                                                </span>
+
+                                            @endif
+
+                                        </td>
+
+                                    </tr>
+
+                                @empty
+
+                                    <tr>
+                                        <td colspan="6"
+                                            class="text-center text-muted">
+                                            No Transactions Found
+                                        </td>
+                                    </tr>
+
+                                @endforelse
+
+                            </tbody>
+
+                        </table>
+
+                    </div>
+
+                </div>
+
+                {{-- PAGINATION --}}
+                <div class="mt-3">
+                    {{ $transactions->links() }}
+                </div>
+
+            </div>
+
+        </div>
+
     </div>
-    <!-- /.content -->
+
+</div>
+
 @endsection

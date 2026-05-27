@@ -46,7 +46,7 @@ class RechargeController extends Controller
                 $request->transaction_id
             );
 
-            return back()->with('success', 'Recharge successful');
+            return redirect()->route('customers.show')->with('success', 'Recharge successful');
 
         } catch (\Exception $e) {
             return back()->with('error', $e->getMessage());
@@ -86,7 +86,7 @@ class RechargeController extends Controller
             'expire_date' => Carbon::parse($request->expire_date),
         ]);
 
-        return redirect()->route('customers.index')->with('success', 'Expiry Date changed successfully.');
+        return redirect()->route('customers.show')->with('success', 'Expiry Date changed successfully.');
     }
 
     /**

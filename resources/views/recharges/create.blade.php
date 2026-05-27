@@ -1,76 +1,110 @@
 @extends('layouts.app')
 
 @section('content')
-    <!-- Content Header (Page header) -->
+
+<div class="container-fluid">
+
+    <!-- HEADER -->
     <div class="content-header">
-        <div class="container-fluid">
-            <div class="row mb-2">
-                <div class="col-sm-6">
-                    <h1 class="m-0">{{ __('Recharge Customer') }}</h1>
-                </div><!-- /.col -->
-            </div><!-- /.row -->
-        </div><!-- /.container-fluid -->
+        <h4 class="m-0">Recharge Customer</h4>
     </div>
-    <!-- /.content-header -->
 
-    <!-- Main content -->
-    <div class="content">
-        <div class="container-fluid">
-            <div class="row">
-                <div class="col-lg-12">
+    <div class="card shadow-sm">
 
-                    <div class="card card-info">
-                        {{--  <div class="card-header">
-                            <h3 class="card-title">Color &amp; Time Picker</h3>
-                        </div>  --}}
+        <div class="card-body">
 
-                        <div class="card-body">
-                            <form action="{{route('recharges.store')}}" method="POST">
-                                @csrf
-                                <input type="hidden" name="customer_id" value="{{$customer->id}}">
-                                <div class="form-group">
-                                    <label>Username:</label>
-                                    <input type="text" class="form-control" name="username" value="{{$customer->username}}" readonly>
-                                </div>
-                                <div class="form-group">
-                                    <label>Select Internet Plans:</label>
-                                    <select name="internet_plan_id" class="custom-select">
-                                        <option value="{{$customer->internetPlan->id}}">{{$customer->internetplan->bandwidth_name}}</option>
-                                    </select>
-                                </div>
-                                <div class="form-group">
-                                    <label>Internet Plan Price:</label>
-                                    <select name="internet_plan_price" class="custom-select">
-                                        <option value="{{$customer->internetPlan->id}}">{{$customer->internetplan->price}}</option>
-                                    </select>
-                                </div>
-                                <div class="form-group">
-                                    <label>Select Payment Method:</label>
-                                    <select name="payment_method" class="custom-select">
-                                        <option value="Cash">Cash</option>
-                                        <option value="eSewa">eSewa</option>
-                                        <option value="Khalti">Khalti</option>
-                                        <option value="Bank">Bank</option>
-                                    </select>
-                                </div>
-                                <div class="form-group">
-                                    <label>Transaction ID:</label>
-                                    <input type="text" class="form-control" name="transaction_id">
-                                </div>
+            <form action="{{ route('recharges.store') }}" method="POST">
+                @csrf
 
-                                <div class="btn-group">
-                                    <button type="submit" class="btn btn-primary">Recharge</button>
-                                </div>
-                            </form>
+                <input type="hidden" name="customer_id" value="{{ $customer->id }}">
 
-                        </div>
-                    </div>
+                {{-- USERNAME --}}
+                <div class="form-group mb-3">
+                    <label>Username</label>
+                    <input type="text"
+                           class="form-control"
+                           value="{{ $customer->username }}"
+                           readonly>
+                </div>
+
+                {{-- INTERNET PLAN --}}
+                <div class="form-group mb-3">
+                    <label>Internet Plan</label>
+
+                    <select name="internet_plan_id" class="custom-select" required>
+                        <option value="">
+                            Select Plan
+                        </option>
+
+                        @if($customer->internetPlan)
+                            <option value="{{ $customer->internetPlan->id }}" selected>
+                                {{ $customer->internetPlan->bandwidth_name }}
+                            </option>
+                        @endif
+
+                        @if(isset($plans))
+                            @foreach($plans as $plan)
+                                <option value="{{ $plan->id }}">
+                                    {{ $plan->bandwidth_name }}
+                                </option>
+                            @endforeach
+                        @endif
+
+                    </select>
+                </div>
+
+                {{-- PRICE --}}
+                <div class="form-group mb-3">
+                    <label>Plan Price</label>
+                    <input type="text"
+                           class="form-control"
+                           value="{{ $customer->internetPlan->price ?? '0' }}"
+                           readonly>
+                </div>
+
+                {{-- PAYMENT --}}
+                <div class="form-group mb-3">
+                    <label>Payment Method</label>
+
+                    <select name="payment_method" class="custom-select" required>
+                        <option value="Cash">Cash</option>
+                        <option value="eSewa">eSewa</option>
+                        <option value="Khalti">Khalti</option>
+                        <option value="Bank">Bank</option>
+                    </select>
+                </div>
+
+                {{-- TRANSACTION --}}
+                <div class="form-group mb-3">
+                    <label>Transaction ID</label>
+                    <input type="text"
+                           class="form-control"
+                           name="transaction_id"
+                           placeholder="Optional">
+                </div>
+
+                {{-- BUTTONS --}}
+                <div class="d-flex gap-2">
+
+                    {{-- SUBMIT --}}
+                    <button type="submit" class="btn btn-primary">
+                        Recharge
+                    </button>
+
+                    {{-- CANCEL --}}
+                    <a href="{{ url()->previous() }}"
+                       class="btn btn-secondary">
+                        Cancel
+                    </a>
 
                 </div>
-            </div>
+
+            </form>
+
         </div>
-            <!-- /.row -->
-        </div><!-- /.container-fluid -->
+
     </div>
-    <!-- /.content -->
+
+</div>
+
 @endsection

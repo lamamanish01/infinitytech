@@ -1,51 +1,93 @@
 @extends('layouts.app')
 
 @section('content')
-    <!-- Content Header (Page header) -->
-    <div class="content-header">
-        <div class="container-fluid">
-            <div class="row mb-2">
-                <div class="col-sm-6">
-                    <h1 class="m-0">{{ __('Permission Edit') }}</h1>
-                </div><!-- /.col -->
-            </div><!-- /.row -->
-        </div><!-- /.container-fluid -->
+
+<!-- Content Header -->
+<div class="content-header">
+
+    <div class="container-fluid">
+
+        <div class="row mb-2">
+
+            <div class="col-sm-6">
+                <h1 class="m-0">Edit Permission</h1>
+            </div>
+
+        </div>
+
     </div>
-    <!-- /.content-header -->
 
-    <!-- Main content -->
-    <div class="content">
-        <div class="container-fluid">
-            <div class="row">
-                <div class="col-lg-12">
+</div>
 
-                    <div class="card card-info">
-                        {{--  <div class="card-header">
-                            <h3 class="card-title">Color &amp; Time Picker</h3>
-                        </div>  --}}
+<!-- Main Content -->
+<div class="content">
 
-                        <div class="card-body">
-                            <form action="{{route('permissions.update', $permission->id)}}" method="post">
-                                @csrf
-                                @method('put')
-                                <div class="form-group">
-                                    <label>Name:</label>
-                                    <input type="text" class="form-control" name="name" placeholder="Enter Name" value="{{$permission->name}}">
-                                </div>
+    <div class="container-fluid">
 
-                                <div class="btn-group">
-                                    <button type="submit" class="btn btn-primary">Save</button>
-                                </div>
-                            </form>
+        <div class="row">
 
-                        </div>
+            <div class="col-lg-12">
+
+                <div class="card card-info">
+
+                    <div class="card-body">
+
+                        <form action="{{ route('permissions.update', $permission->id) }}"
+                              method="POST">
+
+                            @csrf
+                            @method('PATCH')
+
+                            {{-- NAME --}}
+                            <div class="form-group">
+
+                                <label>Permission Name</label>
+
+                                <input type="text"
+                                       name="name"
+                                       class="form-control"
+                                       value="{{ old('name', $permission->name) }}"
+                                       required>
+
+                                @error('name')
+                                    <small class="text-danger">
+                                        {{ $message }}
+                                    </small>
+                                @enderror
+
+                            </div>
+
+                            {{-- BUTTONS --}}
+                            <div class="btn-group">
+
+                                <button type="submit"
+                                        class="btn btn-primary">
+
+                                    Update
+
+                                </button>
+
+                                <a href="{{ route('permissions.index') }}"
+                                   class="btn btn-secondary">
+
+                                    Cancel
+
+                                </a>
+
+                            </div>
+
+                        </form>
+
                     </div>
 
                 </div>
+
             </div>
+
         </div>
-            <!-- /.row -->
-        </div><!-- /.container-fluid -->
+
     </div>
-    <!-- /.content -->
+
+</div>
+
 @endsection

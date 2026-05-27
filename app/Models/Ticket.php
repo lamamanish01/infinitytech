@@ -12,6 +12,9 @@ class Ticket extends Model
     protected $fillable = [
         'customer_id',
         'user_id',
+        'ticket_no',
+        'user_id',
+        'assigned_to',
         'subject',
         'message',
         'priority',
@@ -29,6 +32,16 @@ class Ticket extends Model
     }
 
     public function user()
+    {
+        return $this->belongsTo(User::class, 'user_id');
+    }
+
+    public function assignedUser()
+    {
+        return $this->belongsTo(User::class, 'assigned_to');
+    }
+
+    public function creator()
     {
         return $this->belongsTo(User::class, 'user_id');
     }

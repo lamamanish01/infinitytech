@@ -69,43 +69,70 @@
 
     <!-- Content Wrapper. Contains page content -->
     <div class="content-wrapper">
-        <!-- error message notification -->
+
+    <div class="container-fluid pt-3">
+
+        {{-- ERRORS --}}
         @if ($errors->any())
-            <div class="col-sm-12">
-                <div class="alert  alert-warning alert-dismissible fade show" role="alert">
+            <div class="alert alert-warning alert-dismissible fade show shadow-sm" role="alert">
+
+                <strong class="d-block mb-2">Please fix the following errors:</strong>
+
+                <ul class="mb-0 ps-3">
                     @foreach ($errors->all() as $error)
-                        <span><p>{{ $error }}</p></span>
+                        <li>{{ $error }}</li>
                     @endforeach
-                        <button type="button" class="close" data-bs-dismiss="alert" aria-label="Close">
-                            <span aria-hidden="true">&times;</span>
-                        </button>
-                </div>
+                </ul>
+
+                <button type="button"
+                        class="btn-close"
+                        data-bs-dismiss="alert"
+                        aria-label="Close">x</button>
+
             </div>
         @endif
 
+
+        {{-- SUCCESS --}}
         @if (session('success'))
-            <div class="col-sm-12">
-                <div class="alert  alert-success alert-dismissible fade show" role="alert">
+            <div class="alert alert-success alert-dismissible fade show shadow-sm d-flex justify-content-between align-items-start" role="alert">
+
+                <div>
+                    <i class="bi bi-check-circle me-1"></i>
                     {{ session('success') }}
-                        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-                            <span aria-hidden="true">&times;</span>
-                        </button>
                 </div>
+
+                <button type="button"
+                        class="btn-close ms-3"
+                        data-bs-dismiss="alert"
+                        aria-label="Close">x</button>
+
             </div>
         @endif
 
+
+        {{-- ERROR --}}
         @if (session('error'))
-            <div class="col-sm-12">
-                <div class="alert  alert-danger alert-dismissible fade show" role="alert">
+            <div class="alert alert-danger alert-dismissible fade show shadow-sm d-flex justify-content-between align-items-start" role="alert">
+
+                <div>
+                    <i class="bi bi-exclamation-triangle me-1"></i>
                     {{ session('error') }}
-                        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-                            <span aria-hidden="true">&times;</span>
-                        </button>
                 </div>
+
+                <button type="button"
+                        class="btn-close ms-3"
+                        data-bs-dismiss="alert"
+                        aria-label="Close">x</button>
+
             </div>
         @endif
-        @yield('content')
+
     </div>
+
+    @yield('content')
+
+</div>
     <!-- /.content-wrapper -->
 
     <!-- Control Sidebar -->

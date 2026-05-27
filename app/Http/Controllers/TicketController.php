@@ -7,6 +7,7 @@ use App\Http\Requests\UpdateTicketRequest;
 use App\Models\Customer;
 use App\Models\Ticket;
 use App\Models\TicketReply;
+use App\Models\User;
 use Illuminate\Http\Request;
 
 class TicketController extends Controller
@@ -16,7 +17,9 @@ class TicketController extends Controller
      */
     public function index()
     {
-        $tickets = Ticket::orderBy('id', 'asc')->paginate(10);
+        $tickets = Ticket::with(['customer','assignedUser'])
+            ->latest()
+            ->paginate(20);
         return view('ticket.index', compact('tickets'));
     }
 
@@ -25,7 +28,7 @@ class TicketController extends Controller
      */
     public function create()
     {
-        $customers = Customer::get();
+        $customers = Customer::all();
         return view('ticket.create', compact('customers'));
     }
 
@@ -34,25 +37,45 @@ class TicketController extends Controller
      */
     public function store(StoreTicketRequest $request)
     {
-        $customer = Customer::where('username', $request->username)->first();
+        // $customer = Customer::where('username', $request->username)->first();
 
-        Ticket::create([
-            'customer_id' => $customer->id,
+        $ticket = Ticket::create([
+            'ticket_no' => 'TKT-' . time(),
+            'customer_id' => $request->customer_id,
             'user_id' => auth()->id(),
             'subject' => $request->subject,
             'message' => $request->message,
             'priority' => $request->priority,
+            'status' => 'open',
         ]);
 
-        return redirect()->back()->with('success', 'Ticket created sucessfully');
+        // initial message as reply
+        TicketReply::create([
+            'ticket_id' => $ticket->id,
+            'customer_id' => $request->customer_id,
+            'message' => $request->message,
+        ]);
+
+
+        return redirect()->route('ticket.index')->with('success', 'Ticket created sucessfully');
     }
 
     /**
      * Display the specified resource.
      */
-    public function show(Ticket $ticket)
+    public function show($id)
     {
-        return view('ticket.show', compact('ticket'));
+        $ticket = Ticket::with([
+            'customer',
+            'creator',
+            'assignedUser',
+            'replies.user',
+            'replies.customer'
+        ])->findOrFail($id);
+
+        $users = User::all();
+
+        return view('ticket.show', compact('ticket', 'users'));
     }
 
     /**
@@ -79,53 +102,107 @@ class TicketController extends Controller
         //
     }
 
+
+    public function assign(Request $request, $id)
+    {
+        $request->validate([
+            'assigned_to' => 'required|exists:users,id',
+        ]);
+
+        $ticket = Ticket::findOrFail($id);
+
+        $ticket->update([
+            'assigned_to' => $request->assigned_to,
+            'status' => 'in_progress',
+            'assigned_at' => now(),
+        ]);
+
+        return back()->with('success', 'Ticket assigned successfully');
+    }
+
+    /**
+     * STAFF REPLY
+     */
     public function reply(Request $request, $id)
     {
         $request->validate([
-            'message' => 'required'
+            'message' => 'required|string',
         ]);
 
-        try {
-            $ticket = Ticket::findOrFail($id);
+        $ticket = Ticket::findOrFail($id);
 
-            if ($ticket->status == 'closed') {
+        TicketReply::create([
+            'ticket_id' => $ticket->id,
+            'user_id' => auth()->id(),
+            'message' => $request->message,
+        ]);
 
-                return back()->with('error', 'Ticket already closed');
-            }
-
-            TicketReply::create([
-                'ticket_id' => $id,
-                'user_id' => auth()->id(),
-                'message' => $request->message
-
-            ]);
-
-            return back()->with('success', 'Ticket Reply successfully');
-
-            } catch (\Exception $e) {
-                return back()->with('error',$e->getMessage());
-        }
+        return back()->with('success', 'Reply sent');
     }
 
-    public function close(Request $request, $id)
+    /**
+     * CUSTOMER REPLY
+     */
+    public function customerReply(Request $request, $id)
     {
-        try {
+        $request->validate([
+            'message' => 'required|string',
+            'customer_id' => 'required|exists:customers,id',
+        ]);
 
-            $ticket = Ticket::findOrFail($id);
+        $ticket = Ticket::findOrFail($id);
 
-            $ticket->update([
-                'status' => 'closed'
-            ]);
+        TicketReply::create([
+            'ticket_id' => $ticket->id,
+            'customer_id' => $request->customer_id,
+            'message' => $request->message,
+        ]);
 
-            // $ticket->update([
-            //     'status' => 'in_progress'
-            // ]);
+        return back()->with('success', 'Message sent');
+    }
 
-            return back()->with('success', 'Ticket closed successfully');
+    /**
+     * INTERNAL NOTE (STAFF ONLY)
+     */
+    public function internalNote(Request $request, $id)
+    {
+        $request->validate([
+            'message' => 'required|string',
+        ]);
 
-        } catch (\Exception $e) {
+        $ticket = Ticket::findOrFail($id);
 
-            return back()->with('error', $e->getMessage());
+        TicketReply::create([
+            'ticket_id' => $ticket->id,
+            'user_id' => auth()->id(),
+            'message' => $request->message,
+            'is_internal' => true,
+        ]);
+
+        return back()->with('success', 'Internal note added');
+    }
+
+    /**
+     * UPDATE STATUS
+     */
+    public function updateStatus(Request $request, $id)
+    {
+        $request->validate([
+            'status' => 'required|in:open,in_progress,resolved,closed',
+        ]);
+
+        $ticket = Ticket::findOrFail($id);
+
+        $data = [
+            'status' => $request->status,
+        ];
+
+        if ($request->status === 'closed') {
+            $data['closed_at'] = now();
         }
+
+        $ticket->update($data);
+
+        return back()->with('success', 'Status updated');
     }
 }

@@ -25,38 +25,48 @@
                         </div>  --}}
 
                         <div class="card-body">
-                            <form action="{{route('ticket.store')}}" method="POST">
-                                @csrf
-                                <div class="form-group">
-                                    <label>Customer</label>
-                                    <select name="username" class="custom-select">
-                                        <option value="">Select Customer Username</option>
-                                            @foreach ($customers as $customer)
-                                                <option>{{$customer->username}}</option>
-                                            @endforeach
-                                    </select>
-                                </div>
-                                <div class="form-group">
-                                    <label>Priority</label>
-                                    <select name="priority" class="custom-select">
-                                        <option value="low">Low</option>
-                                        <option value="medium">Medium</option>
-                                        <option value="high">High</option>
-                                    </select>
-                                </div>
-                                <div class="form-group">
-                                    <label>Subject</label>
-                                    <input name="subject" class="form-control" placeholder="Subject">
-                                </div>
-                                <div class="form-group">
-                                    <label>Message</label>
-                                    <textarea name="message" rows="5" style="width:100%;" class="form-control" placeholder="Message"></textarea>
-                                </div>
-                                <div class="btn-group">
-                                    <button type="submit" class="btn btn-primary">Save</button>
-                                </div>
-                            </form>
+                            <form method="POST" action="{{ route('ticket.store') }}">
+                                        @csrf
 
+                                        <div class="mb-3">
+                                            <label>Customer</label>
+                                            <select name="customer_id" class="form-control" required>
+                                                @foreach($customers as $customer)
+                                                    <option value="{{ $customer->id }}">
+                                                        {{ $customer->name }}
+                                                    </option>
+                                                @endforeach
+                                            </select>
+                                        </div>
+
+                                        <div class="mb-3">
+                                            <label>Subject</label>
+                                            <input type="text" name="subject" class="form-control">
+                                        </div>
+
+                                        <div class="mb-3">
+                                            <label>Message</label>
+                                            <textarea name="message" class="form-control" rows="4"></textarea>
+                                        </div>
+
+                                        <div class="mb-3">
+                                            <label>Priority</label>
+                                            <select name="priority" class="form-control">
+                                                <option value="low">Low</option>
+                                                <option value="medium">Medium</option>
+                                                <option value="high">High</option>
+                                                <option value="urgent">Urgent</option>
+                                            </select>
+                                        </div>
+
+                                        <button class="btn btn-success">
+                                            Create Ticket
+                                        </button>
+
+                                    </form>
+
+                                </div>
+                            </div>
                         </div>
                     </div>
 

@@ -1,58 +1,139 @@
 @extends('layouts.app')
 
 @section('content')
-    <!-- Content Header (Page header) -->
-    <div class="content-header">
-        <div class="container-fluid">
-            <div class="row mb-2">
-                <div class="col-sm-6">
-                    <h1 class="m-0">{{ __('Role Edit') }}</h1>
-                </div><!-- /.col -->
-            </div><!-- /.row -->
-        </div><!-- /.container-fluid -->
+
+<!-- Content Header -->
+<div class="content-header">
+
+    <div class="container-fluid">
+
+        <div class="row mb-2">
+
+            <div class="col-sm-6">
+                <h1 class="m-0">Edit Role</h1>
+            </div>
+
+        </div>
+
     </div>
-    <!-- /.content-header -->
 
-    <!-- Main content -->
-    <div class="content">
-        <div class="container-fluid">
-            <div class="row">
-                <div class="col-lg-12">
+</div>
 
-                    <div class="card card-info">
-                        {{--  <div class="card-header">
-                            <h3 class="card-title">Color &amp; Time Picker</h3>
-                        </div>  --}}
+<!-- Main Content -->
+<div class="content">
 
-                        <div class="card-body">
-                            <form action="{{route('roles.update', $role->id)}}" method="POST">
-                                @csrf
-                                @method('patch')
-                                <div class="form-group">
-                                    <label>Name:</label>
-                                    <input type="text" class="form-control" name="name" value="{{$role->name}}">
+    <div class="container-fluid">
+
+        <div class="row">
+
+            <div class="col-lg-12">
+
+                <div class="card card-info">
+
+                    <div class="card-body">
+
+                        <form action="{{ route('roles.update', $role->id) }}"
+                              method="POST">
+
+                            @csrf
+                            @method('PATCH')
+
+                            {{-- ROLE NAME --}}
+                            <div class="form-group">
+
+                                <label>Role Name</label>
+
+                                <input type="text"
+                                       name="name"
+                                       class="form-control"
+                                       value="{{ old('name', $role->name) }}"
+                                       required>
+
+                                @error('name')
+                                    <small class="text-danger">
+                                        {{ $message }}
+                                    </small>
+                                @enderror
+
+                            </div>
+
+                            <hr>
+
+                            {{-- PERMISSIONS --}}
+                            <div class="form-group">
+
+                                <label>Permissions</label>
+
+                                <div class="mb-2">
+
+                                    <label>
+
+                                        <input type="checkbox"
+                                               id="selectAll">
+
+                                        Select All
+
+                                    </label>
+
                                 </div>
 
-                                @foreach ($permissions as $permission)
-                                    <div class="form-check">
-                                        <input {{$hasPermissions->contains($permission->name) ? 'checked' : ''}} class="form-check-input" type="checkbox" name="permission[]" value="{{$permission->name}}">
-                                        <label class="form-check-label">{{$permission->name}}</label>
-                                    </div>
-                                @endforeach
+                                <div class="row">
 
-                                <div class="btn-group mt-2">
-                                    <button type="submit" class="btn btn-primary">Update</button>
+                                    @foreach ($permissions as $permission)
+
+                                        <div class="col-md-3">
+
+                                            <label>
+
+                                                <input type="checkbox"
+                                                       name="permissions[]"
+                                                       value="{{ $permission->name }}"
+                                                       {{ $role->hasPermissionTo($permission->name) ? 'checked' : '' }}>
+
+                                                {{ $permission->name }}
+
+                                            </label>
+
+                                        </div>
+
+                                    @endforeach
+
                                 </div>
-                            </form>
 
-                        </div>
+                            </div>
+
+                            <hr>
+
+                            <button type="submit"
+                                    class="btn btn-primary">
+
+                                Update Role
+
+                            </button>
+
+                        </form>
+
                     </div>
 
                 </div>
+
             </div>
+
         </div>
-            <!-- /.row -->
-        </div><!-- /.container-fluid -->
+
     </div>
-    <!-- /.content -->
+
+</div>
+
+{{-- SELECT ALL SCRIPT --}}
+<script>
+    document.getElementById('selectAll').addEventListener('change', function () {
+
+        let checkboxes = document.querySelectorAll('input[name="permissions[]"]');
+
+        checkboxes.forEach(cb => cb.checked = this.checked);
+
+    });
+</script>
+
 @endsection

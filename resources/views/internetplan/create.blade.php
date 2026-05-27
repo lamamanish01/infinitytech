@@ -1,85 +1,117 @@
 @extends('layouts.app')
 
 @section('content')
-    <!-- Content Header (Page header) -->
-    <div class="content-header">
-        <div class="container-fluid">
-            <div class="row mb-2">
-                <div class="col-sm-6">
-                    <h1 class="m-0">{{ __('Create Internet Plans') }}</h1>
-                </div><!-- /.col -->
-            </div><!-- /.row -->
-        </div><!-- /.container-fluid -->
+
+<div class="container-fluid">
+
+    {{-- HEADER --}}
+    <div class="d-flex justify-content-between align-items-center mb-4">
+
+        <div>
+            <h4 class="mb-0">Create Internet Plan</h4>
+            <small class="text-muted">Add new bandwidth package</small>
+        </div>
+
+        <a href="{{ route('internetplan.index') }}"
+           class="btn btn-outline-secondary btn-sm">
+            ← Back
+        </a>
+
     </div>
-    <!-- /.content-header -->
 
-    <!-- Main content -->
-    <div class="content">
-        <div class="container-fluid">
-            <div class="row">
-                <div class="col-lg-12">
+    {{-- FORM CARD --}}
+    <div class="card shadow-sm border-0">
 
-                    <div class="card card-info">
-                        {{--  <div class="card-header">
-                            <h3 class="card-title">Color &amp; Time Picker</h3>
-                        </div>  --}}
+        <div class="card-body">
 
-                        <div class="card-body">
-                            <form action="{{route('internetplan.store')}}" method="POST">
-                                @csrf
-                                <div class="form-group row">
-                                    <label class="col-sm-2 col-form-label">Plan Name :</label>
-                                    <div class="col">
-                                        <div class="col-sm-12">
-                                            <input type="text" class="form-control" name="name" placeholder="Enter Plan Name">
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="form-group row">
-                                    <label class="col-sm-2 col-form-label">Price :</label>
-                                    <div class="col">
-                                        <div class="col-sm-12">
-                                            <input type="text" class="form-control" name="price" placeholder="Enter Plan Price">
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="form-group row">
-                                    <label class="col-sm-2 col-form-label">Plan Validity :</label>
-                                    <div class="col">
-                                        <div class="col-sm-12">
-                                            <input type="text" class="form-control" name="duration" placeholder="Enter Plan Validity">
-                                        </div>
-                                    </div>
-                                    <div class="col">
-                                        <div class="col-sm-4">
-                                            <select name="type" class="custom-select">
-                                                @foreach ($plan_types as $plan_type)
-                                                    <option value="{{$plan_type}}">{{$plan_type}}</option>
-                                                @endforeach
-                                            </select>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="form-group row">
-                                    <label class="col-sm-2 col-form-label">Rate Limit :</label>
-                                    <div class="col">
-                                        <div class="col-sm-12">
-                                            <input type="text" class="form-control" name="rate_limit" placeholder="5M/5M">
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="btn-group">
-                                    <button type="submit" class="btn btn-primary">Save</button>
-                                </div>
-                            </form>
+            <form action="{{ route('internetplan.store') }}" method="POST">
+                @csrf
 
-                        </div>
+                {{-- PLAN NAME --}}
+                <div class="mb-3">
+                    <label class="form-label">Plan Name</label>
+                    <input type="text"
+                           name="name"
+                           class="form-control"
+                           placeholder="Enter plan name"
+                           value="{{ old('name') }}"
+                           required>
+                </div>
+
+                {{-- PRICE --}}
+                <div class="mb-3">
+                    <label class="form-label">Price</label>
+                    <input type="number"
+                           step="0.01"
+                           name="price"
+                           class="form-control"
+                           placeholder="Enter price"
+                           value="{{ old('price') }}"
+                           required>
+                </div>
+
+                {{-- DURATION + TYPE --}}
+                <div class="row">
+
+                    <div class="col-md-8 mb-3">
+                        <label class="form-label">Duration</label>
+                        <input type="number"
+                               name="duration"
+                               class="form-control"
+                               placeholder="Enter duration"
+                               value="{{ old('duration') }}"
+                               required>
+                    </div>
+
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label">Type</label>
+
+                            <select name="type" class="form-control" required>
+                                <option value="" disabled selected>Select Type</option>
+
+                                @foreach ($plan_types as $plan_type)
+                                    <option value="{{ $plan_type }}"
+                                        {{ old('type') == $plan_type ? 'selected' : '' }}>
+                                        {{ ucfirst($plan_type) }}
+                                    </option>
+                                @endforeach
+                            </select>
+
                     </div>
 
                 </div>
-            </div>
-            <!-- /.row -->
-        </div><!-- /.container-fluid -->
+
+                {{-- RATE LIMIT --}}
+                <div class="mb-4">
+                    <label class="form-label">Rate Limit</label>
+                    <input type="text"
+                           name="rate_limit"
+                           class="form-control"
+                           placeholder="Example: 5M/5M"
+                           value="{{ old('rate_limit') }}"
+                           required>
+                </div>
+
+                {{-- BUTTONS --}}
+                <div class="d-flex gap-2">
+
+                    <button type="submit" class="btn btn-primary">
+                        Save Plan
+                    </button>
+
+                    <a href="{{ route('internetplan.index') }}"
+                       class="btn btn-secondary">
+                        Cancel
+                    </a>
+
+                </div>
+
+            </form>
+
+        </div>
+
     </div>
-    <!-- /.content -->
+
+</div>
+
 @endsection

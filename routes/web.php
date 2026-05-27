@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\BranchController;
 use App\Http\Controllers\CustomerController;
+use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\InternetPlanController;
 use App\Http\Controllers\MenuController;
 use App\Http\Controllers\MikrotikController;
@@ -36,7 +37,9 @@ Route::middleware('auth')->group(function () {
         ->name('profile.update');
 
     Route::resource('/roles', RoleController::class);
+    Route::resource('/dashboard', DashboardController::class);
     Route::resource('/permissions', PermissionController::class);
+
 
     Route::post('/branch/add-balance', [BranchController::class, 'addBalance'])
         ->name('branch.addBalance');
@@ -80,6 +83,22 @@ Route::middleware('auth')->group(function () {
     Route::resource('/ticket', TicketController::class);
     Route::post('/ticket/reply/{id}',[TicketController::class, 'reply'])->name('ticket.reply');
     Route::post('/ticket/close/{id}',[TicketController::class, 'close'])->name('ticket.close');
+    Route::post('/{id}/assign', [TicketController::class, 'assign'])
+        ->name('tickets.assign');
+
+    Route::post('/{id}/reply', [TicketController::class, 'reply'])
+        ->name('tickets.reply');
+
+    Route::post('/{id}/customer-reply', [TicketController::class, 'customerReply'])
+        ->name('tickets.customer-reply');
+
+    // internal note
+    Route::post('/{id}/internal-note', [TicketController::class, 'internalNote'])
+        ->name('tickets.internal-note');
+
+    // status update
+    Route::post('/{id}/status', [TicketController::class, 'updateStatus'])
+        ->name('tickets.status');
 
     Route::prefix('sms')->name('sms.')->group(function () {
         Route::get('/', [SmsGatewayController::class, 'index'])

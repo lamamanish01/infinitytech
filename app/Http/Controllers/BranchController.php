@@ -52,7 +52,10 @@ class BranchController extends Controller
     public function show(string $id)
     {
         $branch = Branch::findOrFail($id);
-        return view('branch.show', compact('branch'));
+        $transactions = $branch->transactions()
+            ->latest()
+            ->paginate(10);
+        return view('branch.show', compact('branch', 'transactions'));
     }
 
     /**

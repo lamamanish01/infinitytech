@@ -1,57 +1,137 @@
 @extends('layouts.app')
 
 @section('content')
-    <!-- Content Header (Page header) -->
-    <div class="content-header">
-        <div class="container-fluid">
-            <div class="row mb-2">
-                <div class="col-sm-6">
-                    <h1 class="m-0">{{ __('Role Create') }}</h1>
-                </div><!-- /.col -->
-            </div><!-- /.row -->
-        </div><!-- /.container-fluid -->
+
+<!-- Content Header -->
+<div class="content-header">
+
+    <div class="container-fluid">
+
+        <div class="row mb-2">
+
+            <div class="col-sm-6">
+                <h1 class="m-0">Create Role</h1>
+            </div>
+
+        </div>
+
     </div>
-    <!-- /.content-header -->
 
-    <!-- Main content -->
-    <div class="content">
-        <div class="container-fluid">
-            <div class="row">
-                <div class="col-lg-12">
+</div>
 
-                    <div class="card card-info">
-                        {{--  <div class="card-header">
-                            <h3 class="card-title">Color &amp; Time Picker</h3>
-                        </div>  --}}
+<!-- Main Content -->
+<div class="content">
 
-                        <div class="card-body">
-                            <form action="{{route('roles.store')}}" method="POST">
-                                @csrf
-                                <div class="form-group">
-                                    <label>Name:</label>
-                                    <input type="text" class="form-control" name="name" placeholder="Enter Name">
+    <div class="container-fluid">
+
+        <div class="row">
+
+            <div class="col-lg-12">
+
+                <div class="card card-info">
+
+                    <div class="card-body">
+
+                        <form action="{{ route('roles.store') }}"
+                              method="POST">
+
+                            @csrf
+
+                            {{-- ROLE NAME --}}
+                            <div class="form-group">
+
+                                <label>Role Name</label>
+
+                                <input type="text"
+                                       name="name"
+                                       class="form-control"
+                                       placeholder="Enter role name"
+                                       value="{{ old('name') }}"
+                                       required>
+
+                                @error('name')
+                                    <small class="text-danger">
+                                        {{ $message }}
+                                    </small>
+                                @enderror
+
+                            </div>
+
+                            <hr>
+
+                            {{-- PERMISSIONS --}}
+                            <div class="form-group">
+
+                                <label>Permissions</label>
+
+                                <div class="mb-2">
+
+                                    <label>
+                                        <input type="checkbox"
+                                               id="selectAll">
+
+                                        Select All
+                                    </label>
+
                                 </div>
 
-                                @foreach ($permissions as $permission)
-                                    <div class="form-check">
-                                        <input class="form-check-input" type="checkbox" name="permission[]" value="{{$permission->name}}">
-                                        <label class="form-check-label">{{$permission->name}}</label>
-                                    </div>
-                                @endforeach
+                                <div class="row">
 
-                                <div class="btn-group mt-2">
-                                    <button type="submit" class="btn btn-primary">Save</button>
+                                    @foreach ($permissions as $permission)
+
+                                        <div class="col-md-3">
+
+                                            <label>
+
+                                                <input type="checkbox"
+                                                       name="permissions[]"
+                                                       value="{{ $permission->name }}">
+
+                                                {{ $permission->name }}
+
+                                            </label>
+
+                                        </div>
+
+                                    @endforeach
+
                                 </div>
-                            </form>
 
-                        </div>
+                            </div>
+
+                            <hr>
+
+                            {{-- BUTTON --}}
+                            <button type="submit"
+                                    class="btn btn-primary">
+
+                                Save Role
+
+                            </button>
+
+                        </form>
+
                     </div>
 
                 </div>
+
             </div>
+
         </div>
-            <!-- /.row -->
-        </div><!-- /.container-fluid -->
+
     </div>
-    <!-- /.content -->
+
+</div>
+
+{{-- SELECT ALL SCRIPT --}}
+<script>
+    document.getElementById('selectAll').addEventListener('change', function () {
+
+        let checkboxes = document.querySelectorAll('input[name="permissions[]"]');
+
+        checkboxes.forEach(cb => cb.checked = this.checked);
+
+    });
+</script>
+
 @endsection

@@ -22,9 +22,10 @@ class StoreTicketRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'username' => 'required',
-            'subject' => 'required',
-            'message' => 'required',
+            'customer_id' => 'required|exists:customers,id',
+            'subject' => 'required|string',
+            'message' => 'required|string',
+            'priority' => 'required|in:low,medium,high,urgent',
         ];
     }
 }

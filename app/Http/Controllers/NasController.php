@@ -4,7 +4,6 @@ namespace App\Http\Controllers;
 
 use App\Models\Nas;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\File;
 
 class NasController extends Controller
 {
@@ -33,16 +32,16 @@ class NasController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'name' => 'required',
-            'ipaddress' => 'required',
+            'shortname' => 'required',
+            'nasname' => 'required',
             'secret' => 'required',
         ]);
 
         $ports = !empty($request->ports) ? $request->ports : 3799;
 
-        NAS::create([
-            'nasname' => $request->ipaddress,
-            'shortname' => $request->name,
+        Nas::create([
+            'nasname' => $request->nasname,
+            'shortname' => $request->shortname,
             'secret' => $request->secret,
             'type' => $request->type,
             'ports' => $ports,

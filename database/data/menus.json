@@ -122,6 +122,14 @@
                 "parent_id": "5",
                 "order": "5",
                 "role": "view nas"
+            },
+            {
+                "title": "Mikrotik",
+                "url": "/mikrotik",
+                "icon": null,
+                "parent_id": "5",
+                "order": "5",
+                "role": "view mikrotik"
             }
         ]
     },

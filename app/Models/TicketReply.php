@@ -12,6 +12,8 @@ class TicketReply extends Model
         'ticket_id',
         'user_id',
         'message',
+        'customer_id',
+        'is_internal',
     ];
 
     public function tickets()
@@ -22,5 +24,9 @@ class TicketReply extends Model
     public function user()
     {
         return $this->belongsTo(User::class);
+    }
+    public function customer()
+    {
+        return $this->belongsTo(Customer::class);
     }
 }

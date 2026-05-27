@@ -15,7 +15,9 @@ return new class extends Migration
             $table->id();
             $table->foreignId('ticket_id')->constrained()->onDelete('cascade');
             $table->foreignId('user_id')->nullable();
+            $table->foreignId('customer_id')->nullable()->constrained()->nullOnDelete();
             $table->text('message');
+            $table->boolean('is_internal')->default(false);
             $table->timestamps();
         });
     }

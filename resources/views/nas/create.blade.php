@@ -1,73 +1,112 @@
 @extends('layouts.app')
 
 @section('content')
-    <!-- Content Header (Page header) -->
-    <div class="content-header">
-        <div class="container-fluid">
-            <div class="row mb-2">
-                <div class="col-sm-6">
-                    <h1 class="m-0">{{ __('Create NAS') }}</h1>
-                </div><!-- /.col -->
-            </div><!-- /.row -->
-        </div><!-- /.container-fluid -->
+
+<div class="container-fluid">
+
+    {{-- HEADER --}}
+    <div class="d-flex justify-content-between align-items-center mb-4">
+
+        <div>
+            <h4 class="mb-0">Create NAS</h4>
+            <small class="text-muted">Add new Radius NAS device</small>
+        </div>
+
+        <a href="{{ route('nas.index') }}"
+           class="btn btn-outline-secondary btn-sm">
+            ← Back
+        </a>
+
     </div>
-    <!-- /.content-header -->
 
-    <!-- Main content -->
-    <div class="content">
-        <div class="container-fluid">
-            <div class="row">
-                <div class="col-lg-12">
+    {{-- CARD --}}
+    <div class="card shadow-sm border-0">
 
-                    <div class="card card-info">
-                        {{--  <div class="card-header">
-                            <h3 class="card-title">Color &amp; Time Picker</h3>
-                        </div>  --}}
+        <div class="card-body">
 
-                        <div class="card-body">
-                            <form action="{{route('nas.store')}}" method="POST">
-                                @csrf
-                                <div class="form-group">
-                                    <label>NAS Name:</label>
-                                    <input type="text" class="form-control" name="name" placeholder="Enter Name">
-                                </div>
-                                <div class="form-group">
-                                    <label>IP Address:</label>
-                                    <input type="text" class="form-control" name="ipaddress" placeholder="0.0.0.0/0">
-                                </div>
-                                <div class="form-group">
-                                    <label>Secret:</label>
-                                    <input type="text" class="form-control" name="secret" placeholder="radius123">
-                                </div>
-                                <div class="form-group">
-                                    <label>Ports:</label>
-                                    <input type="text" class="form-control" name="ports" placeholder="3799">
-                                </div>
-                                <div class="form-select">
-                                    <label>Type:</label>
-                                    <select name="type" class="custom-select">
-                                        <option value="other">Other</option>
-                                        <option value="mikrotik">Mikrotik</option>
-                                        <option value="juniper">Juniper</option>
-                                    </select>
-                                </div>
-                                <div class="form-group mt-2">
-                                    <label>Description:</label>
-                                    <textarea type="text" class="form-control" name="description" placeholder="..."></textarea>
-                                </div>
-                                <div class="btn-group">
-                                    <button type="submit" class="btn btn-primary">Save</button>
-                                </div>
-                            </form>
+            <form action="{{ route('nas.store') }}" method="POST">
+                @csrf
 
-                        </div>
-                    </div>
+                {{-- NAS NAME --}}
+                <div class="mb-3">
+                    <label class="form-label">NAS Name</label>
+                    <input type="text"
+                           name="shortname"
+                           class="form-control"
+                           placeholder="Enter NAS name"
+                           required>
+                </div>
+
+                {{-- IP ADDRESS --}}
+                <div class="mb-3">
+                    <label class="form-label">IP Address</label>
+                    <input type="text"
+                           name="nasname"
+                           class="form-control"
+                           placeholder="e.g. 192.168.1.1"
+                           required>
+                </div>
+
+                {{-- SECRET --}}
+                <div class="mb-3">
+                    <label class="form-label">Secret</label>
+                    <input type="text"
+                           name="secret"
+                           class="form-control"
+                           placeholder="radius secret key"
+                           required>
+                </div>
+
+                {{-- PORTS --}}
+                <div class="mb-3">
+                    <label class="form-label">Ports</label>
+                    <input type="text"
+                           name="ports"
+                           class="form-control"
+                           placeholder="e.g. 3799">
+                </div>
+
+                {{-- TYPE --}}
+                <div class="mb-3">
+                    <label class="form-label">Type</label>
+
+                    <select name="type" class="form-control" required>
+                        <option value="other">Other</option>
+                        <option value="mikrotik">Mikrotik</option>
+                        <option value="juniper">Juniper</option>
+                    </select>
 
                 </div>
-            </div>
+
+                {{-- DESCRIPTION --}}
+                <div class="mb-4">
+                    <label class="form-label">Description</label>
+                    <textarea name="description"
+                              class="form-control"
+                              rows="3"
+                              placeholder="Optional notes..."></textarea>
+                </div>
+
+                {{-- BUTTONS --}}
+                <div class="d-flex gap-2">
+
+                    <button type="submit" class="btn btn-primary">
+                        Save NAS
+                    </button>
+
+                    <a href="{{ route('nas.index') }}"
+                       class="btn btn-secondary">
+                        Cancel
+                    </a>
+
+                </div>
+
+            </form>
+
         </div>
-            <!-- /.row -->
-        </div><!-- /.container-fluid -->
+
     </div>
-    <!-- /.content -->
+
+</div>
+
 @endsection

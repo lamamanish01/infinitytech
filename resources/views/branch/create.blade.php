@@ -1,63 +1,153 @@
 @extends('layouts.app')
 
 @section('content')
-    <!-- Content Header (Page header) -->
-    <div class="content-header">
-        <div class="container-fluid">
-            <div class="row mb-2">
-                <div class="col-sm-6">
-                    <h1 class="m-0">{{ __('Branch Create') }}</h1>
-                </div><!-- /.col -->
-            </div><!-- /.row -->
-        </div><!-- /.container-fluid -->
+
+<!-- Content Header -->
+<div class="content-header">
+
+    <div class="container-fluid">
+
+        <div class="row mb-2">
+
+            <div class="col-sm-6">
+                <h1 class="m-0">Create Branch</h1>
+            </div>
+
+        </div>
+
     </div>
-    <!-- /.content-header -->
 
-    <!-- Main content -->
-    <div class="content">
-        <div class="container-fluid">
-            <div class="row">
-                <div class="col-lg-12">
+</div>
 
-                    <div class="card card-info">
-                        {{--  <div class="card-header">
-                            <h3 class="card-title">Color &amp; Time Picker</h3>
-                        </div>  --}}
+<!-- Main Content -->
+<div class="content">
 
-                        <div class="card-body">
-                            <form action="{{route('branch.store')}}" method="POST">
-                                @csrf
-                                <div class="form-group">
-                                    <label>Name:</label>
-                                    <input type="text" class="form-control" name="name" placeholder="Enter Name" value="{{old('name')}}">
-                                </div>
-                                <div class="form-group">
-                                    <label>Address:</label>
-                                    <input type="text" class="form-control" name="address" placeholder="Enter Address" value="{{old('name')}}">
-                                </div>
-                                <div class="form-group">
-                                    <label>Contact Number:</label>
-                                    <input type="text" class="form-control" name="contact_number" placeholder="Enter Contact">
-                                </div><div class="form-group">
-                                    <label>Balance:</label>
-                                    <input type="number" class="form-control" name="balance" placeholder="Enter Branch Balance">
-                                </div>
-                                <div class="form-group">
-                                    <label>Remarks:</label>
-                                    <input type="text" class="form-control" name="remarks" placeholder="Remarks ...">
-                                </div>
-                                <div class="btn-group">
-                                    <button type="submit" class="btn btn-primary">Save</button>
-                                </div>
-                            </form>
+    <div class="container-fluid">
 
-                        </div>
+        <div class="row">
+
+            <div class="col-lg-12">
+
+                <div class="card card-info">
+
+                    <div class="card-body">
+
+                        <form action="{{ route('branch.store') }}"
+                              method="POST">
+
+                            @csrf
+
+                            {{-- NAME --}}
+                            <div class="form-group">
+
+                                <label>Name</label>
+
+                                <input type="text"
+                                       name="name"
+                                       class="form-control"
+                                       placeholder="Enter branch name"
+                                       value="{{ old('name') }}"
+                                       required>
+
+                                @error('name')
+                                    <small class="text-danger">
+                                        {{ $message }}
+                                    </small>
+                                @enderror
+
+                            </div>
+
+                            {{-- ADDRESS --}}
+                            <div class="form-group">
+
+                                <label>Address</label>
+
+                                <input type="text"
+                                       name="address"
+                                       class="form-control"
+                                       placeholder="Enter address"
+                                       value="{{ old('address') }}"
+                                       required>
+
+                                @error('address')
+                                    <small class="text-danger">
+                                        {{ $message }}
+                                    </small>
+                                @enderror
+
+                            </div>
+
+                            {{-- CONTACT --}}
+                            <div class="form-group">
+
+                                <label>Contact Number</label>
+
+                                <input type="text"
+                                       name="contact_number"
+                                       class="form-control"
+                                       placeholder="Enter contact number"
+                                       value="{{ old('contact_number') }}"
+                                       required>
+
+                                @error('contact_number')
+                                    <small class="text-danger">
+                                        {{ $message }}
+                                    </small>
+                                @enderror
+
+                            </div>
+
+                            {{-- BALANCE (SECURITY NOTE) --}}
+                            <div class="form-group">
+
+                                <label>Opening Balance</label>
+
+                                <input type="number"
+                                       name="balance"
+                                       class="form-control"
+                                       placeholder="Enter initial balance"
+                                       value="{{ old('balance', 0) }}"
+                                       step="0.01">
+
+                                <small class="text-muted">
+                                    Optional: Used only for initial setup
+                                </small>
+
+                            </div>
+
+                            {{-- REMARKS --}}
+                            <div class="form-group">
+
+                                <label>Remarks</label>
+
+                                <input type="text"
+                                       name="remarks"
+                                       class="form-control"
+                                       placeholder="Optional remarks"
+                                       value="{{ old('remarks') }}">
+
+                            </div>
+
+                            {{-- BUTTON --}}
+                            <button type="submit"
+                                    class="btn btn-primary">
+
+                                Save Branch
+
+                            </button>
+
+                        </form>
+
                     </div>
 
                 </div>
+
             </div>
+
         </div>
-            <!-- /.row -->
-        </div><!-- /.container-fluid -->
-    <!-- /.content -->
+
+    </div>
+
+</div>
+
 @endsection

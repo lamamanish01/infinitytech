@@ -1,86 +1,161 @@
 @extends('layouts.app')
 
 @section('content')
-    <!-- Content Header (Page header) -->
-    <div class="content-header">
-        <div class="container-fluid">
-            <div class="row mb-2">
-                <div class="col-sm-6">
-                    <h1 class="m-0">{{ __('Create User') }}</h1>
-                </div><!-- /.col -->
-            </div><!-- /.row -->
-            @can('create users')
-                <div class="col-md-12 text-right">
-                    <a class="btn btn-primary" href="{{ route('users.create') }}"></i> Create </a>
-                </div>
-            @endcan
-        </div><!-- /.container-fluid -->
+
+<!-- Content Header -->
+<div class="content-header">
+
+    <div class="container-fluid">
+
+        <div class="row mb-2">
+
+            <div class="col-sm-6">
+                <h1 class="m-0">Create User</h1>
+            </div>
+
+        </div>
+
     </div>
-    <!-- /.content-header -->
 
-    <!-- Main content -->
-    <div class="content">
-        <div class="container-fluid">
-            <div class="row">
-                <div class="col-lg-12">
+</div>
 
-                    <div class="card card-info">
-                        {{--  <div class="card-header">
-                            <h3 class="card-title">Color &amp; Time Picker</h3>
-                        </div>  --}}
+<!-- Main Content -->
+<div class="content">
 
-                        <div class="card-body">
-                            <form action="{{route('users.store')}}" method="post">
-                                @csrf
-                                <div class="form-group">
-                                    <label>Name:</label>
-                                    <input type="text" class="form-control" name="name" placeholder="Enter Name">
-                                </div>
+    <div class="container-fluid">
 
-                                <div class="form-group">
-                                    <label>Email:</label>
-                                    <input type="text" class="form-control" name="email" placeholder="Enter Email">
-                                </div>
+        <div class="row">
 
-                                <div class="form-select">
-                                    <label>Branch:</label>
-                                    <select name="branch_id" class="custom-select">
-                                        <option value="">None</option>
-                                        @foreach ($branches as $branch)
-                                            <option value="{{$branch->id}}">{{$branch->name}}</option>
-                                        @endforeach
-                                    </select>
-                                </div>
+            <div class="col-lg-12">
 
-                                <div class="form-group">
-                                    <label>Password:</label>
-                                    <input type="text" class="form-control" name="password" placeholder="Enter Password">
-                                    @error('password')
-                                        {{$message}}
-                                    @enderror
-                                </div>
+                <div class="card card-info">
 
-                                <div class="form-group">
-                                    <label>Confirm Password:</label>
-                                    <input type="text" class="form-control" name="password_confirmation" placeholder="Enter Confirm Password">
-                                    @error('password_confirmation')
-                                        {{$message}}
-                                    @enderror
-                                </div>
+                    <div class="card-body">
 
-                                <div class="btn-group mt-2">
-                                    <button type="submit" class="btn btn-primary">Save</button>
-                                </div>
-                            </form>
+                        <form action="{{ route('users.store') }}"
+                              method="POST">
 
-                        </div>
+                            @csrf
+
+                            {{-- NAME --}}
+                            <div class="form-group">
+
+                                <label>Name</label>
+
+                                <input type="text"
+                                       name="name"
+                                       class="form-control"
+                                       placeholder="Enter name"
+                                       value="{{ old('name') }}"
+                                       required>
+
+                                @error('name')
+                                    <small class="text-danger">
+                                        {{ $message }}
+                                    </small>
+                                @enderror
+
+                            </div>
+
+                            {{-- EMAIL --}}
+                            <div class="form-group">
+
+                                <label>Email</label>
+
+                                <input type="email"
+                                       name="email"
+                                       class="form-control"
+                                       placeholder="Enter email"
+                                       value="{{ old('email') }}"
+                                       required>
+
+                                @error('email')
+                                    <small class="text-danger">
+                                        {{ $message }}
+                                    </small>
+                                @enderror
+
+                            </div>
+
+                            {{-- BRANCH --}}
+                            <div class="form-group">
+
+                                <label>Branch</label>
+
+                                <select name="branch_id"
+                                        class="form-control">
+
+                                    <option value="">
+                                        None
+                                    </option>
+
+                                    @foreach ($branches as $branch)
+
+                                        <option value="{{ $branch->id }}"
+                                            {{ old('branch_id') == $branch->id ? 'selected' : '' }}>
+
+                                            {{ $branch->name }}
+
+                                        </option>
+
+                                    @endforeach
+
+                                </select>
+
+                            </div>
+
+                            {{-- PASSWORD --}}
+                            <div class="form-group">
+
+                                <label>Password</label>
+
+                                <input type="password"
+                                       name="password"
+                                       class="form-control"
+                                       placeholder="Enter password"
+                                       required>
+
+                                @error('password')
+                                    <small class="text-danger">
+                                        {{ $message }}
+                                    </small>
+                                @enderror
+
+                            </div>
+
+                            {{-- CONFIRM PASSWORD --}}
+                            <div class="form-group">
+
+                                <label>Confirm Password</label>
+
+                                <input type="password"
+                                       name="password_confirmation"
+                                       class="form-control"
+                                       placeholder="Confirm password"
+                                       required>
+
+                            </div>
+
+                            {{-- BUTTON --}}
+                            <button type="submit"
+                                    class="btn btn-primary">
+
+                                Create User
+
+                            </button>
+
+                        </form>
+
                     </div>
 
                 </div>
+
             </div>
+
         </div>
-            <!-- /.row -->
-        </div><!-- /.container-fluid -->
+
     </div>
-    <!-- /.content -->
+
+</div>
+
 @endsection
