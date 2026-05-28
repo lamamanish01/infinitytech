@@ -13,7 +13,7 @@
 
         <div class="card-body">
 
-            <form action="{{ route('recharges.store', $customer->id) }}" method="POST">
+            <form action="{{ route('recharges.store') }}" method="POST">
                 @csrf
 
                 <input type="hidden" name="customer_id" value="{{ $customer->id }}">

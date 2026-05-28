@@ -98,7 +98,17 @@
 
                                 <li class="list-group-item d-flex justify-content-between">
                                     Status
-                                    <span class="badge bg-info">{{ $customer->status }}</span>
+                                    @php
+                                        $status = $customer->status;
+                                    @endphp
+
+                                    <span class="badge
+                                        @if($status == 'active') bg-success
+                                        @elseif($status == 'grace') bg-warning text-dark
+                                        @else bg-danger
+                                        @endif">
+                                        {{ strtoupper($status) }}
+                                    </span>
                                 </li>
 
                                 <li class="list-group-item d-flex justify-content-between">
@@ -175,8 +185,8 @@
                                         <td>{{ $customer->active->ip_address }}</td>
                                         <td>{{ $customer->active->start_time }}</td>
                                         <td>{{ $customer->active->session_time_human }}</td>
-                                        <td>{{ $customer->active->upload_mb }} MB</td>
-                                        <td>{{ $customer->active->download_mb }} MB</td>
+                                        <td>{{ $customer->active->upload_mb }}</td>
+                                        <td>{{ $customer->active->download_mb }}</td>
                                     </tr>
                                 </tbody>
 
@@ -215,8 +225,8 @@
                                         <td>{{ $customer->previous->ip_address }}</td>
                                         <td>{{ $customer->previous->start_time }}</td>
                                         <td>{{ $customer->previous->session_time_human }}</td>
-                                        <td>{{ $customer->previous->upload_mb }} MB</td>
-                                        <td>{{ $customer->previous->download_mb }} MB</td>
+                                        <td>{{ $customer->previous->upload_mb }}</td>
+                                        <td>{{ $customer->previous->download_mb }}</td>
                                         <td>{{ $customer->previous->ppp_server }}</td>
                                     </tr>
                                 </tbody>
@@ -297,6 +307,7 @@
                                 <tr>
                                     <th>#</th>
                                     <th>User</th>
+                                    <th>Pass</th>
                                     <th>Reply</th>
                                     <th>Date</th>
                                 </tr>
@@ -309,6 +320,7 @@
                                     <tr>
                                         <td>{{ $loop->iteration }}</td>
                                         <td>{{ $log->username }}</td>
+                                        <td>{{ $log->pass }}</td>
                                         <td>{{ $log->reply_message }}</td>
                                         <td>{{ optional($log->authdate)->toDateTimeString() }}</td>
                                     </tr>

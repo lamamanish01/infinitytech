@@ -156,7 +156,7 @@ class CustomerController extends Controller
             $customer->fresh()
         );
 
-        return redirect()->route('customers.index')->with('success', 'Expiry Date changed successfully.');
+        return redirect()->route('customers.show', $customer->id)->with('success', 'Expiry Date changed successfully.');
     }
 
     public function provideGrace(Request $request, $customerId)
