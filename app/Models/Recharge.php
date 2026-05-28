@@ -46,7 +46,7 @@ class Recharge extends Model
             $planId,
             $paymentMethod,
             $transactionId
-        ) {
+        ){
 
             $customer = Customer::lockForUpdate()->findOrFail($customerId);
             $plan = InternetPlan::findOrFail($planId);
@@ -63,7 +63,15 @@ class Recharge extends Model
                 throw new \Exception("Insufficient branch balance");
             }
 
-            GracePeriod::where('customer_id', $customer->id)->delete();
+            $activeGrace = GracePeriod::where('customer_id', $customer->id)
+                ->whereDate('grace_end', '>=', now())
+                ->first();
+
+            if ($activeGrace) {
+                $activeGrace->delete();
+            }
+
+            // GracePeriod::where('customer_id', $customer->id)->delete();
 
             $baseDate = ($customer->expire_date && $customer->expire_date > now())
             ? Carbon::parse($customer->expire_date)

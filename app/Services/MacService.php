@@ -14,9 +14,8 @@ class MacService
     */
     public static function normalize($mac)
     {
-        if (!$mac) return null;
-
-        return strtoupper(str_replace([':', '-', '.'], '', $mac));
+        $mac = strtolower(str_replace(['-', ':', '.'], '', $mac));
+        return implode(':', str_split($mac, 2));
     }
 
     /*

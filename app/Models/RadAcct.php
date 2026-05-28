@@ -25,6 +25,10 @@ class RadAcct extends Model
         'session_time_human',
     ];
 
+    protected $casts = [
+        'acctupdatetime' => 'datetime',
+    ];
+
     public function Customer()
     {
         return $this->belongsTo(Customer::class);

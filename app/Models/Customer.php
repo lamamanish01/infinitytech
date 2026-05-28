@@ -197,22 +197,39 @@ class Customer extends Model
         $session = $this->activeSession;
 
         if (!$session) {
-            return false; // OFFLINE
+            return false;
         }
 
-        $lastSeen = $session->acctupdatetime;
-
-        if (!$lastSeen) {
+        if (!$session->acctupdatetime) {
             return 'stale';
         }
 
-        $isStale = $lastSeen->lt(now()->subMinutes(5));
+        return $session->acctupdatetime->lt(now()->subMinutes(5))
+            ? 'stale'
+            : true;
+    }
 
-        if ($isStale) {
-            return 'stale';
+    public function getStatusAttribute($value)
+    {
+        if (!$this->expire_date) {
+            return 'unknown';
         }
 
-        return true; // ONLINE
+        $expire = Carbon::parse($this->expire_date);
+
+        if ($expire->lt(now())) {
+
+            // check grace
+            $grace = $this->activeGrace();
+
+            if ($grace && Carbon::parse($grace->grace_end)->gte(now())) {
+                return 'grace';
+            }
+
+            return 'expired';
+        }
+
+        return 'active';
     }
 
     public function getActiveAttribute()
