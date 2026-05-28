@@ -48,7 +48,6 @@ class Recharge extends Model
             $transactionId
         ) {
 
-            // ✅ FIX: convert IDs to MODELS
             $customer = Customer::lockForUpdate()->findOrFail($customerId);
             $plan = InternetPlan::findOrFail($planId);
             $branch = Branch::lockForUpdate()->findOrFail($customer->branch_id);
@@ -66,7 +65,6 @@ class Recharge extends Model
 
             GracePeriod::where('customer_id', $customer->id)->delete();
 
-            // expiry
             $baseDate = ($customer->expire_date && $customer->expire_date > now())
             ? Carbon::parse($customer->expire_date)
             : now();
@@ -92,7 +90,6 @@ class Recharge extends Model
             $billing = Billing::createBilling($customer, $recharge);
             $invoice = Invoice::createInvoice($billing, $recharge);
 
-            // debit
             $branch->decrement('balance', $plan->price);
 
             $customer->update([
