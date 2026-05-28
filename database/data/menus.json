@@ -79,7 +79,7 @@
             },
             {
                 "title": "Online Customer",
-                "url": "/customers/onlineCustomer",
+                "url": "/customers/online",
                 "icon": null,
                 "parent_id": "3",
                 "order": "3",

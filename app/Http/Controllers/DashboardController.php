@@ -2,8 +2,13 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Branch;
+use App\Models\Customer;
 use App\Models\Dashboard;
+use App\Models\InternetPlan;
+use App\Models\Nas;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class DashboardController extends Controller
 {
@@ -12,7 +17,21 @@ class DashboardController extends Controller
      */
     public function index()
     {
-        //
+        $onlineCustomers = DB::table('radacct')
+            ->whereNull('acctstoptime')
+            ->whereNotNull('username')
+            ->distinct('username')
+            ->count('username');
+
+        return view('dashboard.index', [
+            'onlineCustomers'  => $onlineCustomers,
+            'totalCustomers'   => Customer::count(),
+            'totalPlans'       => InternetPlan::count(),
+            'expiredCustomers' => Customer::where('status', 'expired')->count(),
+            'branchBalance'    => Branch::sum('balance'),
+            'activeSessions'   => DB::table('radacct')->whereNull('acctstoptime')->count(),
+            'nasCount'         => Nas::count(),
+        ]);
     }
 
     /**

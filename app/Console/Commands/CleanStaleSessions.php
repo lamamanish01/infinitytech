@@ -11,22 +11,25 @@ class CleanStaleSessions extends Command
 {
     protected $signature = 'customers:clean-stale-sessions';
 
-    protected $description = 'Close FreeRADIUS stale sessions after 5 minutes of inactivity';
+    protected $description = 'Close stale FreeRADIUS sessions properly';
 
     public function handle(): int
     {
         try {
-            $cutoff = Carbon::now()->subMinutes(5);
+
+            $cutoff = Carbon::now()->subMinutes(10);
 
             $updated = DB::table('radacct')
                 ->whereNull('acctstoptime')
-                ->where(function ($query) use ($cutoff) {
-                    $query->where('acctupdatetime', '<', $cutoff)
-                          ->orWhereNull('acctupdatetime');
+
+                ->where(function ($q) use ($cutoff) {
+                    $q->where('acctstarttime', '<', $cutoff)
+                      ->orWhereNull('acctstarttime');
                 })
+
                 ->update([
-                    'acctstoptime'       => Carbon::now(),
-                    'acctterminatecause' => 'Idle-Timeout',
+                    'acctstoptime' => Carbon::now(),
+                    'acctterminatecause' => 'Stale-Session'
                 ]);
 
             CronLog::create([

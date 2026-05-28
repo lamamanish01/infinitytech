@@ -15,7 +15,7 @@ Schedule::command('customers:clean-stale-sessions')
     ->runInBackground();
 
 Schedule::command('customers:update-expired')
-    ->everyMinute()
+    ->daily()
     ->withoutOverlapping()
     ->runInBackground();
 

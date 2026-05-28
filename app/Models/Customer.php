@@ -10,6 +10,7 @@ use App\Models\Recharge;
 use App\Services\MacService;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\DB;
 
 class Customer extends Model
 {
@@ -90,49 +91,6 @@ class Customer extends Model
         return $this->gracePeriods()->latest()->first();
     }
 
-    // public function isActive()
-    // {
-    //     return $this->expire_date && now()->lte($this->expire_date);
-    // }
-
-    // public function isInGrace()
-    // {
-    //     $grace = $this->activeGrace();
-
-    //     if (!$grace || !$this->expire_date) {
-    //         return false;
-    //     }
-
-    //     return now()->gt($this->expire_date)
-    //         && now()->lte($this->graceEndDate());
-    // }
-
-    // public function isExpired()
-    // {
-    //     if (!$this->expire_date)
-    //         return true;
-
-    //     $grace = $this->activeGrace();
-
-    //     if ($grace) {
-    //         return now()->gt($this->graceEndDate());
-    //     }
-
-    //     return now()->gt($this->expire_date);
-    // }
-
-    // public function status()
-    // {
-    //     if ($this->status === 'suspended')
-    //         return 'suspended';
-    //     if ($this->isActive())
-    //         return 'active';
-    //     if ($this->isInGrace())
-    //         return 'grace';
-
-    //     return 'expired';
-    // }
-
     public function calculateStatus()
     {
         if (!$this->expire_date) {
@@ -194,19 +152,19 @@ class Customer extends Model
 
     public function getIsOnlineAttribute()
     {
-        $session = $this->activeSession;
+        $session = DB::table('radacct')
+            ->where('username', $this->username)
+            ->whereNull('acctstoptime')
+            ->latest('acctstarttime')
+            ->first();
 
         if (!$session) {
             return false;
         }
 
-        if (!$session->acctupdatetime) {
-            return 'stale';
-        }
+        $lastUpdate = $session->acctupdatetime ?? $session->acctstarttime;
 
-        return $session->acctupdatetime->lt(now()->subMinutes(5))
-            ? 'stale'
-            : true;
+        return Carbon::parse($lastUpdate)->gt(now()->subMinutes(10));
     }
 
     public function getStatusAttribute($value)
@@ -249,6 +207,13 @@ class Customer extends Model
             ->orderByDesc('authdate')
             ->limit($limit)
             ->get();
+    }
+
+    public function scopeOnline($query)
+    {
+        return $query->whereHas('activeSession', function ($q) {
+            $q->where('acctupdatetime', '>=', now()->subMinutes(5));
+        });
     }
 }
 

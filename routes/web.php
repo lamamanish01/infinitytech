@@ -24,7 +24,7 @@ Route::get('/', function () {
 
 Auth::routes();
 
-Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
+// Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
 
 Route::middleware('auth')->group(function () {
     Route::view('about', 'about')->name('about');
@@ -56,6 +56,8 @@ Route::middleware('auth')->group(function () {
         ->name('customers.expiry-form');
     Route::post('/customers/{customer}/change-expiry', [CustomerController::class, 'changeExpiry'])
         ->name('customers.change-expiry');
+    Route::get('customers/online', [CustomerController::class, 'online']);
+    Route::get('/customers/online', [CustomerController::class, 'online']);
     Route::post('/provide-grace/{customerId}', [CustomerController::class, 'provideGrace'])
         ->name('provide-grace');
     Route::post('/customer/{id}/disconnect', [CustomerController::class, 'disconnect'])

@@ -2,87 +2,137 @@
 
 @section('content')
 
-    <!-- Content Header (Page header) -->
-    <div class="content-header">
-        <div class="container-fluid">
-            <div class="row mb-2">
-                <div class="col-sm-6">
-                    <h1 class="m-0">{{ __('List of Mikrotiks') }}</h1>
-                </div><!-- /.col -->
-            </div><!-- /.row -->
-            @can('create nas')
-                <div class="col-md-12 text-right">
-                    <a class="btn btn-primary" href="{{ route('mikrotik.create') }}"></i> Create </a>
-                </div>
-            @endcan
-        </div><!-- /.container-fluid -->
-    </div>
-    <!-- /.content-header -->
+<div class="container-fluid">
 
-    <!-- Main content -->
-    <div class="content">
-        <div class="container-fluid">
-            <div class="row">
-                <div class="col-lg-12">
+    <!-- HEADER -->
+    <div class="d-flex justify-content-between align-items-center mb-3">
 
-                    <div class="card card-info">
-                        {{--  <div class="card-header">
-                            <h3 class="card-title">Color &amp; Time Picker</h3>
-                        </div>  --}}
-
-                        <div class="card-body table-responsive p-0">
-                            <table class="table table-hover text-nowrap">
-                                <thead>
-                                    <tr>
-                                        <th>#</th>
-                                        <th>Name</th>
-                                        <th>IP Address</th>
-                                        <th>Port</th>
-                                        <th>Username</th>
-                                        <th>Password</th>
-                                        <th>Action</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    @forelse($mikrotiks as $mikrotik)
-                                        <tr>
-                                            <td>{{$loop->iteration}}</td>
-                                            <td>{{$mikrotik->name}}</td>
-                                            <td>{{$mikrotik->host}}</td>
-                                            <td>{{$mikrotik->port}}</td>
-                                            <td>{{$mikrotik->username}}</td>
-                                            <td>{{$mikrotik->password}}</td>
-                                            <td>
-                                                <div class="btn-group">
-                                                    @can('edit nas')
-                                                        <a href="{{route('mikrotik.edit', $mikrotik->id)}}" class="btn btn-sm btn-secondary">Edit</a>
-                                                    @endcan
-                                                    @can('delete nas')
-                                                        <form action="{{route('mikrotik.destroy', $mikrotik->id)}}" method="post">
-                                                            @method('Delete')
-                                                            @csrf
-                                                            <button type="submit" class="btn btn-sm btn-danger" onclick="alert('Do you want to delete this mikrotik ?')">Delete</button>
-                                                        </form>
-                                                    @endcan
-                                                </div>
-                                            </td>
-                                        </tr>
-                                    @empty
-                                        <tr>
-                                            <td colspan="4">No Data Found</td>
-                                        </tr>
-                                    @endforelse
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                    {{$mikrotiks->links()}}
-                </div>
-            </div>
+        <div>
+            <h4 class="mb-0">Mikrotik Routers</h4>
+            <small class="text-muted">Manage router API connections</small>
         </div>
-            <!-- /.row -->
-        </div><!-- /.container-fluid -->
+
+        @can('create mikrotik')
+            <a href="{{ route('mikrotik.create') }}" class="btn btn-primary">
+                + Add Mikrotik
+            </a>
+        @endcan
+
     </div>
-    <!-- /.content -->
+
+    <!-- TABLE CARD -->
+    <div class="card shadow-sm">
+
+        <div class="card-body p-0">
+
+            <div class="table-responsive">
+
+                <table class="table table-hover align-middle mb-0">
+
+                    <thead class="table-light">
+                        <tr>
+                            <th>#</th>
+                            <th>Name</th>
+                            <th>IP Address</th>
+                            <th>Port</th>
+                            <th>Username</th>
+                            <th>Password</th>
+                            <th class="text-end">Action</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+
+                        @forelse($mikrotiks as $mikrotik)
+
+                            <tr>
+
+                                <td>{{ $loop->iteration }}</td>
+
+                                <td class="fw-bold">
+                                    {{ $mikrotik->name }}
+                                </td>
+
+                                <td>
+                                    {{ $mikrotik->host }}
+                                </td>
+
+                                <td>
+                                    <span class="badge bg-info">
+                                        {{ $mikrotik->port }}
+                                    </span>
+                                </td>
+
+                                <td>
+                                    {{ $mikrotik->username }}
+                                </td>
+
+                                <!-- ⚠️ SECURITY FIX -->
+                                <td>
+                                    <span class="text-muted">
+                                        ••••••••
+                                    </span>
+                                </td>
+
+                                <!-- ACTIONS -->
+                                <td class="text-end">
+
+                                    <div class="btn-group btn-group-sm">
+
+                                        @can('edit mikrotik')
+                                            <a href="{{ route('mikrotik.edit', $mikrotik->id) }}"
+                                               class="btn btn-sm btn-primary">
+                                                Edit
+                                            </a>
+                                        @endcan
+
+                                        @can('delete mikrotik')
+                                            <form action="{{ route('mikrotik.destroy', $mikrotik->id) }}"
+                                                  method="POST"
+                                                  onsubmit="return confirm('Delete this Mikrotik?')">
+
+                                                @csrf
+                                                @method('DELETE')
+
+                                                <button class="btn btn-sm btn-danger"
+                                                        type="submit">
+                                                    Delete
+                                                </button>
+
+                                            </form>
+                                        @endcan
+
+                                    </div>
+
+                                </td>
+
+                            </tr>
+
+                        @empty
+
+                            <tr>
+                                <td colspan="7" class="text-center py-4 text-muted">
+                                    No Mikrotik Found
+                                </td>
+                            </tr>
+
+                        @endforelse
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <!-- PAGINATION -->
+    <div class="mt-3 d-flex justify-content-end">
+        {{ $mikrotiks->links() }}
+    </div>
+
+</div>
 
 @endsection

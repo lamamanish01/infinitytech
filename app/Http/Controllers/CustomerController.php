@@ -256,4 +256,17 @@ class CustomerController extends Controller
     //     return back()->with('error', $result['message']);
     // }
 
+    public function online()
+    {
+        $customers = Customer::with([
+                'internetPlan',
+                'activeSession'
+            ])
+            ->online()
+            ->latest()
+            ->paginate(20);
+
+        return view('customers.online', compact('customers'));
+    }
+
 }

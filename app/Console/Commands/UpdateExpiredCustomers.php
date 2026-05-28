@@ -13,7 +13,7 @@ use Illuminate\Support\Facades\Log;
 class UpdateExpiredCustomers extends Command
 {
     protected $signature = 'customers:update-expired';
-    protected $description = 'Update customer status + disconnect expired users';
+    protected $description = 'Update customer status and disconnect expired users';
 
     public function handle()
     {
@@ -38,10 +38,10 @@ class UpdateExpiredCustomers extends Command
 
                         $stats['processed']++;
 
-                        $customer->refresh();
                         $newStatus = $customer->calculateStatus();
                         $oldStatus = $customer->status;
 
+                        // ✔ SKIP if no change
                         if ($newStatus === $oldStatus) {
                             continue;
                         }
@@ -52,13 +52,11 @@ class UpdateExpiredCustomers extends Command
 
                         $stats['updated']++;
 
+                        // ✔ sync radius only when status changes
                         $radius->syncCustomer($customer);
 
-                        if (in_array($newStatus, [
-                            'expired',
-                            'suspended',
-                            'discontinued'
-                        ])) {
+                        // ✔ handle expiry actions
+                        if (in_array($newStatus, ['expired', 'suspended', 'discontinued'])) {
 
                             $session = DB::table('radacct')
                                 ->where('username', $customer->username)
@@ -66,23 +64,12 @@ class UpdateExpiredCustomers extends Command
                                 ->latest('radacctid')
                                 ->first();
 
+                            // ✔ disconnect only if session exists
                             if ($session && $customer->mikrotik) {
-
-                                try {
-
-                                    $mk->disconnectPPPoE(
-                                        $customer->mikrotik,
-                                        $session->username
-                                    );
-
-                                } catch (\Throwable $e) {
-
-                                    Log::error('PPPoE disconnect failed', [
-                                        'customer_id' => $customer->id,
-                                        'username'    => $customer->username,
-                                        'error'       => $e->getMessage()
-                                    ]);
-                                }
+                                $mk->disconnectPPPoE(
+                                    $customer->mikrotik,
+                                    $customer->username
+                                );
                             }
 
                             $stats['expired']++;
@@ -100,12 +87,6 @@ class UpdateExpiredCustomers extends Command
                     }
                 }
             });
-
-        /*
-        |--------------------------------------------------------------------------
-        | STORE CRON LOG
-        |--------------------------------------------------------------------------
-        */
 
         CronLog::create([
             'command' => $this->signature,
