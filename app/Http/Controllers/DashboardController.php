@@ -30,7 +30,11 @@ class DashboardController extends Controller
             'totalPlans'       => InternetPlan::count(),
             'expiredCustomers' => Customer::where('status', 'expired')->count(),
             'branchBalance'    => Branch::sum('balance'),
-            'activeSessions'   => DB::table('radacct')->whereNull('acctstoptime')->count(),
+            'activeSessions' => DB::table('radacct')
+                ->whereNull('acctstoptime')
+                ->whereNotNull('username')
+                ->distinct()
+                ->count('username'),
             'nasCount'         => Nas::count(),
         ]);
     }

@@ -59,10 +59,10 @@ class UserController extends Controller
 
     public function update(Request $request, User $user)
     {
-        //dd($request->all());
         $request->validate([
             'name' => 'required',
             'email' => 'required|unique:users,email,'.$user->id.',id',
+            'password' => 'required|confirmed|min:8',
         ]);
 
         $user->name = $request->name;

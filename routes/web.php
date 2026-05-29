@@ -56,8 +56,7 @@ Route::middleware('auth')->group(function () {
         ->name('customers.expiry-form');
     Route::post('/customers/{customer}/change-expiry', [CustomerController::class, 'changeExpiry'])
         ->name('customers.change-expiry');
-    Route::get('/customers/online', [CustomerController::class, 'online'])
-        ->name('customers.online');;
+    Route::get('/customers/online', [CustomerController::class, 'online']);
     Route::post('/provide-grace/{customerId}', [CustomerController::class, 'provideGrace'])
         ->name('provide-grace');
     Route::post('/customer/{id}/disconnect', [CustomerController::class, 'disconnect'])
@@ -66,7 +65,6 @@ Route::middleware('auth')->group(function () {
         ->name('customer.forceDisconnect');
     Route::post('/customers/{id}/mac/bind', [CustomerController::class, 'bindMac'])->name('customer.bind-mac');
     Route::post('/customers/{id}/mac/unbind', [CustomerController::class, 'unbindMac'])->name('customer.unbind-mac');
-
 
     Route::get('/recharges/create/{customerId}', [RechargeController::class, 'create'])
         ->name('recharges.create');
@@ -94,11 +92,9 @@ Route::middleware('auth')->group(function () {
     Route::post('/{id}/customer-reply', [TicketController::class, 'customerReply'])
         ->name('tickets.customer-reply');
 
-    // internal note
     Route::post('/{id}/internal-note', [TicketController::class, 'internalNote'])
         ->name('tickets.internal-note');
 
-    // status update
     Route::post('/{id}/status', [TicketController::class, 'updateStatus'])
         ->name('tickets.status');
 
