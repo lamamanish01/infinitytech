@@ -10,7 +10,7 @@ Artisan::command('inspire', function () {
 
 
 Schedule::command('customers:clean-stale-sessions')
-    ->everyMinute()
+    ->everyFiveMinutes()
     ->withoutOverlapping()
     ->runInBackground();
 
