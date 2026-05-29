@@ -242,20 +242,6 @@ class CustomerController extends Controller
         return back()->with('success', 'MAC Unbound Successfully');
     }
 
-    // public function forceDisconnect($id)
-    // {
-    //     $customer = Customer::findOrFail($id);
-
-    //     // $result = RadiusService::forceDisconnect($customer);
-    //     $result = MikroTikService::disconnectPPPoE($customer->username);
-
-    //     if ($result['status']) {
-    //         return back()->with('success', $result['message']);
-    //     }
-
-    //     return back()->with('error', $result['message']);
-    // }
-
     public function online()
     {
         $customers = Customer::with([

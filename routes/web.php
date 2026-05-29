@@ -56,8 +56,8 @@ Route::middleware('auth')->group(function () {
         ->name('customers.expiry-form');
     Route::post('/customers/{customer}/change-expiry', [CustomerController::class, 'changeExpiry'])
         ->name('customers.change-expiry');
-    Route::get('customers/online', [CustomerController::class, 'online']);
-    Route::get('/customers/online', [CustomerController::class, 'online']);
+    Route::get('/customers/online', [CustomerController::class, 'online'])
+        ->name('customers.online');;
     Route::post('/provide-grace/{customerId}', [CustomerController::class, 'provideGrace'])
         ->name('provide-grace');
     Route::post('/customer/{id}/disconnect', [CustomerController::class, 'disconnect'])
