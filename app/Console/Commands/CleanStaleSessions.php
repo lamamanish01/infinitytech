@@ -11,24 +11,30 @@ class CleanStaleSessions extends Command
 {
     protected $signature = 'customers:clean-stale-sessions';
 
-    protected $description = 'Close stale FreeRADIUS sessions properly';
+    protected $description = 'Safely close stale FreeRADIUS sessions';
 
     public function handle(): int
     {
         try {
 
-            $cutoff = Carbon::now()->subMinutes(10);
+            // ⚡ REAL ISP cutoff (safe window)
+            $cutoff = Carbon::now()->subMinutes(15);
 
             $updated = DB::table('radacct')
                 ->whereNull('acctstoptime')
-
                 ->where(function ($q) use ($cutoff) {
-                    $q->where('acctstarttime', '<', $cutoff)
-                      ->orWhereNull('acctstarttime');
-                })
 
+                    // ✔ Case 1: No activity for long time
+                    $q->where('acctupdatetime', '<', $cutoff)
+
+                      // ✔ Case 2: broken sessions (no updates at all)
+                      ->orWhere(function ($q2) use ($cutoff) {
+                          $q2->whereNull('acctupdatetime')
+                             ->where('acctstarttime', '<', $cutoff);
+                      });
+                })
                 ->update([
-                    'acctstoptime' => Carbon::now(),
+                    'acctstoptime' => now(),
                     'acctterminatecause' => 'Stale-Session'
                 ]);
 

@@ -26,7 +26,9 @@ class RadAcct extends Model
     ];
 
     protected $casts = [
+        'acctstarttime' => 'datetime',
         'acctupdatetime' => 'datetime',
+        'acctstoptime' => 'datetime',
     ];
 
     public function Customer()

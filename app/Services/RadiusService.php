@@ -64,14 +64,14 @@ class RadiusService
             );
         }
 
-        if (in_array($customer->status, ['expired', 'suspended', 'discontinued'])) {
-            DB::table('radreply')->insert([
-                'username'  => $customer->username,
-                'attribute' => 'Session-Timeout',
-                'op'        => ':=',
-                'value'     => 60,
-            ]);
-        }
+        // if (in_array($customer->status, ['expired', 'suspended', 'discontinued'])) {
+        //     DB::table('radreply')->insert([
+        //         'username'  => $customer->username,
+        //         'attribute' => 'Session-Timeout',
+        //         'op'        => ':=',
+        //         'value'     => 60,
+        //     ]);
+        // }
     }
 
     public static function removeCustomer($customer)

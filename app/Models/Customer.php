@@ -10,7 +10,6 @@ use App\Models\Recharge;
 use App\Services\MacService;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Support\Facades\DB;
 
 class Customer extends Model
 {
@@ -140,7 +139,7 @@ class Customer extends Model
     {
         return $this->hasOne(RadAcct::class, 'username', 'username')
             ->whereNull('acctstoptime')
-            ->latestOfMany('radacctid');
+            ->orderByDesc('acctupdatetime');
     }
 
     public function previousSession()
@@ -150,21 +149,19 @@ class Customer extends Model
             ->orderByDesc('acctstoptime');
     }
 
-    public function getIsOnlineAttribute()
+    public function getIsOnlineAttribute(): bool
     {
-        $session = DB::table('radacct')
-            ->where('username', $this->username)
-            ->whereNull('acctstoptime')
-            ->latest('acctstarttime')
-            ->first();
+        $session = $this->activeSession;
 
         if (!$session) {
             return false;
         }
 
-        $lastUpdate = $session->acctupdatetime ?? $session->acctstarttime;
+        $lastUpdate = $session->acctupdatetime
+            ? Carbon::parse($session->acctupdatetime)
+            : Carbon::parse($session->acctstarttime);
 
-        return Carbon::parse($lastUpdate)->gt(now()->subMinutes(10));
+        return $lastUpdate->gt(now()->subMinutes(15));
     }
 
     public function getStatusAttribute($value)
@@ -212,7 +209,7 @@ class Customer extends Model
     public function scopeOnline($query)
     {
         return $query->whereHas('activeSession', function ($q) {
-            $q->where('acctupdatetime', '>=', now()->subMinutes(5));
+            $q->where('acctupdatetime', '>=', now()->subMinutes(15));
         });
     }
 }

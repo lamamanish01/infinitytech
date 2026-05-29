@@ -2,7 +2,7 @@
     {
         "id": 1,
         "title": "Dashboard",
-        "url": "/home",
+        "url": "dashboard",
         "icon": "fa-tachometer-alt",
         "parent_id": null,
         "order": "1",

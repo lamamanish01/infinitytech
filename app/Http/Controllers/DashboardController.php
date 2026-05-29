@@ -17,11 +17,12 @@ class DashboardController extends Controller
      */
     public function index()
     {
-        $onlineCustomers = DB::table('radacct')
-            ->whereNull('acctstoptime')
-            ->whereNotNull('username')
-            ->distinct('username')
-            ->count('username');
+        $onlineCustomers = Customer::whereHas('activeSession', function ($q) {
+            $q->whereNull('acctstoptime')
+              ->where('acctupdatetime', '>=', now()->subMinutes(15));
+        })
+            ->distinct()
+            ->count();
 
         return view('dashboard.index', [
             'onlineCustomers'  => $onlineCustomers,

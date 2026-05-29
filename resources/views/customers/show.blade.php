@@ -175,6 +175,7 @@
                                         <th>IP</th>
                                         <th>Start</th>
                                         <th>Time</th>
+                                        <th>NAS IP</th>
                                         <th>Upload</th>
                                         <th>Download</th>
                                     </tr>
@@ -184,6 +185,7 @@
                                     <tr>
                                         <td>{{ $customer->active->ip_address }}</td>
                                         <td>{{ $customer->active->start_time }}</td>
+                                        <td>{{ $customer->active->nas_ip }}</td>
                                         <td>{{ $customer->active->session_time_human }}</td>
                                         <td>{{ $customer->active->upload_mb }}</td>
                                         <td>{{ $customer->active->download_mb }}</td>
@@ -214,6 +216,7 @@
                                         <th>IP</th>
                                         <th>Start</th>
                                         <th>Time</th>
+                                        <th>NAS IP</th>
                                         <th>Upload</th>
                                         <th>Download</th>
                                         <th>Server</th>
@@ -225,6 +228,7 @@
                                         <td>{{ $customer->previous->ip_address }}</td>
                                         <td>{{ $customer->previous->start_time }}</td>
                                         <td>{{ $customer->previous->session_time_human }}</td>
+                                        <td>{{ $customer->previous->nas_ip }}</td>
                                         <td>{{ $customer->previous->upload_mb }}</td>
                                         <td>{{ $customer->previous->download_mb }}</td>
                                         <td>{{ $customer->previous->ppp_server }}</td>

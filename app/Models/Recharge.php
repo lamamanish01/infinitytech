@@ -2,9 +2,9 @@
 
 namespace App\Models;
 
+use App\Models\Billing;
 use App\Models\InternetPlan;
-use App\Services\BillingService;
-use App\Services\InvoiceService;
+use App\Models\Invoice;
 use App\Services\RadiusService;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
@@ -71,7 +71,7 @@ class Recharge extends Model
                 $activeGrace->delete();
             }
 
-            // GracePeriod::where('customer_id', $customer->id)->delete();
+            GracePeriod::where('customer_id', $customer->id)->delete();
 
             $baseDate = ($customer->expire_date && $customer->expire_date > now())
             ? Carbon::parse($customer->expire_date)
