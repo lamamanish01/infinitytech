@@ -29,7 +29,7 @@ class AppServiceProvider extends ServiceProvider
     {
         $this->setupGates();
         $this->setupPagination();
-        $this->shareGlobalViewData();
+        // $this->shareGlobalViewData();
     }
 
     /**
