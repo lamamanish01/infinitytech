@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Helpers\Activity;
 use App\Http\Requests\StoreTicketRequest;
 use App\Http\Requests\UpdateTicketRequest;
 use App\Models\Customer;
@@ -37,8 +38,6 @@ class TicketController extends Controller
      */
     public function store(StoreTicketRequest $request)
     {
-        // $customer = Customer::where('username', $request->username)->first();
-
         $ticket = Ticket::create([
             'ticket_no' => 'TKT-' . time(),
             'customer_id' => $request->customer_id,
@@ -49,13 +48,20 @@ class TicketController extends Controller
             'status' => 'open',
         ]);
 
-        // initial message as reply
         TicketReply::create([
             'ticket_id' => $ticket->id,
             'customer_id' => $request->customer_id,
             'message' => $request->message,
         ]);
 
+        $customer = Customer::find($request->customer_id);
+
+        Activity::add(
+            'Ticket Created',
+            'Ticket #' . $ticket->ticket_no . ' created by ' . $customer->username,
+            'fas fa-ticket-alt text-success',
+            route('ticket.show', $ticket->id)
+        );
 
         return redirect()->route('ticket.index')->with('success', 'Ticket created sucessfully');
     }
@@ -110,12 +116,21 @@ class TicketController extends Controller
         ]);
 
         $ticket = Ticket::findOrFail($id);
+        $user = User::findOrFail($request->user_id);
+        $customer = $ticket->customer;
 
         $ticket->update([
             'assigned_to' => $request->assigned_to,
             'status' => 'in_progress',
             'assigned_at' => now(),
         ]);
+
+        Activity::add(
+            'Ticket Assigned',
+            'Ticket #' . $ticket->ticket_no . ' assigned to ' . $user->name . ' (Customer: ' . $customer->username . ')',
+            'fas fa-user-check text-primary',
+            route('ticket.show', $ticket->id)
+        );
 
         return back()->with('success', 'Ticket assigned successfully');
     }
@@ -136,6 +151,15 @@ class TicketController extends Controller
             'user_id' => auth()->id(),
             'message' => $request->message,
         ]);
+
+        $customer = $ticket->customer;
+
+        Activity::add(
+            'Ticket Reply',
+            'Staff replied on Ticket #' . $ticket->ticket_no . ' (Customer: ' . $customer->username . ')',
+            'fas fa-reply text-info',
+            route('ticket.show', $ticket->id)
+        );
 
         return back()->with('success', 'Reply sent');
     }
@@ -158,6 +182,15 @@ class TicketController extends Controller
             'message' => $request->message,
         ]);
 
+        $customer = $ticket->customer;
+
+        Activity::add(
+            'Customer Reply',
+            $customer->username . ' replied on Ticket #' . $ticket->ticket_no,
+            'fas fa-comment text-warning',
+            route('ticket.show', $ticket->id)
+        );
+
         return back()->with('success', 'Message sent');
     }
 
@@ -179,6 +212,15 @@ class TicketController extends Controller
             'is_internal' => true,
         ]);
 
+        $customer = $ticket->customer;
+
+        Activity::add(
+            'Internal Note Added',
+            'Internal note added on Ticket #' . $ticket->ticket_no . ' (Customer: ' . $customer->username . ')',
+            'fas fa-sticky-note text-secondary',
+            route('ticket.show', $ticket->id)
+        );
+
         return back()->with('success', 'Internal note added');
     }
 
@@ -193,6 +235,8 @@ class TicketController extends Controller
 
         $ticket = Ticket::findOrFail($id);
 
+        $oldStatus = $ticket->status;
+
         $data = [
             'status' => $request->status,
         ];
@@ -202,6 +246,18 @@ class TicketController extends Controller
         }
 
         $ticket->update($data);
+
+        $customer = $ticket->customer;
+
+        Activity::add(
+            'Ticket Status Updated',
+            'Ticket #' . $ticket->ticket_no .
+            ' changed from ' . $oldStatus .
+            ' to ' . $request->status .
+            ' (Customer: ' . $customer->username . ')',
+            'fas fa-sync-alt text-primary',
+            route('ticket.show', $ticket->id)
+        );
 
         return back()->with('success', 'Status updated');
     }

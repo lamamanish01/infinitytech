@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Helpers\Activity;
 use App\Models\Branch;
 use App\Models\BranchTransaction;
 use Illuminate\Http\Request;
@@ -36,12 +37,19 @@ class BranchController extends Controller
             'contact_number' => 'required|numeric|integer',
         ]);
 
-        Branch::create([
+        $branch = Branch::create([
             'name' => $request->name,
             'address' => $request->address,
             'contact_number' => $request->contact_number,
             'remarks' => $request->remarks,
         ]);
+
+        Activity::add(
+            'Branch Created',
+            $branch->name . ' branch has been created',
+            'fas fa-code-branch text-success',
+            route('branch.index')
+        );
 
         return redirect()->route('branch.index')->with('success', 'Branch created successfully.');
     }
@@ -82,6 +90,13 @@ class BranchController extends Controller
         $branch->contact_number = $request->contact_number;
         $branch->save();
 
+        Activity::add(
+            'Branch Updated',
+            $branch->name . ' branch has been updated',
+            'fas fa-edit text-primary',
+            route('branch.index')
+        );
+
         return redirect()->route('branch.index')->with('success', 'Branch updated successfully.');
     }
 
@@ -106,9 +121,18 @@ class BranchController extends Controller
 
         $branch = Branch::findOrFail($request->branch_id);
 
+        // 💰 ADD BALANCE
         $branch->addBalance(
             $request->amount,
             'Balance added by admin'
+        );
+
+        // 🔔 ACTIVITY LOG
+        Activity::add(
+            'Branch Balance Updated',
+            $branch->name . ' received balance of Rs. ' . $request->amount,
+            'fas fa-coins text-success',
+            route('branch.show', $branch->id)
         );
 
         return back()->with('success', 'Balance added successfully');

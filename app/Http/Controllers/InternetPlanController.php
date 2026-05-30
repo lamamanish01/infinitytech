@@ -2,9 +2,10 @@
 
 namespace App\Http\Controllers;
 
+use App\Helpers\Activity;
 use App\Models\InternetPlan;
-use Illuminate\Http\Request;
 use App\Models\InternetPlanType;
+use Illuminate\Http\Request;
 
 class InternetPlanController extends Controller
 {
@@ -38,7 +39,7 @@ class InternetPlanController extends Controller
             'duration' => 'required|integer',
         ]);
 
-        InternetPlan::create([
+        $plan = InternetPlan::create([
             'name' => $request->name,
             'bandwidth_name' => 'FTTX'. '-' . $request->name. '-' . $request->duration. '' . $request->type,
             'price' => $request->price,
@@ -46,6 +47,13 @@ class InternetPlanController extends Controller
             'type' => $request->type,
             'rate_limit' => $request->rate_limit,
         ]);
+
+        Activity::add(
+            'Internet Plan Created',
+            $plan->name,
+            'fas fa-wifi text-info',
+            route('internetplan.index')
+        );
 
         return redirect()->route('internetplan.index')->with('success', 'Internet Plan created successfully.');
     }

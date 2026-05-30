@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\ActivityLogController;
 use App\Http\Controllers\BranchController;
 use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\DashboardController;
@@ -113,4 +114,7 @@ Route::middleware('auth')->group(function () {
     Route::resource('mikrotik', MikrotikController::class);
 
     Route::get('/search', [SearchController::class, 'index'])->name('search');
+
+    Route::get('/activities', [ActivityLogController::class, 'index'])
+    ->name('activities.index');
 });

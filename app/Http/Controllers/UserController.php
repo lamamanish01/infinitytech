@@ -2,11 +2,12 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\User;
+use App\Helpers\Activity;
 use App\Models\Branch;
+use App\Models\User;
 use Illuminate\Http\Request;
-use Spatie\Permission\Models\Role;
 use Illuminate\Support\Facades\Hash;
+use Spatie\Permission\Models\Role;
 
 
 class UserController extends Controller
@@ -40,12 +41,19 @@ class UserController extends Controller
             'password' => 'required|confirmed|min:8',
         ]);
 
-        User::create([
+        $user = User::create([
             'name' => $request->name,
             'email' => $request->email,
             'branch_id' => $request->branch_id,
             'password' => Hash::make($request->password),
         ]);
+
+        Activity::add(
+            'User Created',
+            $user->name . ' has been created',
+            'fas fa-user-plus text-success',
+            route('users.index', $user->id)
+        );
 
         return redirect()->route('users.index')->with('success', 'User created successfully.');
     }
@@ -71,6 +79,13 @@ class UserController extends Controller
         $user->save();
 
         $user->syncRoles($request->role);
+
+        Activity::add(
+            'User Updated',
+            $user->name . ' details have been updated',
+            'fas fa-user-edit text-primary',
+            route('users.index', $user->id)
+        );
 
         return redirect()->route('users.index')->with('success', 'User updated successfully.');
     }

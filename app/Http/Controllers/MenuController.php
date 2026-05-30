@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Helpers\Activity;
 use App\Models\Menu;
 use Illuminate\Http\Request;
 
@@ -34,7 +35,7 @@ class MenuController extends Controller
             'title' => 'required',
         ]);
 
-        Menu::create([
+        $menu = Menu::create([
             'title' => $request->title,
             'url' => $request->url,
             'icon' => $request->icon,
@@ -42,6 +43,13 @@ class MenuController extends Controller
             'order' => $request->order,
             'role' => $request->role
         ]);
+
+        Activity::add(
+            'Menu Created',
+            $menu->name . ' menu has been created',
+            'fas fa-bars text-success',
+            route('menus.index')
+        );
 
         return redirect()->route('menus.index')->with('success', 'Menu created successfully.');
     }
@@ -80,6 +88,13 @@ class MenuController extends Controller
         $menu->order = $request->order;
         $menu->role = $request->role;
         $menu->save();
+
+        Activity::add(
+            'Menu Updated',
+            $menu->name . ' menu has been updated',
+            'fas fa-edit text-primary',
+            route('menus.index')
+        );
 
         return redirect()->route('menus.index')->with('success', 'Menu update successfully.');
     }

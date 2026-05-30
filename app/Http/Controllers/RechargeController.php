@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Helpers\Activity;
 use App\Models\Customer;
 use App\Models\Recharge;
 use Carbon\Carbon;
@@ -46,7 +47,14 @@ class RechargeController extends Controller
                 $request->transaction_id
             );
 
-        $customer = Customer::findOrFail($recharge->customer_id);
+            $customer = Customer::findOrFail($recharge->customer_id);
+
+            Activity::add(
+                'Recharge Added',
+                $customer->name . ' recharged Rs. ' . $recharge->price,
+                'fas fa-money-bill text-success',
+                route('customers.show', $customer->id)
+            );
 
         return redirect()->route('customers.show', $customer->id)->with('success', 'Recharge successful');
 

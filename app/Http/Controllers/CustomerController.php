@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Helpers\Activity;
 use App\Models\Branch;
 use App\Models\Customer;
 use App\Models\GracePeriod;
@@ -82,6 +83,13 @@ class CustomerController extends Controller
             'user_id' => auth()->id(),
         ]);
 
+        Activity::add(
+            'Customer Created',
+            $customer->name . ' has been created successfully',
+            'fas fa-user-plus text-success',
+            route('customers.show', $customer->id)
+        );
+
         return redirect()->route('customers.index')->with('success', 'Customer created successfully.');
     }
 
@@ -128,6 +136,13 @@ class CustomerController extends Controller
         $customer->contact_number = $request->contact_number;
         $customer->internet_plan_id = $request->internet_plan_id;
         $customer->save();
+
+        Activity::add(
+            'Customer Updated',
+            $customer->name . ' details have been updated',
+            'fas fa-user-edit text-primary',
+            route('customers.show', $customer->id)
+        );
 
         return redirect()->route('customers.index')->with('success', 'Customer edited successfully.');
     }
@@ -189,6 +204,13 @@ class CustomerController extends Controller
             'status' => 'active'
         ]);
 
+        Activity::add(
+            'Expiry Date Updated',
+            $customer->name . ' expiry changed to ' . $customer->expire_date,
+            'fas fa-calendar-alt text-info',
+            route('customers.show', $customer->id)
+        );
+
         RadiusService::syncCustomer($customer->fresh());
 
         return redirect()
@@ -223,6 +245,13 @@ class CustomerController extends Controller
         $customer->update([
             'status' => 'grace'
         ]);
+
+        Activity::add(
+            'Customer in Grace Period',
+            $customer->name . ' is now in grace period',
+            'fas fa-clock text-warning',
+            route('customers.show', $customer->id)
+        );
 
         RadiusService::syncCustomer(
             $customer->fresh()
@@ -266,6 +295,13 @@ class CustomerController extends Controller
         MacService::bind($customer, $mac);
         RadiusService::syncCustomer($customer);
 
+        Activity::add(
+            'MAC Address Bind',
+            $customer->name . ' MAC address has been bound',
+            'fas fa-lock text-success',
+            route('customers.show', $customer->id)
+        );
+
         return back()->with('success', 'MAC Bound Successfully');
     }
 
@@ -275,6 +311,13 @@ class CustomerController extends Controller
 
         MacService::unbind($customer);
         RadiusService::syncCustomer($customer);
+
+        Activity::add(
+            'MAC Address Unbind',
+            $customer->name . ' MAC address has been removed',
+            'fas fa-unlock text-danger',
+            route('customers.show', $customer->id)
+        );
 
         return back()->with('success', 'MAC Unbound Successfully');
     }

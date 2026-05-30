@@ -51,35 +51,44 @@
             {{--  notification  --}}
 
             <li class="nav-item dropdown">
-                <a class="nav-link" data-toggle="dropdown" href="#">
+                <a class="nav-link" data-bs-toggle="dropdown" href="#" role="button">
                     <i class="far fa-bell"></i>
+
                     <span class="badge badge-warning navbar-badge">
-                        {{ $notificationCount ?? 0 }}
+                        {{ $unreadCount }}
                     </span>
                 </a>
 
                 <div class="dropdown-menu dropdown-menu-lg dropdown-menu-right">
                     <span class="dropdown-item dropdown-header">
-                        {{ $notificationCount ?? 0 }} Notifications
+                        {{ $unreadCount }} Notifications
                     </span>
                     <div class="dropdown-divider"></div>
-
-                    @foreach($notifications ?? [] as $notification)
-                        <a href="#" class="dropdown-item">
-                            <i class="fas fa-info-circle mr-2"></i>
-                            {{ $notification->message }}
+                    @forelse($activities as $activity)
+                        <a href="{{ $activity->url ?? '#' }}" class="dropdown-item">
+                            <i class="{{ $activity->icon ?? 'fas fa-bell mr-2' }}"></i>
+                            <span class="ml-1">{{ $activity->title }}</span>
                             <span class="float-right text-muted text-sm">
-                                {{ $notification->created_at->diffForHumans() }}
+                                {{ $activity->created_at->diffForHumans() }}
                             </span>
                         </a>
-                        <div class="dropdown-divider"></div>
-                    @endforeach
 
-                    <a href="#" class="dropdown-item dropdown-footer">
-                        See All Notifications
+                        <div class="dropdown-divider"></div>
+
+                    @empty
+
+                        <span class="dropdown-item text-center text-muted">
+                            No notifications
+                        </span>
+
+                    @endforelse
+
+                    <a href="{{ route('activities.index') }}" class="dropdown-item dropdown-footer">
+                        View All
                     </a>
 
                 </div>
+
             </li>
 
 
