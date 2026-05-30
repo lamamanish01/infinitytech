@@ -4,20 +4,22 @@ namespace App\Console\Commands;
 
 use App\Models\CronLog;
 use App\Models\Customer;
+use App\Models\GracePeriod;
 use App\Services\MikrotikService;
 use App\Services\RadiusService;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Carbon\Carbon;
 
 class UpdateExpiredCustomers extends Command
 {
     protected $signature = 'customers:update-expired';
-    protected $description = 'Update customer status and disconnect expired users';
+    protected $description = 'Handle ISP lifecycle using grace table';
 
     public function handle()
     {
-        Log::info('Customer expiry cron started');
+        Log::info('ISP cron started');
 
         $radius = app(RadiusService::class);
         $mk     = app(MikrotikService::class);
@@ -25,6 +27,7 @@ class UpdateExpiredCustomers extends Command
         $stats = [
             'processed' => 0,
             'updated'   => 0,
+            'grace'     => 0,
             'expired'   => 0,
             'failed'    => 0,
         ];
@@ -38,48 +41,112 @@ class UpdateExpiredCustomers extends Command
 
                         $stats['processed']++;
 
-                        $newStatus = $customer->calculateStatus();
-                        $oldStatus = $customer->status;
-
-                        // ✔ SKIP if no change
-                        if ($newStatus === $oldStatus) {
+                        /*
+                        |--------------------------------------------------------------------------
+                        | LOAD DATES
+                        |--------------------------------------------------------------------------
+                        */
+                        if (!$customer->expire_date) {
                             continue;
                         }
 
+                        $now = now();
+
+                        $expire = Carbon::parse($customer->expire_date)->endOfDay();
+
+                        $grace = GracePeriod::where('customer_id', $customer->id)
+                            ->latest()
+                            ->first();
+
+                        $graceEnd = $grace && $grace->grace_end
+                            ? Carbon::parse($grace->grace_end)
+                            : $expire;
+
+                        /*
+                        |--------------------------------------------------------------------------
+                        | DETERMINE STATUS (INLINE ISP LOGIC)
+                        |--------------------------------------------------------------------------
+                        */
+                        if ($now->greaterThan($graceEnd)) {
+                            $newStatus = 'expired';
+                        } elseif ($now->greaterThan($expire)) {
+                            $newStatus = 'grace';
+                        } else {
+                            $newStatus = 'active';
+                        }
+
+                        /*
+                        |--------------------------------------------------------------------------
+                        | SKIP IF NO CHANGE
+                        |--------------------------------------------------------------------------
+                        */
+                        if ($customer->status === $newStatus) {
+                            continue;
+                        }
+
+                        /*
+                        |--------------------------------------------------------------------------
+                        | UPDATE STATUS
+                        |--------------------------------------------------------------------------
+                        */
                         $customer->update([
                             'status' => $newStatus
                         ]);
 
+                        $customer->refresh();
+
                         $stats['updated']++;
 
-                        // ✔ sync radius only when status changes
+                        /*
+                        |--------------------------------------------------------------------------
+                        | SYNC RADIUS
+                        |--------------------------------------------------------------------------
+                        */
                         $radius->syncCustomer($customer);
 
-                        // ✔ handle expiry actions
-                        if (in_array($newStatus, ['expired', 'suspended', 'discontinued'])) {
+                        /*
+                        |--------------------------------------------------------------------------
+                        | EXPIRED HANDLING (FINAL CUT)
+                        |--------------------------------------------------------------------------
+                        */
+                        if ($newStatus === 'expired') {
 
-                            $session = DB::table('radacct')
+                            $stats['expired']++;
+
+                            $radius->removeCustomer($customer);
+
+                            // CLOSE SESSION
+                            DB::table('radacct')
                                 ->where('username', $customer->username)
                                 ->whereNull('acctstoptime')
-                                ->latest('radacctid')
-                                ->first();
+                                ->update([
+                                    'acctstoptime' => now(),
+                                    'acctterminatecause' => 'Expired'
+                                ]);
 
-                            // ✔ disconnect only if session exists
-                            if ($session && $customer->mikrotik) {
+                            // FORCE DISCONNECT
+                            if ($customer->mikrotik) {
                                 $mk->disconnectPPPoE(
                                     $customer->mikrotik,
                                     $customer->username
                                 );
                             }
+                        }
 
-                            $stats['expired']++;
+                        /*
+                        |--------------------------------------------------------------------------
+                        | GRACE (NO DISCONNECT)
+                        |--------------------------------------------------------------------------
+                        */
+                        if ($newStatus === 'grace') {
+                            $stats['grace']++;
                         }
 
                     } catch (\Throwable $e) {
 
                         $stats['failed']++;
 
-                        Log::error('Customer cron error', [
+                        Log::error('ISP cron error', [
                             'customer_id' => $customer->id,
                             'username'    => $customer->username,
                             'error'       => $e->getMessage(),
@@ -94,11 +161,12 @@ class UpdateExpiredCustomers extends Command
             'message' =>
                 "Processed: {$stats['processed']} | " .
                 "Updated: {$stats['updated']} | " .
+                "Grace: {$stats['grace']} | " .
                 "Expired: {$stats['expired']} | " .
                 "Failed: {$stats['failed']}"
         ]);
 
-        Log::info('Customer expiry cron completed', $stats);
+        Log::info('ISP cron finished', $stats);
 
         return self::SUCCESS;
     }

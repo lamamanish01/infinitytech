@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Services\MikrotikService;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 
@@ -23,33 +24,19 @@ class RadiusService
             'value'     => $customer->password,
         ]);
 
-        if ($customer->expire_date) {
-                DB::table('radreply')->insert([
+        DB::table('radreply')->insert([
                 'username'  => $customer->username,
                 'attribute' => 'Framed-Pool',
                 'op'        => ':=',
-                'value'     => 'pppoe-pool',
-            ]);
-        }
+                'value'     => 'PPPoE-Pool',
+        ]);
 
-        if ($customer->expire_date) {
-            DB::table('radcheck')->insert([
-                'username'  => $customer->username,
-                'attribute' => 'Expiration',
-                'op'        => ':=',
-                'value'     => \Carbon\Carbon::parse($customer->expire_date)
-                    ->format('d M Y H:i:s'),
-            ]);
-        }
-
-        if (in_array($customer->status, ['active', 'grace'])) {
-            DB::table('radreply')->insert([
+        DB::table('radreply')->insert([
                 'username'  => $customer->username,
                 'attribute' => 'Mikrotik-Rate-Limit',
                 'op'        => ':=',
                 'value'     => $plan->rate_limit,
-            ]);
-        }
+        ]);
 
         if ($customer->mac_address) {
             DB::table('radcheck')->updateOrInsert(
@@ -63,20 +50,10 @@ class RadiusService
                 ]
             );
         }
-
-        // if (in_array($customer->status, ['expired', 'suspended', 'discontinued'])) {
-        //     DB::table('radreply')->insert([
-        //         'username'  => $customer->username,
-        //         'attribute' => 'Session-Timeout',
-        //         'op'        => ':=',
-        //         'value'     => 60,
-        //     ]);
-        // }
     }
 
     public static function removeCustomer($customer)
     {
-        // self::forceDisconnect($customer);
 
         DB::table('radcheck')
             ->where('username', $customer->username)
@@ -95,41 +72,46 @@ class RadiusService
             ]);
     }
 
-    /* ---------------------------------
-     | SIMPLE DISCONNECT (DB ONLY)
-     * ---------------------------------*/
-    // public static function disconnect($customer)
-    // {
-    //     try {
+    public static function disconnect($customer)
+    {
+        try {
 
-    //         $updated = DB::table('radacct')
-    //             ->where('username', $customer->username)
-    //             ->whereNull('acctstoptime')
-    //             ->update([
-    //                 'acctstoptime' => now(),
-    //                 'acctterminatecause' => 'Admin-Disconnect'
-    //             ]);
+            $updated = DB::table('radacct')
+                ->where('username', $customer->username)
+                ->whereNull('acctstoptime')
+                ->update([
+                    'acctstoptime' => now(),
+                    'acctterminatecause' => 'Admin-Disconnect'
+                ]);
 
-    //         if ($updated === 0) {
-    //             return [
-    //                 'status' => false,
-    //                 'message' => 'User is not currently online'
-    //             ];
-    //         }
+            if ($customer->mikrotik) {
 
-    //         return [
-    //             'status' => true,
-    //             'message' => 'User disconnected successfully'
-    //         ];
+                app(MikrotikService::class)
+                    ->disconnectPPPoE(
+                        $customer->mikrotik,
+                        $customer->username
+                    );
+            }
+            if ($updated === 0) {
+                return [
+                    'status' => false,
+                    'message' => 'User is not currently online'
+                ];
+            }
 
-    //     } catch (\Exception $e) {
+            return [
+                'status' => true,
+                'message' => 'User disconnected successfully'
+            ];
 
-    //         return [
-    //             'status' => false,
-    //             'message' => $e->getMessage()
-    //         ];
-    //     }
-    // }
+        } catch (\Exception $e) {
+
+            return [
+                'status' => false,
+                'message' => $e->getMessage()
+            ];
+        }
+    }
 
     // /* ---------------------------------
     //  | FORCE DISCONNECT (REAL CoA)

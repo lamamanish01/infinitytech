@@ -18,10 +18,30 @@ class CustomerController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        $customers = Customer::orderBy('name', 'ASC')->paginate(10);
+        $query = Customer::with(['internetPlan']);
+
+        if ($request->filled('q')) {
+
+            $q = $request->q;
+
+            $query->where(function ($sub) use ($q) {
+                $sub->where('username', 'like', "%{$q}%")
+                    ->orWhere('name', 'like', "%{$q}%")
+                    ->orWhere('contact_number', 'like', "%{$q}%")
+                    ->orWhere('mac_address', 'like', "%{$q}%")
+                    ->orWhere('status', 'like', "%{$q}%");
+            });
+        }
+
+        $customers = $query->paginate(10);
+
         return view('customers.index', compact('customers'));
+
+
+        // $customers = Customer::orderBy('name', 'ASC')->paginate(10);
+        // return view('customers.index', compact('customers'));
     }
 
     /**
@@ -131,32 +151,49 @@ class CustomerController extends Controller
             'expire_date' => 'required|date'
         ]);
 
-        $newExpiry = Carbon::parse(
-            $request->expire_date
-        )->toDateString();
+        $newExpiry = Carbon::parse($request->expire_date)->endOfDay();
+        $now = now();
 
         $customer->update([
             'expire_date' => $newExpiry,
-            'status' => 'active'
         ]);
 
-        $latestRecharge = Recharge::where(
-            'customer_id',
-            $customer->id
-        )->latest()->first();
+        $latestRecharge = Recharge::where('customer_id', $customer->id)
+            ->latest()
+            ->first();
 
         if ($latestRecharge) {
-
             $latestRecharge->update([
                 'expire_date' => $newExpiry
             ]);
         }
 
-        RadiusService::syncCustomer(
-            $customer->fresh()
-        );
+        if ($newExpiry->lessThan($now)) {
 
-        return redirect()->route('customers.show', $customer->id)->with('success', 'Expiry Date changed successfully.');
+            $customer->update([
+                'status' => 'expired'
+            ]);
+
+            app(\App\Services\RadiusService::class)
+                ->removeCustomer($customer);
+
+            app(\App\Services\RadiusService::class)
+                ->disconnect($customer);
+
+            return redirect()
+                ->route('customers.show', $customer->id)
+                ->with('error', 'Customer is expired and has been disconnected.');
+        }
+
+        $customer->update([
+            'status' => 'active'
+        ]);
+
+        RadiusService::syncCustomer($customer->fresh());
+
+        return redirect()
+            ->route('customers.show', $customer->id)
+            ->with('success', 'Expiry Date updated successfully.');
     }
 
     public function provideGrace(Request $request, $customerId)

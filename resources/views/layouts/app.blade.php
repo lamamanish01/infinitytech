@@ -27,8 +27,62 @@
             </li>
         </ul>
 
+        {{--  search  --}}
+
+        <form class="form-inline ml-3" action="{{ route('customers.index') }}" method="GET">
+            <div class="input-group input-group-sm">
+                <input class="form-control form-control-navbar"
+                    type="search"
+                    name="q"
+                    placeholder="Search customers..."
+                    value="{{ request('q') }}">
+
+                <div class="input-group-append">
+                    <button class="btn btn-navbar" type="submit">
+                        <i class="fas fa-search"></i>
+                    </button>
+                </div>
+            </div>
+        </form>
+
         <!-- Right navbar links -->
         <ul class="navbar-nav ml-auto">
+
+            {{--  notification  --}}
+
+            <li class="nav-item dropdown">
+                <a class="nav-link" data-toggle="dropdown" href="#">
+                    <i class="far fa-bell"></i>
+                    <span class="badge badge-warning navbar-badge">
+                        {{ $notificationCount ?? 0 }}
+                    </span>
+                </a>
+
+                <div class="dropdown-menu dropdown-menu-lg dropdown-menu-right">
+                    <span class="dropdown-item dropdown-header">
+                        {{ $notificationCount ?? 0 }} Notifications
+                    </span>
+                    <div class="dropdown-divider"></div>
+
+                    @foreach($notifications ?? [] as $notification)
+                        <a href="#" class="dropdown-item">
+                            <i class="fas fa-info-circle mr-2"></i>
+                            {{ $notification->message }}
+                            <span class="float-right text-muted text-sm">
+                                {{ $notification->created_at->diffForHumans() }}
+                            </span>
+                        </a>
+                        <div class="dropdown-divider"></div>
+                    @endforeach
+
+                    <a href="#" class="dropdown-item dropdown-footer">
+                        See All Notifications
+                    </a>
+
+                </div>
+            </li>
+
+
             <li class="nav-item dropdown">
                 <a class="nav-link" data-bs-toggle="dropdown" href="#" aria-expanded="false">
                     <i class="nav-icon fas fa-user"></i>

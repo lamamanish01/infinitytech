@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\GracePeriod;
 use App\Models\InternetPlan;
 use App\Models\RadCheck;
 use App\Models\RadPostAuth;
@@ -95,9 +96,18 @@ class Customer extends Model
         if (!$this->expire_date) {
             return 'active';
         }
+
         $now = now();
-        $expire = $this->expire_date->copy()->endOfDay();
-        $graceEnd = $expire->copy()->addDays(3);
+
+        $expire = Carbon::parse($this->expire_date)->endOfDay();
+
+        $grace = GracePeriod::where('customer_id', $this->id)
+            ->latest()
+            ->first();
+
+        $graceEnd = $grace?->grace_end
+            ? Carbon::parse($grace->grace_end)
+            : $expire;
 
         if ($now->greaterThan($graceEnd)) {
             return 'expired';
@@ -197,7 +207,7 @@ class Customer extends Model
         return $this->previousSession;
     }
 
-    public function recentAuthLogs($limit = 25)
+    public function recentAuthLogs($limit = 10)
     {
         return $this->authLogs()
             ->select('id', 'username', 'reply', 'authdate')

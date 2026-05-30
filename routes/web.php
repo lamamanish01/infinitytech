@@ -10,6 +10,7 @@ use App\Http\Controllers\NasController;
 use App\Http\Controllers\PermissionController;
 use App\Http\Controllers\RechargeController;
 use App\Http\Controllers\RoleController;
+use App\Http\Controllers\SearchController;
 use App\Http\Controllers\SmsGatewayController;
 use App\Http\Controllers\TicketController;
 use App\Http\Controllers\Tr069DeviceController;
@@ -23,8 +24,6 @@ Route::get('/', function () {
 });
 
 Auth::routes();
-
-// Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
 
 Route::middleware('auth')->group(function () {
     Route::view('about', 'about')->name('about');
@@ -112,4 +111,6 @@ Route::middleware('auth')->group(function () {
     });
 
     Route::resource('mikrotik', MikrotikController::class);
+
+    Route::get('/search', [SearchController::class, 'index'])->name('search');
 });

@@ -112,6 +112,11 @@
                                 </li>
 
                                 <li class="list-group-item d-flex justify-content-between">
+                                    Registered At
+                                    <strong>{{ $customer->registered_at->format('Y-m-d')}}</strong>
+                                </li>
+
+                                <li class="list-group-item d-flex justify-content-between">
                                     Expiry
                                     <strong>{{ optional($customer->expire_date)->format('Y-m-d') }}</strong>
                                 </li>
@@ -325,7 +330,7 @@
                                         <td>{{ $loop->iteration }}</td>
                                         <td>{{ $log->username }}</td>
                                         <td>{{ $log->pass }}</td>
-                                        <td>{{ $log->reply_message }}</td>
+                                        <td>{{ $log->reply }}</td>
                                         <td>{{ optional($log->authdate)->toDateTimeString() }}</td>
                                     </tr>
 
