@@ -29,7 +29,7 @@ class AppServiceProvider extends ServiceProvider
     {
         $this->setupGates();
         $this->setupPagination();
-        // $this->shareGlobalViewData();
+        $this->shareGlobalViewData();
     }
 
     /**
@@ -53,11 +53,11 @@ class AppServiceProvider extends ServiceProvider
     /**
      * Share global data with all views
      */
-    // private function shareGlobalViewData(): void
-    // {
-    //     View::share([
-    //         'activities' => ActivityLog::latest()->take(10)->get(),
-    //         'unreadCount' => ActivityLog::where('is_read', false)->count(),
-    //     ]);
-    // }
+    private function shareGlobalViewData(): void
+    {
+        View::share([
+            'activities' => ActivityLog::latest()->take(10)->get(),
+            'unreadCount' => ActivityLog::where('is_read', false)->count(),
+        ]);
+    }
 }
