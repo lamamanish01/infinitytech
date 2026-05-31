@@ -26,7 +26,7 @@ class UpdateExpiredCustomers extends Command
         | CRON CONTROL (ENABLE / DISABLE)
         |--------------------------------------------------------------------------
         */
-        $job = CronJob::where('key', 'update_expire_customers')->first();
+        $job = CronJob::where('key', 'expire_customers')->first();
 
         if (!$job || !$job->is_active) {
             Log::info('Expire customer cron skipped (disabled)');
