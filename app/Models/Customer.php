@@ -219,7 +219,10 @@ class Customer extends Model
     public function scopeOnline($query)
     {
         return $query->whereHas('activeSession', function ($q) {
-            $q->where('acctupdatetime', '>=', now()->subMinutes(15));
+            $q->where(function ($sub) {
+                $sub->where('acctupdatetime', '>=', now()->subMinutes(15))
+                    ->orWhereNull('acctupdatetime');
+            });
         });
     }
 }
