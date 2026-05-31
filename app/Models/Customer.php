@@ -36,6 +36,9 @@ class Customer extends Model
         'registered_at' => 'datetime',
     ];
 
+    protected $appends = ['is_online'];
+
+
     public function branch()
     {
         return $this->belongsTo(Branch::class, 'name');
@@ -149,7 +152,7 @@ class Customer extends Model
     {
         return $this->hasOne(RadAcct::class, 'username', 'username')
             ->whereNull('acctstoptime')
-            ->orderByDesc('acctupdatetime');
+            ->latest('radacctid');
     }
 
     public function previousSession()
@@ -167,11 +170,15 @@ class Customer extends Model
             return false;
         }
 
-        $lastUpdate = $session->acctupdatetime
-            ? Carbon::parse($session->acctupdatetime)
-            : Carbon::parse($session->acctstarttime);
+        $lastActivity = $session->acctupdatetime
+            ?? $session->acctstarttime;
 
-        return $lastUpdate->gt(now()->subMinutes(15));
+        if (!$lastActivity) {
+            return false;
+        }
+
+        return Carbon::parse($lastActivity)
+            ->greaterThan(now()->subMinutes(15));
     }
 
     public function getStatusAttribute($value)
@@ -218,11 +225,21 @@ class Customer extends Model
 
     public function scopeOnline($query)
     {
-        return $query->whereHas('activeSession', function ($q) {
-            $q->where(function ($sub) {
-                $sub->where('acctupdatetime', '>=', now()->subMinutes(15))
-                    ->orWhereNull('acctupdatetime');
+        $cutoff = now()->subMinutes(15);
+
+        return $query->whereHas('activeSession', function ($q) use ($cutoff) {
+
+            $q->where(function ($sub) use ($cutoff) {
+
+                $sub->where('acctupdatetime', '>=', $cutoff)
+
+                    ->orWhere(function ($q2) use ($cutoff) {
+                        $q2->whereNull('acctupdatetime')
+                           ->where('acctstarttime', '>=', $cutoff);
+                    });
+
             });
+
         });
     }
 }
