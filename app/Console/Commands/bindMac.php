@@ -3,6 +3,7 @@
 namespace App\Console\Commands;
 
 use App\Models\Customer;
+use App\Models\CronJob;
 use App\Models\CronLog;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
@@ -15,6 +16,13 @@ class BindMac extends Command
 
     public function handle()
     {
+        $job = CronJob::where('key', 'mac_bind')->first();
+
+        if (!$job || !$job->is_active) {
+            $this->info('MAC bind cron disabled');
+            return Command::SUCCESS;
+        }
+
         $bound = 0;
 
         try {
@@ -27,59 +35,40 @@ class BindMac extends Command
                         $session = DB::table('radacct')
                             ->where('username', $customer->username)
                             ->whereNull('acctstoptime')
-                            ->orderByDesc('radacctid')
+                            ->latest('radacctid')
                             ->first();
 
                         if (!$session) {
                             continue;
                         }
 
-                        /*
-                        |--------------------------------------------------------------------------
-                        | GET MAC
-                        |--------------------------------------------------------------------------
-                        */
-
-                        $mac = $session->callingstationid
+                        $rawMac = $session->callingstationid
                             ?? $session->callingstation_id
                             ?? null;
+
+                        if (!$rawMac) {
+                            continue;
+                        }
+
+                        $mac = $this->normalizeMac($rawMac);
 
                         if (!$mac) {
                             continue;
                         }
 
-                        /*
-                        |--------------------------------------------------------------------------
-                        | NORMALIZE
-                        |--------------------------------------------------------------------------
-                        */
-
-                        $mac = $this->normalizeMac($mac);
-
-                        /*
-                        |--------------------------------------------------------------------------
-                        | VALIDATE
-                        |--------------------------------------------------------------------------
-                        */
-
                         if (!$this->isValidMac($mac)) {
-                            $this->warn("Invalid MAC for {$customer->username}: {$mac}");
                             continue;
                         }
 
-                        /*
-                        |--------------------------------------------------------------------------
-                        | UPDATE CUSTOMER
-                        |--------------------------------------------------------------------------
-                        */
+                        if (Customer::where('mac_address', $mac)->exists()) {
+                            continue;
+                        }
 
                         $customer->update([
                             'mac_address' => $mac
                         ]);
 
                         $bound++;
-
-                        $this->info("MAC bound: {$customer->username} => {$mac}");
                     }
                 });
 
@@ -89,7 +78,7 @@ class BindMac extends Command
                 'message' => "{$bound} MAC addresses bound"
             ]);
 
-            $this->info("Done. {$bound} MAC addresses bound.");
+            $this->info("✔ Done. {$bound} MAC addresses bound.");
 
             return Command::SUCCESS;
 
@@ -101,44 +90,28 @@ class BindMac extends Command
                 'message' => $e->getMessage()
             ]);
 
-            $this->error($e->getMessage());
+            $this->error("❌ " . $e->getMessage());
 
             return Command::FAILURE;
         }
     }
 
-    /*
-    |--------------------------------------------------------------------------
-    | NORMALIZE MAC
-    |--------------------------------------------------------------------------
-    */
-
     private function normalizeMac($mac)
     {
-        $mac = strtoupper($mac);
+        $mac = strtoupper(trim($mac));
+        $mac = preg_replace('/[^A-F0-9]/', '', $mac);
 
-        // remove separators
-        $mac = str_replace(['-', '.', ':'], '', $mac);
-
-        // validate raw length
         if (strlen($mac) !== 12) {
-            return $mac;
+            return null;
         }
 
-        // convert to aa:bb:cc:dd:ee:ff
         return implode(':', str_split($mac, 2));
     }
-
-    /*
-    |--------------------------------------------------------------------------
-    | VALIDATE MAC
-    |--------------------------------------------------------------------------
-    */
 
     private function isValidMac($mac)
     {
         return (bool) preg_match(
-            '/^([0-9a-f]{2}:){5}[0-9a-f]{2}$/i',
+            '/^([0-9A-F]{2}:){5}[0-9A-F]{2}$/',
             $mac
         );
     }

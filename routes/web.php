@@ -2,6 +2,8 @@
 
 use App\Http\Controllers\ActivityLogController;
 use App\Http\Controllers\BranchController;
+use App\Http\Controllers\CronJobController;
+use App\Http\Controllers\CronLogController;
 use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\InternetPlanController;
@@ -112,6 +114,16 @@ Route::middleware('auth')->group(function () {
     });
 
     Route::resource('mikrotik', MikrotikController::class);
+
+    Route::get('/cron', [CronLogController::class, 'index'])->name('cron');
+    Route::delete('/cron-clear-all', [CronLogController::class, 'clearAll'])
+        ->name('cron.clearAll');
+
+    Route::get('/cron-jobs', [CronJobController::class, 'index']);
+    Route::post('/cron-jobs/store', [CronJobController::class, 'store']);
+    Route::post('/cron-jobs/{id}/toggle', [CronJobController::class, 'toggle']);
+    Route::post('/cron-jobs/{id}/frequency', [CronJobController::class, 'updateFrequency']);
+    Route::delete('/cron-jobs/{id}', [CronJobController::class, 'destroy']);
 
     Route::get('/search', [SearchController::class, 'index'])->name('search');
 

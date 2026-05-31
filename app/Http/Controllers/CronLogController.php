@@ -12,7 +12,8 @@ class CronLogController extends Controller
      */
     public function index()
     {
-        //
+        $cronLogs = CronLog::latest()->paginate(10);
+        return view('cron.index', compact('cronLogs'));
     }
 
     /**
@@ -61,5 +62,12 @@ class CronLogController extends Controller
     public function destroy(CronLog $cronLog)
     {
         //
+    }
+
+    public function clearAll()
+    {
+        CronLog::truncate();
+
+        return back()->with('success', 'All cron logs deleted successfully');
     }
 }

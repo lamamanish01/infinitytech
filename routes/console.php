@@ -8,18 +8,26 @@ Artisan::command('inspire', function () {
     $this->comment(Inspiring::quote());
 })->purpose('Display an inspiring quote')->hourly();
 
+Schedule::command('cron:run-dynamic')->everyMinute();
 
-Schedule::command('customers:clean-stale-sessions')
-    ->everyFiveMinutes()
-    ->withoutOverlapping()
-    ->runInBackground();
 
-Schedule::command('customers:update-expired')
-    ->daily()
-    ->withoutOverlapping()
-    ->runInBackground();
+// Schedule::command('customers:clean-stale-sessions')
+//     ->everyFiveMinutes()
+//     ->withoutOverlapping()
+//     ->runInBackground();
 
-Schedule::command('customers:bind-mac')
-    ->everyMinute()
-    ->withoutOverlapping()
-    ->runInBackground();
+// Schedule::command('customers:update-expired')
+//     ->daily()
+//     ->withoutOverlapping()
+//     ->runInBackground();
+
+// Schedule::command('customers:bind-mac')
+//     ->everyMinute()
+//     ->withoutOverlapping()
+//     ->runInBackground();
+
+// Schedule::command('app:clean-radius-logs')
+//         ->daily()
+//         ->withoutOverlapping();
+
+
