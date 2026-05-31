@@ -11,17 +11,16 @@ use Carbon\Carbon;
 class CleanStaleSessions extends Command
 {
     protected $signature = 'customers:clean-stale-sessions';
-
     protected $description = 'Safely close stale FreeRADIUS sessions';
 
     public function handle(): int
     {
         /*
         |--------------------------------------------------------------------------
-        | CRON CONTROL (ENABLE / DISABLE)
+        | CRON CONTROL
         |--------------------------------------------------------------------------
         */
-        $job = CronJob::where('key', 'stale_sessions')->first();
+        $job = CronJob::where('key', $this->signature)->first();
 
         if (!$job || !$job->is_active) {
             $this->info('Stale session cron disabled');
@@ -32,27 +31,19 @@ class CleanStaleSessions extends Command
 
             /*
             |--------------------------------------------------------------------------
-            | ISP SAFE CUTOFF (15 MINUTES)
+            | SAFE CUTOFF (15 MINUTES)
             |--------------------------------------------------------------------------
             */
             $cutoff = Carbon::now()->subMinutes(15);
 
             /*
             |--------------------------------------------------------------------------
-            | CLOSE STALE SESSIONS
+            | CLOSE STALE SESSIONS (FIXED QUERY)
             |--------------------------------------------------------------------------
             */
             $updated = DB::table('radacct')
                 ->whereNull('acctstoptime')
-                ->where(function ($q) use ($cutoff) {
-
-                    $q->where('acctupdatetime', '<', $cutoff)
-                      ->orWhere(function ($q2) use ($cutoff) {
-                          $q2->whereNull('acctupdatetime')
-                             ->where('acctstarttime', '<', $cutoff);
-                      });
-
-                })
+                ->where('acctstarttime', '<', $cutoff)
                 ->update([
                     'acctstoptime' => now(),
                     'acctterminatecause' => 'Stale-Session'
@@ -60,7 +51,7 @@ class CleanStaleSessions extends Command
 
             /*
             |--------------------------------------------------------------------------
-            | SUCCESS LOG
+            | LOG SUCCESS
             |--------------------------------------------------------------------------
             */
             CronLog::create([
@@ -77,7 +68,7 @@ class CleanStaleSessions extends Command
 
             /*
             |--------------------------------------------------------------------------
-            | ERROR LOG
+            | LOG ERROR
             |--------------------------------------------------------------------------
             */
             CronLog::create([

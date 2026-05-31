@@ -16,7 +16,7 @@ class CleanRadiusLogs extends Command
     public function handle()
     {
 
-        $job = CronJob::where('key', 'radius_cleanup')->first();
+        $job = CronJob::where('key', $this->signature)->first();
 
         if (!$job || !$job->is_active) {
             $this->info('Radius cleanup cron disabled');

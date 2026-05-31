@@ -16,17 +16,16 @@ use Carbon\Carbon;
 class UpdateExpiredCustomers extends Command
 {
     protected $signature = 'customers:update-expired';
-
     protected $description = 'Handle ISP lifecycle using grace table';
 
     public function handle()
     {
         /*
         |--------------------------------------------------------------------------
-        | CRON CONTROL (ENABLE / DISABLE)
+        | CRON CONTROL
         |--------------------------------------------------------------------------
         */
-        $job = CronJob::where('key', 'expire_customers')->first();
+        $job = CronJob::where('key', $this->signature)->first();
 
         if (!$job || !$job->is_active) {
             Log::info('Expire customer cron skipped (disabled)');
@@ -57,11 +56,6 @@ class UpdateExpiredCustomers extends Command
 
                             $stats['processed']++;
 
-                            /*
-                            |--------------------------------------------------------------------------
-                            | VALIDATION
-                            |--------------------------------------------------------------------------
-                            */
                             if (!$customer->expire_date) {
                                 continue;
                             }
@@ -72,22 +66,20 @@ class UpdateExpiredCustomers extends Command
 
                             /*
                             |--------------------------------------------------------------------------
-                            | GRACE LOGIC (FIXED)
+                            | GRACE FIX (SAFE + CONSISTENT)
                             |--------------------------------------------------------------------------
                             */
                             $grace = GracePeriod::where('customer_id', $customer->id)
                                 ->latest()
                                 ->first();
 
-                            $graceEnd = $expire;
-
-                            if ($grace && $grace->grace_end) {
-                                $graceEnd = Carbon::parse($grace->grace_end);
-                            }
+                            $graceEnd = $grace && $grace->grace_end
+                                ? Carbon::parse($grace->grace_end)
+                                : $expire;
 
                             /*
                             |--------------------------------------------------------------------------
-                            | STATUS CALCULATION
+                            | STATUS LOGIC (FIXED ORDER)
                             |--------------------------------------------------------------------------
                             */
                             if ($now->greaterThan($graceEnd)) {
@@ -100,7 +92,7 @@ class UpdateExpiredCustomers extends Command
 
                             /*
                             |--------------------------------------------------------------------------
-                            | SKIP IF NO CHANGE
+                            | SKIP IF SAME
                             |--------------------------------------------------------------------------
                             */
                             if ($customer->status === $newStatus) {
@@ -109,20 +101,20 @@ class UpdateExpiredCustomers extends Command
 
                             /*
                             |--------------------------------------------------------------------------
-                            | UPDATE CUSTOMER STATUS
+                            | UPDATE STATUS
                             |--------------------------------------------------------------------------
                             */
-                            $customer->update([
-                                'status' => $newStatus
-                            ]);
-
-                            $customer->refresh();
+                            DB::transaction(function () use ($customer, $newStatus) {
+                                $customer->update([
+                                    'status' => $newStatus
+                                ]);
+                            });
 
                             $stats['updated']++;
 
                             /*
                             |--------------------------------------------------------------------------
-                            | RADIUS SYNC (SAFE)
+                            | RADIUS SYNC SAFE
                             |--------------------------------------------------------------------------
                             */
                             try {
@@ -148,29 +140,17 @@ class UpdateExpiredCustomers extends Command
                                 } catch (\Throwable $e) {
                                     Log::error('Radius remove failed', [
                                         'customer_id' => $customer->id,
-                                        'error' => $e->getMessage(),
                                     ]);
                                 }
 
-                                /*
-                                |-----------------------------
-                                | CLOSE RADACCT SESSION (SAFE)
-                                |-----------------------------
-                                */
                                 DB::table('radacct')
                                     ->where('username', $customer->username)
                                     ->whereNull('acctstoptime')
-                                    ->whereNull('acctterminatecause')
                                     ->update([
                                         'acctstoptime' => now(),
                                         'acctterminatecause' => 'Expired'
                                     ]);
 
-                                /*
-                                |-----------------------------
-                                | FORCE DISCONNECT
-                                |-----------------------------
-                                */
                                 if ($customer->mikrotik) {
                                     try {
                                         $mk->disconnectPPPoE(
@@ -180,17 +160,11 @@ class UpdateExpiredCustomers extends Command
                                     } catch (\Throwable $e) {
                                         Log::error('Mikrotik disconnect failed', [
                                             'customer_id' => $customer->id,
-                                            'error' => $e->getMessage(),
                                         ]);
                                     }
                                 }
                             }
 
-                            /*
-                            |--------------------------------------------------------------------------
-                            | GRACE COUNT
-                            |--------------------------------------------------------------------------
-                            */
                             if ($newStatus === 'grace') {
                                 $stats['grace']++;
                             }

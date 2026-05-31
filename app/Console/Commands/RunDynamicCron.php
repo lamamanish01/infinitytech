@@ -4,12 +4,13 @@ namespace App\Console\Commands;
 
 use Illuminate\Console\Command;
 use App\Models\CronJob;
+use App\Models\CronLog;
+use Illuminate\Support\Facades\Artisan;
 
 class RunDynamicCron extends Command
 {
     protected $signature = 'cron:run-dynamic';
-
-    protected $description = 'Run enabled cron jobs from DB';
+    protected $description = 'Run dynamic cron jobs from database';
 
     public function handle()
     {
@@ -17,50 +18,58 @@ class RunDynamicCron extends Command
 
         if ($jobs->isEmpty()) {
             $this->info('No active cron jobs');
-            return Command::SUCCESS;
+            return self::SUCCESS;
         }
 
         foreach ($jobs as $job) {
+
+            if (!$this->shouldRun($job->frequency)) {
+                continue;
+            }
 
             try {
 
                 $this->info("Running: {$job->key}");
 
-                switch ($job->key) {
+                Artisan::call($job->key);
 
-                    case 'mac_bind':
-                        app(\App\Console\Commands\BindMac::class)->handle();
-                        break;
-
-                    case 'expire_customers':
-                        app(\App\Console\Commands\UpdateExpiredCustomers::class)->handle();
-                        break;
-
-                    case 'radius_cleanup':
-                        app(\App\Console\Commands\CleanRadiusLogs::class)->handle();
-                        break;
-
-                    case 'stale_sessions':
-                        app(\App\Console\Commands\CleanStaleSessions::class)->handle();
-                        break;
-
-                    default:
-                        $this->warn("No handler for: {$job->key}");
-                        break;
-                }
+                CronLog::create([
+                    'command' => $job->key,
+                    'status'  => 'success',
+                    'message' => 'Executed successfully',
+                ]);
 
             } catch (\Throwable $e) {
 
-                $this->error("Failed: {$job->key}");
-
-                \App\Models\CronLog::create([
+                CronLog::create([
                     'command' => $job->key,
-                    'status' => 'failed',
-                    'message' => $e->getMessage()
+                    'status'  => 'failed',
+                    'message' => $e->getMessage(),
                 ]);
             }
         }
 
-        return Command::SUCCESS;
+        return self::SUCCESS;
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | FREQUENCY LOGIC
+    |--------------------------------------------------------------------------
+    */
+    private function shouldRun(string $frequency): bool
+    {
+        $now = now();
+
+        return match ($frequency) {
+
+            'minute' => true,
+
+            'hour' => $now->minute === 0,
+
+            'daily' => $now->hour === 0 && $now->minute === 0,
+
+            default => false,
+        };
     }
 }

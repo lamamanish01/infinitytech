@@ -16,7 +16,7 @@ class BindMac extends Command
 
     public function handle()
     {
-        $job = CronJob::where('key', 'mac_bind')->first();
+        $job = CronJob::where('key', $this->signature)->first();
 
         if (!$job || !$job->is_active) {
             $this->info('MAC bind cron disabled');
