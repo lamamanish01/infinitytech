@@ -8,7 +8,9 @@ Artisan::command('inspire', function () {
     $this->comment(Inspiring::quote());
 })->purpose('Display an inspiring quote')->hourly();
 
-Schedule::command('cron:run-dynamic')->everyMinute();
+Schedule::command('run-dynamic')
+    ->everyMinute()
+    ->withoutOverlapping();
 
 
 // Schedule::command('customers:clean-stale-sessions')
