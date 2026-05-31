@@ -2,6 +2,7 @@
 
 namespace App\Console\Commands;
 
+use App\Models\CronJob;
 use App\Models\CronLog;
 use Carbon\Carbon;
 use Illuminate\Console\Command;
