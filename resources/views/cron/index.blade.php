@@ -78,7 +78,7 @@
 
                                         <td>{{ $loop->iteration }}</td>
 
-                                        <td>{{ $log->job_name }}</td>
+                                        <td>{{ $log->command }}</td>
 
                                         <td>{{ $log->message }}</td>
 
