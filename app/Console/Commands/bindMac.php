@@ -115,7 +115,7 @@ class BindMac extends Command
 
     private function normalizeMac($mac)
     {
-        $mac = strtolower($mac);
+        $mac = strtoupper($mac);
 
         // remove separators
         $mac = str_replace(['-', '.', ':'], '', $mac);
