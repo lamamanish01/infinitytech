@@ -28,7 +28,7 @@ class DashboardController extends Controller
             'onlineCustomers'  => $onlineCustomers,
             'totalCustomers'   => Customer::count(),
             'totalPlans'       => InternetPlan::count(),
-            'expiredCustomers' => Customer::where('status', 'expired')->count(),
+            'expiredCustomers' => Customer::where('expire_date', '<', now())->count(),
             'branchBalance'    => Branch::sum('balance'),
             'activeSessions' => DB::table('radacct')
                 ->whereNull('acctstoptime')

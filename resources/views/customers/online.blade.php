@@ -156,7 +156,7 @@
 
                                         {{-- VIEW --}}
                                         <a href="{{ route('customers.show', $customer) }}"
-                                           class="btn btn-outline-primary">
+                                           class="btn btn-sm btn-primary">
                                             View
                                         </a>
 
@@ -167,7 +167,7 @@
                                             @csrf
 
                                             <button type="submit"
-                                                    class="btn btn-outline-danger"
+                                                    class="btn btn-sm btn-danger"
                                                     onclick="return confirm('Disconnect this customer?')">
 
                                                 Disconnect

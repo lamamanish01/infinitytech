@@ -335,4 +335,12 @@ class CustomerController extends Controller
         return view('customers.online', compact('customers'));
     }
 
+    public function expired()
+    {
+        $customers = Customer::where('status', 'expired')
+            ->latest()
+            ->paginate(25);
+
+        return view('customers.expired', compact('customers'));
+    }
 }

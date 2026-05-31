@@ -86,7 +86,7 @@
                     <i class="bi bi-exclamation-triangle"></i>
                 </div>
 
-                <a href="{{ url('/customers?status=expired') }}" class="small-box-footer text-white">
+                <a href="{{ url('/customers/expired') }}" class="small-box-footer text-white">
                     More info <i class="bi bi-arrow-right"></i>
                 </a>
 

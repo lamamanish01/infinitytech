@@ -53,12 +53,14 @@ Route::middleware('auth')->group(function () {
 
     Route::resource('/internetplan', InternetPlanController::class);
     Route::resource('/menus', MenuController::class);
+
+    Route::get('/customers/online', [CustomerController::class, 'online']);
+    Route::get('/customers/expired', [CustomerController::class, 'expired']);
     Route::resource('/customers', CustomerController::class);
     Route::get('/customers/{customer}/expiry', [CustomerController::class, 'expiryForm'])
         ->name('customers.expiry-form');
     Route::post('/customers/{customer}/change-expiry', [CustomerController::class, 'changeExpiry'])
         ->name('customers.change-expiry');
-    Route::get('/customers/online', [CustomerController::class, 'online']);
     Route::post('/provide-grace/{customerId}', [CustomerController::class, 'provideGrace'])
         ->name('provide-grace');
     Route::post('/customer/{id}/disconnect', [CustomerController::class, 'disconnect'])
@@ -67,6 +69,7 @@ Route::middleware('auth')->group(function () {
         ->name('customer.forceDisconnect');
     Route::post('/customers/{id}/mac/bind', [CustomerController::class, 'bindMac'])->name('customer.bind-mac');
     Route::post('/customers/{id}/mac/unbind', [CustomerController::class, 'unbindMac'])->name('customer.unbind-mac');
+
 
     Route::get('/recharges/create/{customerId}', [RechargeController::class, 'create'])
         ->name('recharges.create');
