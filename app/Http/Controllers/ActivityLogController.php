@@ -12,9 +12,11 @@ class ActivityLogController extends Controller
      */
     public function index()
     {
-        $activities = ActivityLog::latest()->paginate(10);
+        $activities = ActivityLog::latest()->paginate(20);
 
-        return view('activities.index', compact('activities'));
+        $unreadCount = ActivityLog::where('is_read', false)->count();
+
+        return view('activities.index', compact('activities', 'unreadCount'));
     }
 
     /**
@@ -63,5 +65,25 @@ class ActivityLogController extends Controller
     public function destroy(ActivityLog $activityLog)
     {
         //
+    }
+
+    public function read($id)
+    {
+        $activity = ActivityLog::findOrFail($id);
+
+        $activity->update([
+            'is_read' => true
+        ]);
+
+        return redirect($activity->url ?? back());
+    }
+
+    public function markAllRead()
+    {
+        ActivityLog::where('is_read', false)->update([
+            'is_read' => true
+        ]);
+
+        return back();
     }
 }

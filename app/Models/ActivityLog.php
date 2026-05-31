@@ -16,6 +16,10 @@ class ActivityLog extends Model
         'is_read'
     ];
 
+    protected $casts = [
+        'is_read' => 'boolean',
+    ];
+
     public function user()
     {
         return $this->belongsTo(User::class);

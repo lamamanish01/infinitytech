@@ -51,23 +51,40 @@
             {{--  notification  --}}
 
             <li class="nav-item dropdown">
-                <a class="nav-link" data-bs-toggle="dropdown" href="#" role="button">
+                <a class="nav-link" data-bs-toggle="dropdown" href="#">
                     <i class="far fa-bell"></i>
 
-                    <span class="badge badge-warning navbar-badge">
-                        {{ $unreadCount }}
-                    </span>
+                    @if($unreadCount > 0)
+                        <span class="badge badge-warning navbar-badge">
+                            {{ $unreadCount }}
+                        </span>
+                    @endif
                 </a>
 
                 <div class="dropdown-menu dropdown-menu-lg dropdown-menu-right">
+
                     <span class="dropdown-item dropdown-header">
                         {{ $unreadCount }} Notifications
                     </span>
+
                     <div class="dropdown-divider"></div>
+
+                    <a href="{{ route('activities.markAllRead') }}"
+                    class="dropdown-item text-center text-primary">
+                        Mark all as read
+                    </a>
+
+                    <div class="dropdown-divider"></div>
+
                     @forelse($activities as $activity)
-                        <a href="{{ $activity->url ?? '#' }}" class="dropdown-item">
+
+                        <a href="{{ route('activity.read', $activity->id) }}"
+                        class="dropdown-item {{ $activity->is_read ? '' : 'bg-light' }}">
+
                             <i class="{{ $activity->icon ?? 'fas fa-bell mr-2' }}"></i>
-                            <span class="ml-1">{{ $activity->title }}</span>
+
+                            {{ $activity->title }}
+
                             <span class="float-right text-muted text-sm">
                                 {{ $activity->created_at->diffForHumans() }}
                             </span>
@@ -76,19 +93,17 @@
                         <div class="dropdown-divider"></div>
 
                     @empty
-
                         <span class="dropdown-item text-center text-muted">
                             No notifications
                         </span>
-
                     @endforelse
 
-                    <a href="{{ route('activities.index') }}" class="dropdown-item dropdown-footer">
+                    <a href="{{ route('activities.index') }}"
+                    class="dropdown-item dropdown-footer">
                         View All
                     </a>
 
                 </div>
-
             </li>
 
 

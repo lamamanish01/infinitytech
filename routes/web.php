@@ -129,4 +129,8 @@ Route::middleware('auth')->group(function () {
 
     Route::get('/activities', [ActivityLogController::class, 'index'])
     ->name('activities.index');
+    Route::get('/activity/{id}/read', [ActivityLogController::class, 'read'])
+        ->name('activity.read');
+    Route::get('/activities/mark-all-read', [ActivityLogController::class, 'markAllRead'])
+        ->name('activities.markAllRead');
 });
