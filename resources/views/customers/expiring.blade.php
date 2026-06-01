@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Expired Customers')
+@section('title', 'Expiring Customers')
 
 @section('content')
 
@@ -9,17 +9,13 @@
     <div class="card">
 
         <div class="card-header">
-
-            <h3 class="card-title">
-                Expired Customers
-            </h3>
+            <h3 class="card-title">Expiring Customers (Next 3 Days)</h3>
 
             <div class="card-tools">
-                <span class="badge badge-danger">
-                    {{ $customersExpired->total() }}
+                <span class="badge badge-warning">
+                    {{ $customersExpiring->total() }}
                 </span>
             </div>
-
         </div>
 
         <div class="card-body table-responsive p-0">
@@ -33,42 +29,56 @@
                         <th>Username</th>
                         <th>Plan</th>
                         <th>Expire Date</th>
+                        <th>Days Left</th>
                         <th>Status</th>
                     </tr>
                 </thead>
 
                 <tbody>
 
-                @forelse($customersExpired as $customer)
+                @forelse($customersExpiring as $customer)
 
                     <tr>
-
                         <td>{{ $customer->id }}</td>
+
                         <td>
                             {{ $customer->full_name ?? $customer->name }}
                         </td>
+
                         <td>
                             {{ $customer->username }}
                         </td>
+
                         <td>
                             {{ $customer->internetPlan?->name ?? '-' }}
                         </td>
+
                         <td>
                             {{ $customer->expire_date }}
                         </td>
+
                         <td>
-                            <span class="badge badge-danger">
-                                Expired
-                            </span>
+                            @php
+                                $daysLeft = now()->diffInDays($customer->expire_date, false);
+                            @endphp
+
+                            {{ $daysLeft > 0 ? ceil($daysLeft) : 0 }}
                         </td>
 
+                        <td>
+                            @if($customer->expire_date <= now()->addDay())
+                                <span class="badge badge-danger">Very Soon</span>
+                            @else
+                                <span class="badge badge-warning">Expiring</span>
+                            @endif
+                        </td>
                     </tr>
 
                 @empty
 
                     <tr>
-                        <td colspan="6" class="text-center">
-                            No expired customers found.
+                        <td colspan="7" class="text-center">
+                            No expiring customers found
                         </td>
                     </tr>
 
@@ -81,7 +91,7 @@
         </div>
 
         <div class="card-footer clearfix">
-            {{ $customersExpired->links() }}
+            {{ $customersExpiring->links() }}
         </div>
 
     </div>

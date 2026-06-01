@@ -16,80 +16,64 @@
         {{-- ONLINE --}}
         <div class="col-lg-3 col-6">
             <div class="small-box bg-primary text-white">
-
                 <div class="inner">
                     <h3>{{ $onlineCustomers ?? 0 }}</h3>
                     <p>Online Customers</p>
                 </div>
-
                 <div class="icon">
                     <i class="bi bi-wifi"></i>
                 </div>
-
                 <a href="{{ url('/customers/online') }}" class="small-box-footer text-white">
                     More info <i class="bi bi-arrow-right"></i>
                 </a>
-
             </div>
         </div>
 
         {{-- TOTAL --}}
         <div class="col-lg-3 col-6">
             <div class="small-box bg-success text-white">
-
                 <div class="inner">
                     <h3>{{ $totalCustomers ?? 0 }}</h3>
                     <p>Total Customers</p>
                 </div>
-
                 <div class="icon">
                     <i class="bi bi-people"></i>
                 </div>
-
                 <a href="{{ route('customers.index') }}" class="small-box-footer text-white">
                     More info <i class="bi bi-arrow-right"></i>
                 </a>
-
             </div>
         </div>
 
-        {{-- PLANS --}}
+        {{-- EXPIRING (REPLACED PLANS) --}}
         <div class="col-lg-3 col-6">
             <div class="small-box bg-warning text-dark">
-
                 <div class="inner">
-                    <h3>{{ $totalPlans ?? 0 }}</h3>
-                    <p>Internet Plans</p>
+                    <h3>{{ $expiringCustomers ?? 0 }}</h3>
+                    <p>Expiring Soon</p>
                 </div>
-
                 <div class="icon">
-                    <i class="bi bi-speedometer2"></i>
+                    <i class="bi bi-clock-history"></i>
                 </div>
-
-                <a href="{{ route('internetplan.index') }}" class="small-box-footer text-dark">
+                <a href="{{ url('/customers/expiring') }}" class="small-box-footer text-dark">
                     More info <i class="bi bi-arrow-right"></i>
                 </a>
-
             </div>
         </div>
 
         {{-- EXPIRED --}}
         <div class="col-lg-3 col-6">
             <div class="small-box bg-danger text-white">
-
                 <div class="inner">
                     <h3>{{ $expiredCustomers ?? 0 }}</h3>
                     <p>Expired Customers</p>
                 </div>
-
                 <div class="icon">
                     <i class="bi bi-exclamation-triangle"></i>
                 </div>
-
                 <a href="{{ url('/customers/expired') }}" class="small-box-footer text-white">
                     More info <i class="bi bi-arrow-right"></i>
                 </a>
-
             </div>
         </div>
 

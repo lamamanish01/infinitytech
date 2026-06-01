@@ -9,7 +9,6 @@ use App\Models\GracePeriod;
 use App\Models\InternetPlan;
 use App\Models\Recharge;
 use App\Services\MacService;
-use App\Services\MikrotikService;
 use App\Services\RadiusService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -264,22 +263,25 @@ class CustomerController extends Controller
     {
         $customer = Customer::findOrFail($id);
 
-        $result = MikrotikService::disconnectPPPoE(
-            $customer->username
-        );
+        $mk = app(\App\Services\MikrotikService::class);
 
-        if ($result['status']) {
+        try {
 
-            return back()->with(
-                'success',
-                $result['message']
-            );
+            if (!$customer->username) {
+                return back()->with('error', 'Username not found');
+            }
+
+            $result = $mk->disconnectPPPoE($customer->username);
+
+            if (!empty($result['status']) && $result['status'] === true) {
+                return back()->with('success', $result['message']);
+            }
+
+            return back()->with('error', $result['message']);
+
+        } catch (\Throwable $e) {
+            return back()->with('error', $e->getMessage());
         }
-
-        return back()->with(
-            'error',
-            $result['message']
-        );
     }
 
     public function bindMac($id)
@@ -337,10 +339,23 @@ class CustomerController extends Controller
 
     public function expired()
     {
-        $customers = Customer::where('status', 'expired')
-            ->latest()
+         $customersExpired = Customer::where('status', 'expired')
+                ->latest()
+                ->paginate(25);
+
+        return view('customers.expired', compact('customersExpired'));
+    }
+
+    public function expiring()
+    {
+        $customersExpiring = Customer::where('status', 'active')
+            ->whereBetween('expire_date', [
+                now(),
+                now()->addDays(3)
+            ])
+            ->orderBy('expire_date', 'asc')
             ->paginate(25);
 
-        return view('customers.expired', compact('customers'));
+        return view('customers.expiring', compact('customersExpiring'));
     }
 }

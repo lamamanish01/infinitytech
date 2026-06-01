@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\Mikrotik;
 use RouterOS\Client;
 use RouterOS\Query;
+use Illuminate\Support\Facades\Log;
 
 class MikrotikService
 {
@@ -23,6 +24,7 @@ class MikrotikService
     | DISCONNECT PPPoE USER
     |--------------------------------------------------------------------------
     */
+
     public static function disconnectPPPoE($username)
     {
         try {
@@ -30,33 +32,56 @@ class MikrotikService
             $routers = Mikrotik::where('is_active', 1)->get();
 
             $found = false;
+            $removed = 0;
 
             foreach ($routers as $mk) {
 
-                $client = self::client($mk);
+                try {
 
-                // check session in this router
-                $sessions = $client->query(
-                    (new Query('/ppp/active/print'))
-                        ->where('name', $username)
-                )->read();
+                    $client = self::client($mk);
 
-                if (empty($sessions)) {
-                    continue;
-                }
+                    $sessions = $client->query(
+                        (new Query('/ppp/active/print'))
+                            ->where('name', $username)
+                    )->read();
 
-                $found = true;
-
-                foreach ($sessions as $session) {
-
-                    if (!isset($session['.id'])) {
+                    if (empty($sessions)) {
                         continue;
                     }
 
-                    $client->query(
-                        (new Query('/ppp/active/remove'))
-                            ->equal('.id', $session['.id'])
-                    )->read();
+                    $found = true;
+
+                    foreach ($sessions as $session) {
+
+                        if (empty($session['.id'])) {
+                            continue;
+                        }
+
+                        try {
+
+                            $client->query(
+                                (new Query('/ppp/active/remove'))
+                                    ->equal('.id', $session['.id'])
+                            )->read();
+
+                            $removed++;
+
+                        } catch (\Throwable $e) {
+
+                            Log::error('Mikrotik session remove failed', [
+                                'username' => $username,
+                                'session' => $session,
+                                'error' => $e->getMessage(),
+                            ]);
+                        }
+                    }
+
+                } catch (\Throwable $e) {
+
+                    Log::error('Mikrotik router connection failed', [
+                        'router' => $mk->host,
+                        'error' => $e->getMessage(),
+                    ]);
                 }
             }
 
@@ -67,12 +92,23 @@ class MikrotikService
                 ];
             }
 
+            if ($removed === 0) {
+                return [
+                    'status' => false,
+                    'message' => 'Session found but could not be removed',
+                ];
+            }
+
             return [
                 'status' => true,
-                'message' => 'User disconnected successfully',
+                'message' => "User disconnected successfully ({$removed} session(s))",
             ];
 
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
+
+            Log::error('Mikrotik disconnect fatal error', [
+                'error' => $e->getMessage(),
+            ]);
 
             return [
                 'status' => false,

@@ -112,7 +112,7 @@
                                 </li>
 
                                 <li class="list-group-item d-flex justify-content-between">
-                                    Registered At
+                                    Registered On
                                     <strong>{{ $customer->registered_at->format('Y-m-d')}}</strong>
                                 </li>
 

@@ -56,6 +56,8 @@ Route::middleware('auth')->group(function () {
 
     Route::get('/customers/online', [CustomerController::class, 'online']);
     Route::get('/customers/expired', [CustomerController::class, 'expired']);
+    Route::get('/customers/expiring', [CustomerController::class, 'expiring'])
+        ->name('customers.expiring');
     Route::resource('/customers', CustomerController::class);
     Route::get('/customers/{customer}/expiry', [CustomerController::class, 'expiryForm'])
         ->name('customers.expiry-form');
