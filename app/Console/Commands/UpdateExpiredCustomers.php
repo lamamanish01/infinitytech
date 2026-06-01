@@ -20,11 +20,6 @@ class UpdateExpiredCustomers extends Command
 
     public function handle()
     {
-        /*
-        |--------------------------------------------------------------------------
-        | CRON CONTROL
-        |--------------------------------------------------------------------------
-        */
         $job = CronJob::where('key', $this->signature)->first();
 
         if (!$job || !$job->is_active) {
@@ -61,27 +56,22 @@ class UpdateExpiredCustomers extends Command
                             }
 
                             $now = now();
-
                             $expire = Carbon::parse($customer->expire_date)->endOfDay();
 
-                            /*
-                            |--------------------------------------------------------------------------
-                            | GRACE FIX (SAFE + CONSISTENT)
-                            |--------------------------------------------------------------------------
-                            */
+                            /**
+                             * GET LATEST GRACE (FIXED ORDER)
+                             */
                             $grace = GracePeriod::where('customer_id', $customer->id)
-                                ->latest()
+                                ->orderByDesc('grace_end')
                                 ->first();
 
                             $graceEnd = $grace && $grace->grace_end
                                 ? Carbon::parse($grace->grace_end)
                                 : $expire;
 
-                            /*
-                            |--------------------------------------------------------------------------
-                            | STATUS LOGIC (FIXED ORDER)
-                            |--------------------------------------------------------------------------
-                            */
+                            /**
+                             * STATUS CALCULATION
+                             */
                             if ($now->greaterThan($graceEnd)) {
                                 $newStatus = 'expired';
                             } elseif ($now->greaterThan($expire)) {
@@ -90,20 +80,25 @@ class UpdateExpiredCustomers extends Command
                                 $newStatus = 'active';
                             }
 
-                            /*
-                            |--------------------------------------------------------------------------
-                            | SKIP IF SAME
-                            |--------------------------------------------------------------------------
-                            */
+                            /**
+                             * COUNT BEFORE SKIP (IMPORTANT FIX)
+                             */
+                            if ($newStatus === 'expired') {
+                                $stats['expired']++;
+                            } elseif ($newStatus === 'grace') {
+                                $stats['grace']++;
+                            }
+
+                            /**
+                             * SKIP IF SAME STATUS
+                             */
                             if ($customer->status === $newStatus) {
                                 continue;
                             }
 
-                            /*
-                            |--------------------------------------------------------------------------
-                            | UPDATE STATUS
-                            |--------------------------------------------------------------------------
-                            */
+                            /**
+                             * UPDATE STATUS
+                             */
                             DB::transaction(function () use ($customer, $newStatus) {
                                 $customer->update([
                                     'status' => $newStatus
@@ -112,11 +107,9 @@ class UpdateExpiredCustomers extends Command
 
                             $stats['updated']++;
 
-                            /*
-                            |--------------------------------------------------------------------------
-                            | RADIUS SYNC SAFE
-                            |--------------------------------------------------------------------------
-                            */
+                            /**
+                             * RADIUS SYNC
+                             */
                             try {
                                 $radius->syncCustomer($customer);
                             } catch (\Throwable $e) {
@@ -126,14 +119,10 @@ class UpdateExpiredCustomers extends Command
                                 ]);
                             }
 
-                            /*
-                            |--------------------------------------------------------------------------
-                            | EXPIRED HANDLING
-                            |--------------------------------------------------------------------------
-                            */
+                            /**
+                             * EXPIRED HANDLING
+                             */
                             if ($newStatus === 'expired') {
-
-                                $stats['expired']++;
 
                                 try {
                                     $radius->removeCustomer($customer);
@@ -165,10 +154,6 @@ class UpdateExpiredCustomers extends Command
                                 }
                             }
 
-                            if ($newStatus === 'grace') {
-                                $stats['grace']++;
-                            }
-
                         } catch (\Throwable $e) {
 
                             $stats['failed']++;
@@ -181,11 +166,6 @@ class UpdateExpiredCustomers extends Command
                     }
                 });
 
-            /*
-            |--------------------------------------------------------------------------
-            | FINAL LOG
-            |--------------------------------------------------------------------------
-            */
             CronLog::create([
                 'command' => $this->signature,
                 'status'  => 'success',
