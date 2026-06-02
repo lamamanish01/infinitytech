@@ -7,11 +7,11 @@ use App\Models\CronJob;
 use App\Models\CronLog;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class BindMac extends Command
 {
     protected $signature = 'customers:bind-mac';
-
     protected $description = 'Auto bind MAC from active RADIUS sessions';
 
     public function handle()
@@ -24,61 +24,89 @@ class BindMac extends Command
         }
 
         $bound = 0;
+        $skipped = 0;
+        $updated = 0;
 
         try {
 
-            Customer::whereNull('mac_address')
-                ->chunkById(200, function ($customers) use (&$bound) {
+            Customer::chunkById(200, function ($customers) use (&$bound, &$skipped, &$updated) {
 
-                    foreach ($customers as $customer) {
+                foreach ($customers as $customer) {
 
-                        $session = DB::table('radacct')
-                            ->where('username', $customer->username)
-                            ->whereNull('acctstoptime')
-                            ->latest('radacctid')
-                            ->first();
+                    try {
 
-                        if (!$session) {
+                        if (empty($customer->username)) {
+                            $skipped++;
                             continue;
                         }
 
-                        $rawMac = $session->callingstationid
-                            ?? $session->callingstation_id
-                            ?? null;
+                        // Get latest ACTIVE session
+                        $session = DB::table('radacct')
+                            ->where('username', $customer->username)
+                            ->whereNull('acctstoptime')
+                            ->orderByDesc('radacctid')
+                            ->first();
+
+                        if (!$session) {
+                            $skipped++;
+                            continue;
+                        }
+
+                        // MikroTik MAC field
+                        $rawMac = $session->callingstationid ?? null;
 
                         if (!$rawMac) {
+                            $skipped++;
                             continue;
                         }
 
                         $mac = $this->normalizeMac($rawMac);
 
-                        if (!$mac) {
+                        if (!$mac || !$this->isValidMac($mac)) {
+                            $skipped++;
                             continue;
                         }
 
-                        if (!$this->isValidMac($mac)) {
+                        // Prevent duplicate MAC across customers
+                        $exists = Customer::where('mac_address', $mac)
+                            ->where('id', '!=', $customer->id)
+                            ->exists();
+
+                        if ($exists) {
+                            $skipped++;
                             continue;
                         }
 
-                        if (Customer::where('mac_address', $mac)->exists()) {
-                            continue;
+                        // Update only if changed
+                        if ($customer->mac_address !== $mac) {
+
+                            $customer->update([
+                                'mac_address' => $mac
+                            ]);
+
+                            $updated++;
+                        } else {
+                            $bound++; // already correct
                         }
 
-                        $customer->update([
-                            'mac_address' => $mac
+                    } catch (\Throwable $e) {
+
+                        Log::error('MAC bind error', [
+                            'customer_id' => $customer->id ?? null,
+                            'error' => $e->getMessage(),
                         ]);
-
-                        $bound++;
                     }
-                });
+                }
+            });
 
             CronLog::create([
                 'command' => $this->signature,
                 'status'  => 'success',
-                'message' => "{$bound} MAC addresses bound"
+                'message' => "Updated: {$updated} | Already OK: {$bound} | Skipped: {$skipped}"
             ]);
 
-            $this->info("✔ Done. {$bound} MAC addresses bound.");
+            $this->info("✔ MAC Bind Completed");
+            $this->info("Updated: {$updated}, OK: {$bound}, Skipped: {$skipped}");
 
             return Command::SUCCESS;
 
@@ -96,6 +124,9 @@ class BindMac extends Command
         }
     }
 
+    /**
+     * Normalize MAC format
+     */
     private function normalizeMac($mac)
     {
         $mac = strtoupper(trim($mac));
@@ -108,6 +139,9 @@ class BindMac extends Command
         return implode(':', str_split($mac, 2));
     }
 
+    /**
+     * Validate MAC format
+     */
     private function isValidMac($mac)
     {
         return (bool) preg_match(

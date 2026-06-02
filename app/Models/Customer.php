@@ -157,7 +157,7 @@ class Customer extends Model
 
     public function previousSession()
     {
-        return $this->hasOne(RadAcct::class, 'username', 'username')
+        return $this->hasMany(RadAcct::class, 'username', 'username')
             ->whereNotNull('acctstoptime')
             ->orderByDesc('acctstoptime');
     }

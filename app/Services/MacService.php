@@ -11,7 +11,7 @@ class MacService
     {
         if (!$mac) return null;
 
-        $mac = strtolower(str_replace(['-', ':', '.'], '', trim($mac)));
+        $mac = strtoupper(str_replace(['-', ':', '.'], '', trim($mac)));
 
         if (strlen($mac) !== 12) return null;
 

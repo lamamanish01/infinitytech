@@ -14,39 +14,49 @@ class RadiusService
 
         if (!$plan) return;
 
-        DB::table('radcheck')->where('username', $customer->username)->delete();
-        DB::table('radreply')->where('username', $customer->username)->delete();
-
-        DB::table('radcheck')->insert([
-            'username'  => $customer->username,
-            'attribute' => 'Cleartext-Password',
-            'op'        => ':=',
-            'value'     => $customer->password,
-        ]);
-
-        DB::table('radreply')->insert([
+        DB::table('radcheck')->updateOrInsert(
+            [
                 'username'  => $customer->username,
-                'attribute' => 'Framed-Pool',
-                'op'        => ':=',
-                'value'     => 'PPPoE-Pool',
-        ]);
+                'attribute' => 'Cleartext-Password',
+            ],
+            [
+                'op'    => ':=',
+                'value' => $customer->password,
+            ]
+        );
 
-        DB::table('radreply')->insert([
+        DB::table('radreply')->updateOrInsert(
+            [
                 'username'  => $customer->username,
                 'attribute' => 'Mikrotik-Rate-Limit',
-                'op'        => ':=',
-                'value'     => $plan->rate_limit,
-        ]);
+            ],
+            [
+                'op'    => ':=',
+                'value' => $plan->rate_limit,
+            ]
+        );
 
-        if ($customer->mac_address) {
-            DB::table('radcheck')->updateOrInsert(
+        DB::table('radreply')->updateOrInsert(
+            [
+                'username'  => $customer->username,
+                'attribute' => 'Framed-Pool',
+            ],
+            [
+                'op'    => ':=',
+                'value' => 'PPPoE-Pool',
+            ]
+        );
+
+        if (!empty($customer->mac_address)) {
+
+            DB::table('radreply')->updateOrInsert(
                 [
                     'username'  => $customer->username,
                     'attribute' => 'Calling-Station-Id',
                 ],
                 [
-                    'op'    => ':=',
-                    'value' => strtoupper($customer->mac_address),
+                    'op'    => '==',
+                    'value' => strtolower($customer->mac_address),
                 ]
             );
         }

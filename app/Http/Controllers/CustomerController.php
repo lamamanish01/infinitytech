@@ -12,6 +12,7 @@ use App\Services\MacService;
 use App\Services\RadiusService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class CustomerController extends Controller
 {
@@ -106,9 +107,23 @@ class CustomerController extends Controller
             },
         ])->findOrFail($id);
 
+        $previousSessions = $customer->previousSession()
+            ->paginate(10);
+
         $session = get_active_mac($customer->username);
 
-        return view('customers.show', compact('customer', 'session'));
+        $lastSession = DB::table('radacct')
+            ->where('username', $customer->username)
+            ->whereNotNull('acctstoptime')
+            ->orderByDesc('radacctid')
+            ->first();
+
+        return view('customers.show', compact(
+            'customer',
+            'session',
+            'lastSession',
+            'previousSessions'
+        ));
     }
 
     /**

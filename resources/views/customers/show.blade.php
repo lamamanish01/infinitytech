@@ -155,6 +155,21 @@
                                     </strong>
                                 </li>
 
+                                <li class="list-group-item d-flex justify-content-between">
+                                    Last Disconnect Reason
+                                    <strong>
+                                        @if($lastSession && $lastSession->acctterminatecause)
+                                            <span class="badge badge-danger">
+                                                {{ $lastSession->acctterminatecause }}
+                                            </span>
+                                        @else
+                                            <span class="badge badge-success">
+                                                N/A
+                                            </span>
+                                        @endif
+                                    </strong>
+                                </li>
+
                             </ul>
 
                         </div>
@@ -178,11 +193,14 @@
                                 <thead class="table-light">
                                     <tr>
                                         <th>IP</th>
-                                        <th>Start</th>
+                                        <th>Start Time</th>
+                                        <th>End Time</th>
                                         <th>Time</th>
+                                        <th>Mac Address</th>
                                         <th>NAS IP</th>
                                         <th>Upload</th>
                                         <th>Download</th>
+                                        <th>Server</th>
                                     </tr>
                                 </thead>
 
@@ -190,10 +208,21 @@
                                     <tr>
                                         <td>{{ $customer->active->ip_address }}</td>
                                         <td>{{ $customer->active->start_time }}</td>
-                                        <td>{{ $customer->active->nas_ip }}</td>
+                                        <td>
+                                            @if($lastSession && $lastSession->acctstoptime)
+                                                {{ \Carbon\Carbon::parse($lastSession->acctstoptime)->format('Y m d h:i:s A') }}
+                                            @else
+                                                <span class="badge badge-success">
+                                                    Never Disconnected
+                                                </span>
+                                            @endif
+                                        </td>
                                         <td>{{ $customer->active->session_time_human }}</td>
+                                        <td>{{ $customer->active->mac_address }}</td>
+                                        <td>{{ $customer->active->nas_ip }}</td>
                                         <td>{{ $customer->active->upload_mb }}</td>
                                         <td>{{ $customer->active->download_mb }}</td>
+                                        <td>{{ $customer->active->ppp_server }}</td>
                                     </tr>
                                 </tbody>
 
@@ -207,7 +236,7 @@
                         </div>
                     @endif
 
-                    {{-- PREVIOUS SESSION --}}
+                    {{-- PREVPREVIOUS SESSION --}}
                     <h6 class="mt-4 mb-2">Previous Session</h6>
 
                     @if($customer->previous)
@@ -219,8 +248,10 @@
                                 <thead class="table-light">
                                     <tr>
                                         <th>IP</th>
-                                        <th>Start</th>
+                                        <th>Start Time</th>
+                                        <th>End Time</th>
                                         <th>Time</th>
+                                        <th>Mac Address</th>
                                         <th>NAS IP</th>
                                         <th>Upload</th>
                                         <th>Download</th>
@@ -229,17 +260,39 @@
                                 </thead>
 
                                 <tbody>
-                                    <tr>
-                                        <td>{{ $customer->previous->ip_address }}</td>
-                                        <td>{{ $customer->previous->start_time }}</td>
-                                        <td>{{ $customer->previous->session_time_human }}</td>
-                                        <td>{{ $customer->previous->nas_ip }}</td>
-                                        <td>{{ $customer->previous->upload_mb }}</td>
-                                        <td>{{ $customer->previous->download_mb }}</td>
-                                        <td>{{ $customer->previous->ppp_server }}</td>
-                                    </tr>
-                                </tbody>
+                                    @forelse ($previousSessions as $session)
 
+                                        <tr>
+                                            <td>{{ $session->ip_address ?? '-' }}</td>
+                                            <td>
+                                                {{ \Carbon\Carbon::parse($session->start_time)->format('Y-m-d H:i:s') }}
+                                            </td>
+                                            <td>
+                                                @if($session->acctstoptime)
+                                                    {{ \Carbon\Carbon::parse($session->acctstoptime)->format('Y-m-d H:i:s') }}
+                                                @else
+                                                    <span class="badge badge-success">Active</span>
+                                                @endif
+                                            </td>
+                                            <td>{{ $session->session_time_human ?? '-' }}</td>
+                                            <td>{{ $session->mac_address ?? '-' }}</td>
+                                            <td>{{ $session->nas_ip ?? '-' }}</td>
+                                            <td>{{ $session->upload_mb ?? '-' }}</td>
+                                            <td>{{ $session->download_mb ?? '-' }}</td>
+                                            <td>{{ $session->ppp_server ?? '-' }}</td>
+                                        </tr>
+
+                                        @empty
+
+                                        <tr>
+                                            <td colspan="9" class="text-center">
+                                                No previous sessions found
+                                            </td>
+                                        </tr>
+
+                                        @endforelse
+
+                                </tbody>
                             </table>
 
                         </div>
@@ -249,6 +302,10 @@
                             No previous session found
                         </div>
                     @endif
+
+                    <div class="mt-3">
+                            {{ $previousSessions->links() }}
+                    </div>
 
                 </div>
 

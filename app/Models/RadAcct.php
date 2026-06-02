@@ -65,7 +65,6 @@ class RadAcct extends Model
     {
     $bytes = $this->acctinputoctets;
 
-    // Convert to GB if greater than or equal to 1 GB
     if ($bytes >= 1024 * 1024 * 1024) {
 
         return round(
@@ -74,7 +73,6 @@ class RadAcct extends Model
         ) . ' GB';
     }
 
-    // Otherwise show MB
     return round(
         $bytes / 1024 / 1024,
         2
@@ -85,7 +83,6 @@ class RadAcct extends Model
     {
     $bytes = $this->acctoutputoctets;
 
-    // Convert to GB if usage is 1 GB or more
     if ($bytes >= 1024 * 1024 * 1024) {
 
         return round(
@@ -94,7 +91,6 @@ class RadAcct extends Model
         ) . ' GB';
     }
 
-    // Otherwise show MB
     return round(
         $bytes / 1024 / 1024,
         2

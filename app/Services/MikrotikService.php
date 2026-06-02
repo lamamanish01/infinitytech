@@ -101,7 +101,7 @@ class MikrotikService
 
             return [
                 'status' => true,
-                'message' => "User disconnected successfully ({$removed} session(s))",
+                'message' => "User disconnected successfully {$removed} session",
             ];
 
         } catch (\Throwable $e) {
