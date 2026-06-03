@@ -210,7 +210,7 @@
                                         <td>{{ $customer->active->start_time }}</td>
                                         <td>
                                             @if($lastSession && $lastSession->acctstoptime)
-                                                {{ \Carbon\Carbon::parse($lastSession->acctstoptime)->format('Y m d h:i:s A') }}
+                                                {{ \Carbon\Carbon::parse($lastSession->acctstoptime)->format('Y-m-d h:i:s') }}
                                             @else
                                                 <span class="badge badge-success">
                                                     Never Disconnected
@@ -295,6 +295,10 @@
                                 </tbody>
                             </table>
 
+                            <div class="mt-3">
+                                {{ $previousSessions->links() }}
+                            </div>
+
                         </div>
 
                     @else
@@ -302,10 +306,6 @@
                             No previous session found
                         </div>
                     @endif
-
-                    <div class="mt-3">
-                            {{ $previousSessions->links() }}
-                    </div>
 
                 </div>
 
@@ -329,7 +329,7 @@
 
                             <tbody>
 
-                                @forelse($customer->billings as $billing)
+                                @forelse($billings as $billing)
 
                                     <tr>
                                         <td>{{ $loop->iteration }}</td>
@@ -357,6 +357,9 @@
                             </tbody>
 
                         </table>
+                            <div class="mt-3">
+                                {{ $billings->links() }}
+                            </div>
 
                     </div>
 
@@ -381,7 +384,7 @@
 
                             <tbody>
 
-                                @foreach($customer->authLogs as $log)
+                                @foreach($authLogs as $log)
 
                                     <tr>
                                         <td>{{ $loop->iteration }}</td>
@@ -396,6 +399,9 @@
                             </tbody>
 
                         </table>
+                            <div class="mt-3">
+                                {{ $authLogs->links() }}
+                            </div>
 
                     </div>
 

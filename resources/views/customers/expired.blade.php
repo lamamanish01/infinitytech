@@ -34,6 +34,9 @@
                         <th>Plan</th>
                         <th>Expire Date</th>
                         <th>Status</th>
+
+                        {{-- VIEW BUTTON --}}
+                        <th>Action</th>
                     </tr>
                 </thead>
 
@@ -44,22 +47,35 @@
                     <tr>
 
                         <td>{{ $customer->id }}</td>
+
                         <td>
                             {{ $customer->full_name ?? $customer->name }}
                         </td>
+
                         <td>
                             {{ $customer->username }}
                         </td>
+
                         <td>
                             {{ $customer->internetPlan?->name ?? '-' }}
                         </td>
+
                         <td>
                             {{ $customer->expire_date }}
                         </td>
+
                         <td>
                             <span class="badge badge-danger">
                                 Expired
                             </span>
+                        </td>
+
+                        {{-- VIEW BUTTON --}}
+                        <td>
+                            <a href="{{ url('/customers/'.$customer->id) }}"
+                               class="btn btn-sm btn-primary">
+                                View
+                            </a>
                         </td>
 
                     </tr>
@@ -67,7 +83,7 @@
                 @empty
 
                     <tr>
-                        <td colspan="6" class="text-center">
+                        <td colspan="7" class="text-center">
                             No expired customers found.
                         </td>
                     </tr>

@@ -118,13 +118,13 @@
 
                         </table>
 
+                        <!-- Pagination -->
+                        <div class="mt-3">
+                            {{ $cronLogs->links() }}
+                        </div>
+
                     </div>
 
-                </div>
-
-                <!-- Pagination -->
-                <div class="mt-3">
-                    {{ $cronLogs->links() }}
                 </div>
 
             </div>

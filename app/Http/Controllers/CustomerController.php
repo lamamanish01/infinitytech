@@ -102,13 +102,19 @@ class CustomerController extends Controller
             'activeSession',
             'internetPlan',
             'billings.internetPlan',
-            'authLogs' => function ($q) {
-                $q->orderByDesc('authdate')->limit(25);
-            },
         ])->findOrFail($id);
 
         $previousSessions = $customer->previousSession()
             ->paginate(10);
+
+        $billings = $customer->billings()
+            ->with('internetPlan')
+            ->latest()
+            ->paginate(25, ['*'], 'billing_page');
+
+        $authLogs = $customer->authLogs()
+            ->latest('authdate')
+            ->paginate(10, ['*'], 'auth_page');
 
         $session = get_active_mac($customer->username);
 
@@ -122,7 +128,9 @@ class CustomerController extends Controller
             'customer',
             'session',
             'lastSession',
-            'previousSessions'
+            'previousSessions',
+            'billings',
+            'authLogs'
         ));
     }
 

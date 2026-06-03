@@ -10,6 +10,7 @@ class CronJob extends Model
         'key',
         'name',
         'is_active',
+        'last_run_at',
         'frequency',
     ];
 }

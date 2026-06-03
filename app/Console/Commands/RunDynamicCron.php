@@ -6,10 +6,12 @@ use Illuminate\Console\Command;
 use App\Models\CronJob;
 use App\Models\CronLog;
 use Illuminate\Support\Facades\Artisan;
+use Carbon\Carbon;
 
 class RunDynamicCron extends Command
 {
     protected $signature = 'cron:run-dynamic';
+
     protected $description = 'Run dynamic cron jobs from database';
 
     public function handle()
@@ -23,7 +25,7 @@ class RunDynamicCron extends Command
 
         foreach ($jobs as $job) {
 
-            if (!$this->shouldRun($job->frequency)) {
+            if (!$this->shouldRun($job)) {
                 continue;
             }
 
@@ -31,7 +33,13 @@ class RunDynamicCron extends Command
 
                 $this->info("Running: {$job->key}");
 
+                // run artisan command dynamically
                 Artisan::call($job->key);
+
+                // update last run time
+                $job->update([
+                    'last_run_at' => now()
+                ]);
 
                 CronLog::create([
                     'command' => $job->key,
@@ -54,20 +62,28 @@ class RunDynamicCron extends Command
 
     /*
     |--------------------------------------------------------------------------
-    | FREQUENCY LOGIC
+    | BEST RELIABLE FREQUENCY ENGINE
     |--------------------------------------------------------------------------
     */
-    private function shouldRun(string $frequency): bool
+    private function shouldRun($job): bool
     {
-        $now = now();
+        if (!$job->last_run_at) {
+            return true;
+        }
 
-        return match ($frequency) {
+        $last = Carbon::parse($job->last_run_at);
 
-            'minute' => true,
+        return match ($job->frequency) {
 
-            'hour' => $now->minute === 0,
+            'minute'  => $last->copy()->addMinute()->lte(now()),
 
-            'daily' => $now->hour === 0 && $now->minute === 0,
+            'hourly'  => $last->copy()->addHour()->lte(now()),
+
+            'daily'   => $last->copy()->addDay()->lte(now()),
+
+            'weekly'  => $last->copy()->addWeek()->lte(now()),
+
+            'monthly' => $last->copy()->addMonth()->lte(now()),
 
             default => false,
         };

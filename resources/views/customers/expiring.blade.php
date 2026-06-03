@@ -31,6 +31,9 @@
                         <th>Expire Date</th>
                         <th>Days Left</th>
                         <th>Status</th>
+
+                        {{-- VIEW BUTTON HEADER --}}
+                        <th>Action</th>
                     </tr>
                 </thead>
 
@@ -72,12 +75,20 @@
                                 <span class="badge badge-warning">Expiring</span>
                             @endif
                         </td>
+
+                        {{-- VIEW BUTTON --}}
+                        <td>
+                            <a href="{{ url('/customers/'.$customer->id) }}"
+                               class="btn btn-sm btn-primary">
+                                View
+                            </a>
+                        </td>
                     </tr>
 
                 @empty
 
                     <tr>
-                        <td colspan="7" class="text-center">
+                        <td colspan="8" class="text-center">
                             No expiring customers found
                         </td>
                     </tr>
