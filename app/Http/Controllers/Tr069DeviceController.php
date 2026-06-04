@@ -11,6 +11,15 @@ class Tr069DeviceController extends Controller
     /**
      * Display a listing of the resource.
      */
+
+    public function __construct()
+    {
+        $this->middleware('permission:view tr069')->only(['index', 'show']);
+        $this->middleware('permission:create tr069')->only(['create', 'store']);
+        $this->middleware('permission:edit tr069')->only(['edit', 'update']);
+        $this->middleware('permission:delete tr069')->only(['destroy']);
+    }
+
     public function index()
     {
         //

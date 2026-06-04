@@ -9,9 +9,14 @@ use Illuminate\Http\Request;
 
 class BranchController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
+    function __construct()
+    {
+        $this->middleware('permission:view branches')->only(['index', 'show']);
+        $this->middleware('permission:create branches')->only(['create', 'store', 'addBalance']);
+        $this->middleware('permission:edit branches')->only(['edit', 'update']);
+        $this->middleware('permission:delete branches')->only(['destroy']);
+    }
+
     public function index()
     {
         $branches = Branch::orderBy('name', 'desc')->paginate(10);

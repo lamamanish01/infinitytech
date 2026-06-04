@@ -5,6 +5,7 @@ namespace App\Providers;
 use App\Models\ActivityLog;
 use Illuminate\Pagination\Paginator;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
 
@@ -55,9 +56,20 @@ class AppServiceProvider extends ServiceProvider
      */
     private function shareGlobalViewData(): void
     {
-        View::share([
-            'activities' => ActivityLog::latest()->take(10)->get(),
-            'unreadCount' => ActivityLog::where('is_read', false)->count(),
-        ]);
+        if (Schema::hasTable('activity_logs')) {
+
+            View::share([
+                'activities' => ActivityLog::latest()->take(10)->get(),
+                'unreadCount' => ActivityLog::where('is_read', false)->count(),
+            ]);
+
+        } else {
+
+            View::share([
+                'activities' => collect(),
+                'unreadCount' => 0,
+            ]);
+
+        }
     }
 }

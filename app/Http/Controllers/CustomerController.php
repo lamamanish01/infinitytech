@@ -19,30 +19,69 @@ class CustomerController extends Controller
     /**
      * Display a listing of the resource.
      */
+
+    function __construct()
+    {
+        $this->middleware('permission:view customers')->only([
+            'index', 'show', 'online', 'expired', 'expiring'
+        ]);
+
+        $this->middleware('permission:create customers')->only([
+            'create', 'store'
+        ]);
+
+        $this->middleware('permission:edit customers')->only([
+            'edit', 'update', 'changeExpiry', 'provideGrace',
+            'bindMac', 'unbindMac', 'disconnect'
+        ]);
+
+        $this->middleware('permission:delete customers')->only([
+            'destroy'
+        ]);
+    }
+
+    // public function index(Request $request)
+    // {
+    //     $query = Customer::with(['internetPlan']);
+    //     // $query = $customer->internetPlan;
+
+    //     if ($request->filled('q')) {
+
+    //         $q = $request->q;
+
+    //         $query->where(function ($sub) use ($q) {
+    //             $sub->where('username', 'like', "%{$q}%")
+    //                 ->orWhere('name', 'like', "%{$q}%")
+    //                 ->orWhere('contact_number', 'like', "%{$q}%")
+    //                 ->orWhere('mac_address', 'like', "%{$q}%")
+    //                 ->orWhere('status', 'like', "%{$q}%");
+    //         });
+    //     }
+
+    //     $customers = $query->paginate(10);
+
+    //     return view('customers.index', compact('customers'));
+
+
+    //     // $customers = Customer::orderBy('name', 'ASC')->paginate(10);
+    //     // return view('customers.index', compact('customers'));
+    // }
+
     public function index(Request $request)
     {
-        $query = Customer::with(['internetPlan']);
-
-        if ($request->filled('q')) {
-
-            $q = $request->q;
-
-            $query->where(function ($sub) use ($q) {
-                $sub->where('username', 'like', "%{$q}%")
-                    ->orWhere('name', 'like', "%{$q}%")
-                    ->orWhere('contact_number', 'like', "%{$q}%")
-                    ->orWhere('mac_address', 'like', "%{$q}%")
-                    ->orWhere('status', 'like', "%{$q}%");
-            });
-        }
-
-        $customers = $query->paginate(10);
-
-        return view('customers.index', compact('customers'));
-
-
-        // $customers = Customer::orderBy('name', 'ASC')->paginate(10);
-        // return view('customers.index', compact('customers'));
+        return view('customers.index', [
+            'customers' => Customer::with('internetPlan')
+                ->when($request->q, function ($query, $q) {
+                    $query->where(function ($sub) use ($q) {
+                        $sub->where('username', 'like', "%$q%")
+                            ->orWhere('name', 'like', "%$q%")
+                            ->orWhere('contact_number', 'like', "%$q%")
+                            ->orWhere('mac_address', 'like', "%$q%")
+                            ->orWhere('status', 'like', "%$q%");
+                    });
+                })
+                ->paginate(10)
+        ]);
     }
 
     /**

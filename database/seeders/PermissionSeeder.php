@@ -4,34 +4,122 @@ namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
 use Spatie\Permission\Models\Permission;
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 
 class PermissionSeeder extends Seeder
 {
-    /**
-     * Run the database seeds.
-     */
     public function run(): void
     {
         $permissions = [
-            'view users',
-            'create users',
-            'edit users',
-            'delete Users',
-            'view roles',
-            'create roles',
-            'edit roles',
-            'delete roles',
-            'view permissions',
-            'create permissions',
-            'edit permissions',
-            'delete permissions',
-            'change password'
+
+            // ================= USERS =================
+            'users.view',
+            'users.create',
+            'users.edit',
+            'users.delete',
+
+            // ================= ROLES =================
+            'roles.view',
+            'roles.create',
+            'roles.edit',
+            'roles.delete',
+
+            // ================= PERMISSIONS =================
+            'permissions.view',
+            'permissions.create',
+            'permissions.edit',
+            'permissions.delete',
+
+            // ================= CUSTOMER =================
+            'customers.view',
+            'customers.create',
+            'customers.edit',
+            'customers.delete',
+            'customers.expired',
+            'customers.online',
+            'customers.bind_mac',
+            'customers.unbind_mac',
+            'customers.disconnect',
+
+            // ================= INTERNET PLAN =================
+            'plans.view',
+            'plans.create',
+            'plans.edit',
+            'plans.delete',
+
+            // ================= BILLING / RECHARGE =================
+            'billing.view',
+            'billing.create',
+            'billing.edit',
+            'billing.delete',
+            'recharge.create',
+            'recharge.view',
+
+            // ================= TICKETS =================
+            'tickets.view',
+            'tickets.create',
+            'tickets.edit',
+            'tickets.delete',
+            'tickets.assign',
+            'tickets.reply',
+            'tickets.close',
+
+            // ================= BRANCH =================
+            'branch.view',
+            'branch.create',
+            'branch.edit',
+            'branch.delete',
+            'branch.balance_add',
+
+            // ================= NAS / RADIUS =================
+            'nas.view',
+            'nas.create',
+            'nas.edit',
+            'nas.delete',
+
+            // ================= MIKROTIK =================
+            'mikrotik.view',
+            'mikrotik.create',
+            'mikrotik.edit',
+            'mikrotik.delete',
+
+            // ================= CRON JOB =================
+            'cron.view',
+            'cron.create',
+            'cron.edit',
+            'cron.delete',
+            'cron.toggle',
+
+            // ================= SMS =================
+            'sms.view',
+            'sms.send',
+            'sms.queue',
+
+            // ================= MENU =================
+            'menu.view',
+            'menu.create',
+            'menu.edit',
+            'menu.delete',
+
+            // ================= DASHBOARD =================
+            'dashboard.view',
+
+            // ================= TR069 =================
+            'tr069.view',
+            'tr069.create',
+            'tr069.edit',
+            'tr069.delete',
+
+            // ================= SYSTEM =================
+            'system.logs_view',
+            'system.activity_view',
+            'change_password',
         ];
 
-        foreach ($permissions as $permission)
-        {
-            Permission::create(['name' => $permission]);
+        foreach ($permissions as $permission) {
+
+            Permission::firstOrCreate([
+                'name' => $permission
+            ]);
         }
     }
 }

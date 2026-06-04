@@ -1,155 +1,155 @@
 [
-    {
-        "id": 1,
-        "title": "Dashboard",
-        "url": "dashboard",
-        "icon": "fa-tachometer-alt",
-        "parent_id": null,
-        "order": "1",
-        "role": "view dashboard",
-        "children": []
-    },
-    {
-        "id": 2,
-        "title": "Settings",
-        "url": "",
-        "icon": "fa-share",
-        "parent_id": null,
-        "order": "2",
-        "role": "view settings",
-        "children": [
-            {
-                "title": "Branch",
-                "url": "/branch",
-                "icon": null,
-                "parent_id": "2",
-                "order": "2",
-                "role": "view Branch"
-            },
-            {
-                "title": "Users",
-                "url": "/users",
-                "icon": null,
-                "parent_id": "2",
-                "order": "2",
-                "role": "view users"
-            },
-            {
-                "title": "Roles",
-                "url": "/roles",
-                "icon": null,
-                "parent_id": "2",
-                "order": "2",
-                "role": "view roles"
-            },
-            {
-                "title": "Permissions",
-                "url": "/permissions",
-                "icon": null,
-                "parent_id": "2",
-                "order": "2",
-                "role": "view permissions"
-            }
-        ]
-    },
-    {
-        "id": 3,
-        "title": "Customers",
-        "url": "",
-        "icon": "fa-users",
-        "parent_id": null,
-        "order": "3",
-        "role": "view customers",
-        "children": [
-            {
-                "title": "List of Customers",
-                "url": "/customers",
-                "icon": null,
-                "parent_id": "3",
-                "order": "3",
-                "role": "view customer"
-            },
-            {
-                "title": "Create Customer",
-                "url": "/customers/create",
-                "icon": null,
-                "parent_id": "3",
-                "order": "3",
-                "role": "create customer"
-            },
-            {
-                "title": "Online Customer",
-                "url": "/customers/online",
-                "icon": null,
-                "parent_id": "3",
-                "order": "3",
-                "role": "view online customer"
-            }
-        ]
-    },
-    {
-        "id": 4,
-        "title": "Services",
-        "url": "",
-        "icon": "fa-shapes",
-        "parent_id": null,
-        "order": "4",
-        "role": "view internetplan",
-        "children": [
-            {
-                "title": "Internet Plan",
-                "url": "/internetplan",
-                "icon": null,
-                "parent_id": "4",
-                "order": "4",
-                "role": "view internetplan"
-            }
-        ]
-    },
-    {
-        "id": 5,
-        "title": "System",
-        "url": "",
-        "icon": "fa-cog",
-        "parent_id": null,
-        "order": "4",
-        "role": "view setting",
-        "children": [
-            {
-                "title": "NAS",
-                "url": "/nas",
-                "icon": null,
-                "parent_id": "5",
-                "order": "5",
-                "role": "view nas"
-            },
-            {
-                "title": "Mikrotik",
-                "url": "/mikrotik",
-                "icon": null,
-                "parent_id": "5",
-                "order": "5",
-                "role": "view mikrotik"
-            }
-        ]
-    },
-    {
-        "id": 6,
-        "title": "Ticket",
-        "url": "",
-        "icon": "fa-cog",
-        "parent_id": null,
-        "order": "4",
-        "role": "view setting",
-        "children": [
-            {
-                "title": "List of Ticket",
-                "url": "/ticket",
-                "icon": null,
-                "parent_id": "6",
-                "order": "6",
-                "role": "view ticket"
-            }
-        ]
-    }
+  {
+    "id": 1,
+    "title": "Dashboard",
+    "url": "dashboard",
+    "icon": "fa-tachometer-alt",
+    "parent_id": null,
+    "order": 1,
+    "role": "view dashboard",
+    "children": []
+  },
+  {
+    "id": 2,
+    "title": "Settings",
+    "url": "",
+    "icon": "fa-share",
+    "parent_id": null,
+    "order": 2,
+    "role": "view settings",
+    "children": [
+      {
+        "title": "Branch",
+        "url": "/branch",
+        "icon": null,
+        "parent_id": 2,
+        "order": 1,
+        "role": "view branch"
+      },
+      {
+        "title": "Users",
+        "url": "/users",
+        "icon": null,
+        "parent_id": 2,
+        "order": 2,
+        "role": "view users"
+      },
+      {
+        "title": "Roles",
+        "url": "/roles",
+        "icon": null,
+        "parent_id": 2,
+        "order": 3,
+        "role": "view roles"
+      },
+      {
+        "title": "Permissions",
+        "url": "/permissions",
+        "icon": null,
+        "parent_id": 2,
+        "order": 4,
+        "role": "view permissions"
+      }
+    ]
+  },
+  {
+    "id": 3,
+    "title": "Customers",
+    "url": "",
+    "icon": "fa-users",
+    "parent_id": null,
+    "order": 3,
+    "role": "view customers",
+    "children": [
+      {
+        "title": "List of Customers",
+        "url": "/customers",
+        "icon": null,
+        "parent_id": 3,
+        "order": 1,
+        "role": "view customers"
+      },
+      {
+        "title": "Create Customer",
+        "url": "/customers/create",
+        "icon": null,
+        "parent_id": 3,
+        "order": 2,
+        "role": "create customers"
+      },
+      {
+        "title": "Online Customer",
+        "url": "/customers/online",
+        "icon": null,
+        "parent_id": 3,
+        "order": 3,
+        "role": "view online customers"
+      }
+    ]
+  },
+  {
+    "id": 4,
+    "title": "Services",
+    "url": "",
+    "icon": "fa-shapes",
+    "parent_id": null,
+    "order": 4,
+    "role": "view internetplans",
+    "children": [
+      {
+        "title": "Internet Plan",
+        "url": "/internetplan",
+        "icon": null,
+        "parent_id": 4,
+        "order": 1,
+        "role": "view internetplans"
+      }
+    ]
+  },
+  {
+    "id": 5,
+    "title": "System",
+    "url": "",
+    "icon": "fa-cog",
+    "parent_id": null,
+    "order": 5,
+    "role": "view system",
+    "children": [
+      {
+        "title": "NAS",
+        "url": "/nas",
+        "icon": null,
+        "parent_id": 5,
+        "order": 1,
+        "role": "view nas"
+      },
+      {
+        "title": "Mikrotik",
+        "url": "/mikrotik",
+        "icon": null,
+        "parent_id": 5,
+        "order": 2,
+        "role": "view mikrotik"
+      }
+    ]
+  },
+  {
+    "id": 6,
+    "title": "Ticket",
+    "url": "",
+    "icon": "fa-ticket-alt",
+    "parent_id": null,
+    "order": 6,
+    "role": "view tickets",
+    "children": [
+      {
+        "title": "List of Ticket",
+        "url": "/ticket",
+        "icon": null,
+        "parent_id": 6,
+        "order": 1,
+        "role": "view tickets"
+      }
+    ]
+  }
 ]

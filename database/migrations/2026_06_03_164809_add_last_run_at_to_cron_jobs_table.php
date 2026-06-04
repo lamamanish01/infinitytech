@@ -6,20 +6,27 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     */
     public function up(): void
     {
         Schema::table('cron_jobs', function (Blueprint $table) {
-            $table->timestamp('last_run_at')->nullable()->after('frequency');
+
+            if (!Schema::hasColumn('cron_jobs', 'last_run_at')) {
+                $table->timestamp('last_run_at')
+                    ->nullable()
+                    ->after('frequency');
+            }
+
         });
     }
 
     public function down(): void
     {
         Schema::table('cron_jobs', function (Blueprint $table) {
-            $table->dropColumn('last_run_at');
+
+            if (Schema::hasColumn('cron_jobs', 'last_run_at')) {
+                $table->dropColumn('last_run_at');
+            }
+
         });
     }
 };

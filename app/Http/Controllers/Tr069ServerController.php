@@ -11,6 +11,15 @@ class Tr069ServerController extends Controller
     /**
      * Display a listing of the resource.
      */
+
+    public function __construct()
+    {
+        $this->middleware('permission:view tr069 server')->only(['index', 'show']);
+        $this->middleware('permission:create tr069 server')->only(['create', 'store']);
+        $this->middleware('permission:edit tr069 server')->only(['edit', 'update']);
+        $this->middleware('permission:delete tr069 server')->only(['destroy']);
+    }
+
     public function index()
     {
         $tr069servers = Tr069Server::get();

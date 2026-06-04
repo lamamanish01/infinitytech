@@ -12,6 +12,15 @@ class NasController extends Controller
     /**
      * Display a listing of the resource.
      */
+
+    function __construct()
+    {
+        $this->middleware('permission:view nas')->only(['index', 'show']);
+        $this->middleware('permission:create nas')->only(['create', 'store']);
+        $this->middleware('permission:edit nas')->only(['edit', 'update']);
+        $this->middleware('permission:delete nas')->only(['destroy']);
+    }
+
     public function index()
     {
         $nases = Nas::orderBy('nasname', 'asc')->paginate(10);

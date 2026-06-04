@@ -10,6 +10,13 @@ class CronLogController extends Controller
     /**
      * Display a listing of the resource.
      */
+
+    function __construct()
+    {
+        $this->middleware('permission:view cron logs')->only(['index']);
+        $this->middleware('permission:delete cron logs')->only(['destroy', 'clearAll']);
+    }
+
     public function index()
     {
         $cronLogs = CronLog::latest()->paginate(10);

@@ -11,6 +11,15 @@ class MenuController extends Controller
     /**
      * Display a listing of the resource.
      */
+
+    function __construct()
+    {
+        $this->middleware('permission:view menus')->only(['index']);
+        $this->middleware('permission:create menus')->only(['create', 'store']);
+        $this->middleware('permission:edit menus')->only(['edit', 'update']);
+        $this->middleware('permission:delete menus')->only(['destroy']);
+    }
+
     public function index()
     {
         $menus = Menu::orderBy('order', 'asc')->paginate(10);

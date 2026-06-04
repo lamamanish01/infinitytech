@@ -2,7 +2,6 @@
 
 @section('content')
 
-<!-- Content Header -->
 <div class="content-header">
 
     <div class="container-fluid">
@@ -16,14 +15,9 @@
             <div class="col-sm-6 text-right">
 
                 @can('create users')
-
-                    <a class="btn btn-primary"
-                       href="{{ route('users.create') }}">
-
+                    <a class="btn btn-primary" href="{{ route('users.create') }}">
                         Create User
-
                     </a>
-
                 @endcan
 
             </div>
@@ -34,7 +28,6 @@
 
 </div>
 
-<!-- Main Content -->
 <div class="content">
 
     <div class="container-fluid">
@@ -46,9 +39,7 @@
                 <div class="card card-info">
 
                     <div class="card-header">
-                        <h3 class="card-title">
-                            Users
-                        </h3>
+                        <h3 class="card-title">Users</h3>
                     </div>
 
                     <div class="card-body table-responsive p-0">
@@ -56,7 +47,6 @@
                         <table class="table table-hover text-nowrap">
 
                             <thead>
-
                                 <tr>
                                     <th>#</th>
                                     <th>Name</th>
@@ -66,7 +56,6 @@
                                     <th>Created</th>
                                     <th width="120">Action</th>
                                 </tr>
-
                             </thead>
 
                             <tbody>
@@ -75,68 +64,45 @@
 
                                     <tr>
 
-                                        <td>
-                                            {{ $loop->iteration }}
-                                        </td>
+                                        <td>{{ $loop->iteration }}</td>
 
-                                        <td>
-                                            {{ $user->name }}
-                                        </td>
+                                        <td>{{ $user->name }}</td>
 
-                                        <td>
-                                            {{ $user->email }}
-                                        </td>
+                                        <td>{{ $user->email }}</td>
 
                                         {{-- BRANCH --}}
                                         <td>
-
                                             {{ $user->branch->name ?? 'N/A' }}
-
                                         </td>
 
                                         {{-- ROLES --}}
                                         <td>
-
                                             @forelse($user->roles as $role)
-
                                                 <span class="badge badge-primary">
                                                     {{ $role->name }}
                                                 </span>
-
                                             @empty
-
-                                                <span class="text-muted">
-                                                    No Role
-                                                </span>
-
+                                                <span class="text-muted">No Role</span>
                                             @endforelse
-
                                         </td>
 
+                                        {{-- CREATED --}}
                                         <td>
-
-                                            {{ $user->created_at->format('d M, Y') }}
-
+                                            {{ optional($user->created_at)->format('d M, Y') }}
                                         </td>
 
                                         {{-- ACTIONS --}}
                                         <td>
-
                                             <div class="btn-group">
 
                                                 @can('edit users')
-
                                                     <a href="{{ route('users.edit', $user->id) }}"
                                                        class="btn btn-sm btn-secondary">
-
                                                         Edit
-
                                                     </a>
-
                                                 @endcan
 
                                                 @can('delete users')
-
                                                     <form action="{{ route('users.destroy', $user->id) }}"
                                                           method="POST"
                                                           onsubmit="return confirm('Delete this user?')">
@@ -146,17 +112,13 @@
 
                                                         <button type="submit"
                                                                 class="btn btn-sm btn-danger">
-
                                                             Delete
-
                                                         </button>
 
                                                     </form>
-
                                                 @endcan
 
                                             </div>
-
                                         </td>
 
                                     </tr>
@@ -164,14 +126,9 @@
                                 @empty
 
                                     <tr>
-
-                                        <td colspan="7"
-                                            class="text-center text-muted">
-
+                                        <td colspan="7" class="text-center text-muted">
                                             No Users Found
-
                                         </td>
-
                                     </tr>
 
                                 @endforelse
@@ -184,7 +141,6 @@
 
                 </div>
 
-                {{-- PAGINATION --}}
                 <div class="mt-3">
                     {{ $users->links() }}
                 </div>

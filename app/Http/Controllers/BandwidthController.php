@@ -10,6 +10,15 @@ class BandwidthController extends Controller
     /**
      * Display a listing of the resource.
      */
+
+    function __construct()
+    {
+        $this->middleware('permission:view bandwidths')->only(['index', 'show']);
+        $this->middleware('permission:create bandwidths')->only(['create', 'store']);
+        $this->middleware('permission:edit bandwidths')->only(['edit', 'update']);
+        $this->middleware('permission:delete bandwidths')->only(['destroy']);
+    }
+
     public function index()
     {
         $bandwidths = Bandwidth::orderBy('name', 'desc')->paginate(10);

@@ -2,30 +2,21 @@
 
 @section('content')
 
-<!-- Content Header -->
 <div class="content-header">
-
     <div class="container-fluid">
 
         <div class="row mb-2">
 
             <div class="col-sm-6">
-                <h1 class="m-0">
-                    List of Branches
-                </h1>
+                <h1 class="m-0">List of Branches</h1>
             </div>
 
             <div class="col-sm-6 text-right">
 
-                @can('create branch')
-
-                    <a class="btn btn-primary"
-                       href="{{ route('branch.create') }}">
-
+                @can('branch.create')
+                    <a class="btn btn-primary" href="{{ route('branch.create') }}">
                         Create Branch
-
                     </a>
-
                 @endcan
 
             </div>
@@ -33,12 +24,9 @@
         </div>
 
     </div>
-
 </div>
 
-<!-- Main content -->
 <div class="content">
-
     <div class="container-fluid">
 
         <div class="row">
@@ -48,11 +36,7 @@
                 <div class="card card-info">
 
                     <div class="card-header">
-
-                        <h3 class="card-title">
-                            Branches
-                        </h3>
-
+                        <h3 class="card-title">Branches</h3>
                     </div>
 
                     <div class="card-body table-responsive p-0">
@@ -60,7 +44,6 @@
                         <table class="table table-hover text-nowrap">
 
                             <thead>
-
                                 <tr>
                                     <th>#</th>
                                     <th>Name</th>
@@ -69,7 +52,6 @@
                                     <th>Balance</th>
                                     <th width="180">Action</th>
                                 </tr>
-
                             </thead>
 
                             <tbody>
@@ -79,76 +61,54 @@
                                     <tr>
 
                                         <td>
-                                            {{ $loop->iteration }}
+                                            {{ $branches->firstItem() + $loop->index }}
                                         </td>
 
-                                        <td>
-                                            {{ $branch->name }}
-                                        </td>
+                                        <td>{{ $branch->name }}</td>
+
+                                        <td>{{ $branch->address }}</td>
+
+                                        <td>{{ $branch->contact_number }}</td>
 
                                         <td>
-                                            {{ $branch->address }}
-                                        </td>
-
-                                        <td>
-                                            {{ $branch->contact_number }}
-                                        </td>
-
-                                        <td>
-
                                             <span class="badge badge-success">
-
-                                                Rs.
-                                                {{ number_format($branch->balance, 2) }}
-
+                                                Rs. {{ number_format($branch->balance, 2) }}
                                             </span>
-
                                         </td>
 
                                         <td>
 
-                                            <div class="btn-group">
+                                            <div class="btn-group btn-group-sm">
 
-                                                @can('view branch')
-
+                                                @can('branch.view')
                                                     <a href="{{ route('branch.show', $branch->id) }}"
                                                        class="btn btn-sm btn-primary">
-
                                                         Show
-
                                                     </a>
-
                                                 @endcan
 
-                                                @can('edit branch')
-
+                                                @can('branch.edit')
                                                     <a href="{{ route('branch.edit', $branch->id) }}"
                                                        class="btn btn-sm btn-warning">
-
                                                         Edit
-
                                                     </a>
-
                                                 @endcan
 
-                                                @can('delete branch')
-
+                                                @can('branch.delete')
                                                     <form action="{{ route('branch.destroy', $branch->id) }}"
                                                           method="POST"
-                                                          onsubmit="return confirm('Do you want to delete this branch?')">
+                                                          onsubmit="return confirm('Do you want to delete this branch?')"
+                                                          style="display:inline-block;">
 
                                                         @csrf
                                                         @method('DELETE')
 
                                                         <button type="submit"
-                                                                class="btn btn-sm btn-danger">
-
+                                                                class="btn tbn btn-sm btn-danger">
                                                             Delete
-
                                                         </button>
 
                                                     </form>
-
                                                 @endcan
 
                                             </div>
@@ -160,14 +120,9 @@
                                 @empty
 
                                     <tr>
-
-                                        <td colspan="6"
-                                            class="text-center text-muted">
-
+                                        <td colspan="6" class="text-center text-muted">
                                             No Branch Found
-
                                         </td>
-
                                     </tr>
 
                                 @endforelse
@@ -181,9 +136,7 @@
                 </div>
 
                 <div class="mt-3">
-
                     {{ $branches->links() }}
-
                 </div>
 
             </div>
@@ -191,7 +144,6 @@
         </div>
 
     </div>
-
 </div>
 
 @endsection

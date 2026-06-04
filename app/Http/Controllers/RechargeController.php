@@ -13,6 +13,15 @@ class RechargeController extends Controller
     /**
      * Display a listing of the resource.
      */
+
+    public function __construct()
+    {
+        $this->middleware('permission:view recharge')->only(['index']);
+        $this->middleware('permission:create recharge')->only(['create', 'store']);
+        $this->middleware('permission:edit recharge')->only(['edit', 'update']);
+        $this->middleware('permission:delete recharge')->only(['destroy']);
+    }
+
     public function index()
     {
         //

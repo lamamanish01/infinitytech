@@ -12,6 +12,15 @@ class InternetPlanController extends Controller
     /**
      * Display a listing of the resource.
      */
+
+    function __construct()
+    {
+        $this->middleware('permission:view internet plans')->only(['index', 'show']);
+        $this->middleware('permission:create internet plans')->only(['create', 'store']);
+        $this->middleware('permission:edit internet plans')->only(['edit', 'update']);
+        $this->middleware('permission:delete internet plans')->only(['destroy']);
+    }
+
     public function index()
     {
         $internetplans = InternetPlan::orderBy('name', 'desc')->paginate(10);

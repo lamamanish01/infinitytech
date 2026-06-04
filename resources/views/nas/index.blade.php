@@ -62,23 +62,24 @@
                                 </td>
 
                                 <td>
-                                    <code>{{ $nas->secret }}</code>
+                                    <span class="text-muted">
+                                        ••••••••
+                                    </span>
                                 </td>
 
                                 <td>
                                     <span class="badge bg-secondary">
-                                        {{ ucfirst($nas->type) }}
+                                        {{ ucfirst($nas->type) ?? 'N/A' }}
                                     </span>
                                 </td>
 
-                                {{-- ACTION --}}
                                 <td class="text-end">
 
                                     <div class="btn-group btn-group-sm">
 
                                         @can('edit nas')
                                             <a href="{{ route('nas.edit', $nas->id) }}"
-                                               class="btn btn-sm btn-primary">
+                                               class="btn btn-primary btn-sm">
                                                 Edit
                                             </a>
                                         @endcan
@@ -86,13 +87,13 @@
                                         @can('delete nas')
                                             <form action="{{ route('nas.destroy', $nas->id) }}"
                                                   method="POST"
-                                                  onsubmit="return confirm('Delete this NAS?')">
+                                                  onsubmit="return confirm('Are you sure you want to delete this NAS?')">
 
                                                 @csrf
                                                 @method('DELETE')
 
                                                 <button type="submit"
-                                                        class="btn btn-sm btn-danger">
+                                                        class="btn btn-danger btn-sm">
                                                     Delete
                                                 </button>
 

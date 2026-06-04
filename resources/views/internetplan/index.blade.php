@@ -12,9 +12,9 @@
             <small class="text-muted">Manage bandwidth packages & pricing</small>
         </div>
 
-        <div class="d-flex gap-2">
+        <div>
 
-            @can('create internetplans')
+            @can('plans.create')
                 <a href="{{ route('internetplan.create') }}"
                    class="btn btn-primary btn-sm">
                     + New Plan
@@ -25,7 +25,7 @@
 
     </div>
 
-    {{-- CARD --}}
+    {{-- TABLE CARD --}}
     <div class="card shadow-sm border-0">
 
         <div class="card-body p-0">
@@ -52,70 +52,60 @@
 
                             <tr>
 
-                                {{-- ID --}}
                                 <td class="text-muted">
-                                    {{ $loop->iteration }}
+                                    {{ $internetplans->firstItem() + $loop->index }}
                                 </td>
 
-                                {{-- NAME --}}
                                 <td>
-                                    <div class="fw-bold">
-                                        {{ $plan->name }}
-                                    </div>
-                                    <small class="text-muted">
-                                        Plan ID: #{{ $plan->id }}
-                                    </small>
+                                    <div class="fw-bold">{{ $plan->name }}</div>
+                                    <small class="text-muted">Plan ID: #{{ $plan->id }}</small>
                                 </td>
 
-                                {{-- BANDWIDTH --}}
                                 <td>
                                     <span class="badge bg-info text-dark">
                                         {{ $plan->bandwidth_name }}
                                     </span>
                                 </td>
 
-                                {{-- PRICE --}}
                                 <td>
                                     <div class="fw-bold text-success">
                                         Rs {{ number_format($plan->price, 2) }}
                                     </div>
                                 </td>
 
-                                {{-- DURATION --}}
                                 <td>
                                     <span class="badge bg-secondary">
                                         {{ $plan->duration }} {{ ucfirst($plan->type) }}
                                     </span>
                                 </td>
 
-                                {{-- RATE LIMIT --}}
                                 <td>
                                     <span class="badge bg-dark">
                                         {{ $plan->rate_limit }}
                                     </span>
                                 </td>
 
-                                {{-- ACTION --}}
                                 <td class="text-end">
 
                                     <div class="btn-group btn-group-sm">
 
-                                        @can('edit internetplans')
+                                        @can('plans.edit')
                                             <a href="{{ route('internetplan.edit', $plan->id) }}"
-                                               class="btn btn-sm btn-primary">
+                                               class="btn btn-primary btn-sm">
                                                 Edit
                                             </a>
                                         @endcan
 
-                                        @can('delete internetplans')
+                                        @can('plans.delete')
                                             <form action="{{ route('internetplan.destroy', $plan->id) }}"
                                                   method="POST"
-                                                  onsubmit="return confirm('Delete this plan? This action cannot be undone.')">
+                                                  onsubmit="return confirm('Delete this plan?')"
+                                                  style="display:inline-block;">
 
                                                 @csrf
                                                 @method('DELETE')
 
-                                                <button class="btn btn-sm btn-danger">
+                                                <button class="btn btn-danger btn-sm">
                                                     Delete
                                                 </button>
 
@@ -132,12 +122,8 @@
 
                             <tr>
                                 <td colspan="7" class="text-center py-5 text-muted">
-
-                                    <div>
-                                        <h6>No Internet Plans Found</h6>
-                                        <small>Create your first plan to get started</small>
-                                    </div>
-
+                                    <h6>No Internet Plans Found</h6>
+                                    <small>Create your first plan to get started</small>
                                 </td>
                             </tr>
 

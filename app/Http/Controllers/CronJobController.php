@@ -10,6 +10,15 @@ class CronJobController extends Controller
     /**
      * Display a listing of the resource.
      */
+
+    function __construct()
+    {
+        $this->middleware('permission:view cron jobs')->only(['index']);
+        $this->middleware('permission:create cron jobs')->only(['store']);
+        $this->middleware('permission:edit cron jobs')->only(['toggle', 'updateFrequency']);
+        $this->middleware('permission:delete cron jobs')->only(['destroy']);
+    }
+
     public function index()
     {
         $cronJobs = CronJob::all();

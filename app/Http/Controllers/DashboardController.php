@@ -5,7 +5,6 @@ namespace App\Http\Controllers;
 use App\Models\Branch;
 use App\Models\Customer;
 use App\Models\Dashboard;
-use App\Models\InternetPlan;
 use App\Models\Nas;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -15,6 +14,12 @@ class DashboardController extends Controller
     /**
      * Display a listing of the resource.
      */
+
+    function __construct()
+    {
+        $this->middleware('permission:view dashboard')->only(['index']);
+    }
+
     public function index()
     {
         $onlineCustomers = Customer::whereHas('activeSession', function ($q) {

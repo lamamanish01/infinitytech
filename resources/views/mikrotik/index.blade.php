@@ -4,7 +4,7 @@
 
 <div class="container-fluid">
 
-    <!-- HEADER -->
+    {{-- HEADER --}}
     <div class="d-flex justify-content-between align-items-center mb-3">
 
         <div>
@@ -20,7 +20,7 @@
 
     </div>
 
-    <!-- TABLE CARD -->
+    {{-- TABLE --}}
     <div class="card shadow-sm">
 
         <div class="card-body p-0">
@@ -67,21 +67,19 @@
                                     {{ $mikrotik->username }}
                                 </td>
 
-                                <!-- ⚠️ SECURITY FIX -->
                                 <td>
                                     <span class="text-muted">
                                         ••••••••
                                     </span>
                                 </td>
 
-                                <!-- ACTIONS -->
                                 <td class="text-end">
 
                                     <div class="btn-group btn-group-sm">
 
                                         @can('edit mikrotik')
                                             <a href="{{ route('mikrotik.edit', $mikrotik->id) }}"
-                                               class="btn btn-sm btn-primary">
+                                               class="btn btn-primary btn-sm">
                                                 Edit
                                             </a>
                                         @endcan
@@ -94,8 +92,7 @@
                                                 @csrf
                                                 @method('DELETE')
 
-                                                <button class="btn btn-sm btn-danger"
-                                                        type="submit">
+                                                <button class="btn btn-danger btn-sm">
                                                     Delete
                                                 </button>
 
@@ -128,7 +125,7 @@
 
     </div>
 
-    <!-- PAGINATION -->
+    {{-- PAGINATION --}}
     <div class="mt-3 d-flex justify-content-end">
         {{ $mikrotiks->links() }}
     </div>

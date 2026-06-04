@@ -2,7 +2,6 @@
 
 @section('content')
 
-<!-- Content Header -->
 <div class="content-header">
 
     <div class="container-fluid">
@@ -16,14 +15,10 @@
             <div class="col-sm-6 text-right">
 
                 @can('create permissions')
-
                     <a class="btn btn-primary"
                        href="{{ route('permissions.create') }}">
-
                         Create Permission
-
                     </a>
-
                 @endcan
 
             </div>
@@ -34,7 +29,6 @@
 
 </div>
 
-<!-- Main Content -->
 <div class="content">
 
     <div class="container-fluid">
@@ -54,14 +48,12 @@
                         <table class="table table-hover text-nowrap">
 
                             <thead>
-
                                 <tr>
                                     <th>#</th>
                                     <th>Name</th>
                                     <th>Created</th>
                                     <th width="120">Action</th>
                                 </tr>
-
                             </thead>
 
                             <tbody>
@@ -70,27 +62,21 @@
 
                                     <tr>
 
-                                        <td>
-                                            {{ $loop->iteration }}
-                                        </td>
+                                        <td>{{ $loop->iteration }}</td>
+
+                                        <td>{{ $permission->name }}</td>
 
                                         <td>
-                                            {{ $permission->name }}
-                                        </td>
-
-                                        <td>
-                                            {{ $permission->created_at->format('d M, Y') }}
+                                            {{ optional($permission->created_at)->format('d M, Y') ?? 'N/A' }}
                                         </td>
 
                                         <td>
 
-                                            <div class="btn-group">
+                                            <div class="btn-group btn-group-sm">
 
                                                 <a href="{{ route('permissions.edit', $permission->id) }}"
-                                                   class="btn btn-sm btn-secondary">
-
+                                                   class="btn btn-secondary btn-sm">
                                                     Edit
-
                                                 </a>
 
                                                 <form action="{{ route('permissions.destroy', $permission->id) }}"
@@ -101,10 +87,8 @@
                                                     @method('DELETE')
 
                                                     <button type="submit"
-                                                            class="btn btn-sm btn-danger">
-
+                                                            class="btn btn-danger btn-sm">
                                                         Delete
-
                                                     </button>
 
                                                 </form>
@@ -118,14 +102,9 @@
                                 @empty
 
                                     <tr>
-
-                                        <td colspan="4"
-                                            class="text-center text-muted">
-
+                                        <td colspan="4" class="text-center text-muted py-4">
                                             No Permissions Found
-
                                         </td>
-
                                     </tr>
 
                                 @endforelse

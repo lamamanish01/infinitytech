@@ -10,19 +10,17 @@
         <div class="row mb-2">
 
             <div class="col-sm-6">
-                <h1 class="m-0">
-                    List of Tickets
-                </h1>
+                <h1 class="m-0">List of Tickets</h1>
             </div>
 
             <div class="col-sm-6 text-right">
 
-                <a href="{{ route('ticket.create') }}"
-                   class="btn btn-primary">
-
-                    Create Ticket
-
-                </a>
+                @can('create tickets')
+                    <a href="{{ route('ticket.create') }}"
+                       class="btn btn-primary">
+                        Create Ticket
+                    </a>
+                @endcan
 
             </div>
 
@@ -44,9 +42,7 @@
                 <div class="card card-info">
 
                     <div class="card-header">
-                        <h3 class="card-title">
-                            Tickets
-                        </h3>
+                        <h3 class="card-title">Tickets</h3>
                     </div>
 
                     <div class="card-body table-responsive p-0">
@@ -83,7 +79,7 @@
                                         </td>
 
                                         <td>
-                                            {{ $ticket->customer->username ?? '-' }}
+                                            {{ optional($ticket->customer)->username ?? '-' }}
                                         </td>
 
                                         <td>
@@ -94,17 +90,13 @@
                                         <td>
 
                                             @if($ticket->assignedUser)
-
                                                 <span class="badge badge-primary">
                                                     {{ $ticket->assignedUser->name }}
                                                 </span>
-
                                             @else
-
                                                 <span class="badge badge-secondary">
                                                     Unassigned
                                                 </span>
-
                                             @endif
 
                                         </td>
@@ -113,23 +105,13 @@
                                         <td>
 
                                             @if($ticket->priority == 'high')
-
-                                                <span class="badge badge-danger">
-                                                    High
-                                                </span>
+                                                <span class="badge badge-danger">High</span>
 
                                             @elseif($ticket->priority == 'medium')
-
-                                                <span class="badge badge-warning">
-                                                    Medium
-                                                </span>
+                                                <span class="badge badge-warning">Medium</span>
 
                                             @else
-
-                                                <span class="badge badge-info">
-                                                    Low
-                                                </span>
-
+                                                <span class="badge badge-info">Low</span>
                                             @endif
 
                                         </td>
@@ -138,29 +120,16 @@
                                         <td>
 
                                             @if($ticket->status == 'open')
-
-                                                <span class="badge badge-danger">
-                                                    Open
-                                                </span>
+                                                <span class="badge badge-danger">Open</span>
 
                                             @elseif($ticket->status == 'in_progress')
-
-                                                <span class="badge badge-warning">
-                                                    In Progress
-                                                </span>
+                                                <span class="badge badge-warning">In Progress</span>
 
                                             @elseif($ticket->status == 'resolved')
-
-                                                <span class="badge badge-info">
-                                                    Resolved
-                                                </span>
+                                                <span class="badge badge-info">Resolved</span>
 
                                             @else
-
-                                                <span class="badge badge-success">
-                                                    Closed
-                                                </span>
-
+                                                <span class="badge badge-success">Closed</span>
                                             @endif
 
                                         </td>
@@ -170,35 +139,35 @@
 
                                             <div class="btn-group">
 
-                                                <a href="{{ route('ticket.show', $ticket->id) }}"
-                                                   class="btn btn-sm btn-primary">
+                                                @can('view tickets')
+                                                    <a href="{{ route('ticket.show', $ticket->id) }}"
+                                                       class="btn btn-sm btn-primary">
+                                                        Show
+                                                    </a>
+                                                @endcan
 
-                                                    Show
+                                                @can('edit tickets')
+                                                    <a href="{{ route('ticket.edit', $ticket->id) }}"
+                                                       class="btn btn-sm btn-secondary">
+                                                        Edit
+                                                    </a>
+                                                @endcan
 
-                                                </a>
+                                                @can('delete tickets')
+                                                    <form action="{{ route('ticket.destroy', $ticket->id) }}"
+                                                          method="POST"
+                                                          onsubmit="return confirm('Delete this ticket?')">
 
-                                                <a href="{{ route('ticket.edit', $ticket->id) }}"
-                                                   class="btn btn-sm btn-secondary">
+                                                        @csrf
+                                                        @method('DELETE')
 
-                                                    Edit
+                                                        <button type="submit"
+                                                                class="btn btn-sm btn-danger">
+                                                            Delete
+                                                        </button>
 
-                                                </a>
-
-                                                <form action="{{ route('ticket.destroy', $ticket->id) }}"
-                                                      method="POST"
-                                                      onsubmit="return confirm('Delete this ticket?')">
-
-                                                    @csrf
-                                                    @method('DELETE')
-
-                                                    <button type="submit"
-                                                            class="btn btn-sm btn-danger">
-
-                                                        Delete
-
-                                                    </button>
-
-                                                </form>
+                                                    </form>
+                                                @endcan
 
                                             </div>
 
@@ -209,13 +178,9 @@
                                 @empty
 
                                     <tr>
-
                                         <td colspan="8" class="text-center">
-
                                             No Tickets Found
-
                                         </td>
-
                                     </tr>
 
                                 @endforelse
@@ -228,6 +193,7 @@
 
                 </div>
 
+                <!-- Pagination -->
                 <div class="mt-3">
                     {{ $tickets->links() }}
                 </div>

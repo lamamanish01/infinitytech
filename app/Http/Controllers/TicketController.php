@@ -16,6 +16,20 @@ class TicketController extends Controller
     /**
      * Display a listing of the resource.
      */
+
+    public function __construct()
+    {
+        $this->middleware('permission:view ticket')->only(['index', 'show']);
+        $this->middleware('permission:create ticket')->only(['create', 'store']);
+        $this->middleware('permission:edit ticket')->only(['edit', 'update']);
+        $this->middleware('permission:delete ticket')->only(['destroy']);
+
+        $this->middleware('permission:assign ticket')->only(['assign']);
+        $this->middleware('permission:reply ticket')->only(['reply', 'customerReply']);
+        $this->middleware('permission:ticket note')->only(['internalNote']);
+        $this->middleware('permission:ticket status')->only(['updateStatus']);
+    }
+
     public function index()
     {
         $tickets = Ticket::with(['customer','assignedUser'])

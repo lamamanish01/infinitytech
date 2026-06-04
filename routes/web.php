@@ -116,7 +116,12 @@ Route::middleware('auth')->group(function () {
             ->name('send');
         Route::post('/queue', [SmsGatewayController::class, 'queue'])
             ->name('queue');
+        Route::get('/custom', [SmsGatewayController::class, 'custom'])->name('custom');
+        Route::post('/custom', [SmsGatewayController::class, 'sendCustom'])->name('sendCustom');
     });
+
+    Route::get('/sms/logs', [SmsGatewayController::class, 'logs'])->name('sms.logs');
+
 
     Route::resource('mikrotik', MikrotikController::class);
 

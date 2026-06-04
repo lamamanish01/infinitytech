@@ -10,6 +10,15 @@ class MikrotikController extends Controller
     /**
      * Display a listing of the resource.
      */
+
+    function __construct()
+    {
+        $this->middleware('permission:view mikrotik')->only(['index', 'show']);
+        $this->middleware('permission:create mikrotik')->only(['create', 'store']);
+        $this->middleware('permission:edit mikrotik')->only(['edit', 'update']);
+        $this->middleware('permission:delete mikrotik')->only(['destroy']);
+    }
+
     public function index()
     {
         $mikrotiks = Mikrotik::orderBy('name', 'desc')->paginate(10);
