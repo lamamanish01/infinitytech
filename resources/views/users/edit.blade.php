@@ -75,7 +75,8 @@
                         <input type="password"
                                name="password"
                                class="form-control"
-                               placeholder="Leave blank to keep current">
+                               placeholder="Leave blank to keep current"
+                               required>
 
                     </div>
 

@@ -12,113 +12,113 @@ class PermissionSeeder extends Seeder
         $permissions = [
 
             // ================= USERS =================
-            'users.view',
-            'users.create',
-            'users.edit',
-            'users.delete',
+            'users view',
+            'users create',
+            'users edit',
+            'users delete',
 
             // ================= ROLES =================
-            'roles.view',
-            'roles.create',
-            'roles.edit',
-            'roles.delete',
+            'roles view',
+            'roles create',
+            'roles edit',
+            'roles delete',
 
             // ================= PERMISSIONS =================
-            'permissions.view',
-            'permissions.create',
-            'permissions.edit',
-            'permissions.delete',
+            'permissions view',
+            'permissions create',
+            'permissions edit',
+            'permissions delete',
 
             // ================= CUSTOMER =================
-            'customers.view',
-            'customers.create',
-            'customers.edit',
-            'customers.delete',
-            'customers.expired',
-            'customers.online',
-            'customers.bind_mac',
-            'customers.unbind_mac',
-            'customers.disconnect',
+            'customers view',
+            'customers create',
+            'customers edit',
+            'customers delete',
+            'customers expired',
+            'customers online',
+            'customers bind mac',
+            'customers unbind mac',
+            'customers disconnect',
 
             // ================= INTERNET PLAN =================
-            'plans.view',
-            'plans.create',
-            'plans.edit',
-            'plans.delete',
+            'plans view',
+            'plans create',
+            'plans edit',
+            'plans delete',
 
-            // ================= BILLING / RECHARGE =================
-            'billing.view',
-            'billing.create',
-            'billing.edit',
-            'billing.delete',
-            'recharge.create',
-            'recharge.view',
+            // ================= BILLING =================
+            'billing view',
+            'billing create',
+            'billing edit',
+            'billing delete',
+            'recharge create',
+            'recharge view',
 
             // ================= TICKETS =================
-            'tickets.view',
-            'tickets.create',
-            'tickets.edit',
-            'tickets.delete',
-            'tickets.assign',
-            'tickets.reply',
-            'tickets.close',
+            'tickets view',
+            'tickets create',
+            'tickets edit',
+            'tickets delete',
+            'tickets assign',
+            'tickets reply',
+            'tickets close',
 
             // ================= BRANCH =================
-            'branch.view',
-            'branch.create',
-            'branch.edit',
-            'branch.delete',
-            'branch.balance_add',
+            'branch view',
+            'branch create',
+            'branch edit',
+            'branch delete',
+            'branch balance add',
 
-            // ================= NAS / RADIUS =================
-            'nas.view',
-            'nas.create',
-            'nas.edit',
-            'nas.delete',
+            // ================= NAS =================
+            'nas view',
+            'nas create',
+            'nas edit',
+            'nas delete',
 
             // ================= MIKROTIK =================
-            'mikrotik.view',
-            'mikrotik.create',
-            'mikrotik.edit',
-            'mikrotik.delete',
+            'mikrotik view',
+            'mikrotik create',
+            'mikrotik edit',
+            'mikrotik delete',
 
-            // ================= CRON JOB =================
-            'cron.view',
-            'cron.create',
-            'cron.edit',
-            'cron.delete',
-            'cron.toggle',
+            // ================= CRON =================
+            'cron view',
+            'cron create',
+            'cron edit',
+            'cron delete',
+            'cron toggle',
 
             // ================= SMS =================
-            'sms.view',
-            'sms.send',
-            'sms.queue',
+            'sms view',
+            'sms send',
+            'sms queue',
 
             // ================= MENU =================
-            'menu.view',
-            'menu.create',
-            'menu.edit',
-            'menu.delete',
+            'menu view',
+            'menu create',
+            'menu edit',
+            'menu delete',
 
             // ================= DASHBOARD =================
-            'dashboard.view',
+            'dashboard view',
 
             // ================= TR069 =================
-            'tr069.view',
-            'tr069.create',
-            'tr069.edit',
-            'tr069.delete',
+            'tr069 view',
+            'tr069 create',
+            'tr069 edit',
+            'tr069 delete',
 
             // ================= SYSTEM =================
-            'system.logs_view',
-            'system.activity_view',
-            'change_password',
+            'system logs view',
+            'system activity view',
+            'change password',
         ];
 
         foreach ($permissions as $permission) {
-
             Permission::firstOrCreate([
-                'name' => $permission
+                'name' => $permission,
+                'guard_name' => 'web'
             ]);
         }
     }
