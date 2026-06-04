@@ -14,7 +14,7 @@
 
         <div>
 
-            @can('plans.create')
+            @can('create internet plans')
                 <a href="{{ route('internetplan.create') }}"
                    class="btn btn-primary btn-sm">
                     + New Plan
@@ -89,14 +89,14 @@
 
                                     <div class="btn-group btn-group-sm">
 
-                                        @can('plans.edit')
+                                        @can('edit internet plans')
                                             <a href="{{ route('internetplan.edit', $plan->id) }}"
                                                class="btn btn-primary btn-sm">
                                                 Edit
                                             </a>
                                         @endcan
 
-                                        @can('plans.delete')
+                                        @can('delete internet plans')
                                             <form action="{{ route('internetplan.destroy', $plan->id) }}"
                                                   method="POST"
                                                   onsubmit="return confirm('Delete this plan?')"

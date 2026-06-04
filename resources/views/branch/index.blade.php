@@ -13,7 +13,7 @@
 
             <div class="col-sm-6 text-right">
 
-                @can('branch.create')
+                @can('create branch')
                     <a class="btn btn-primary" href="{{ route('branch.create') }}">
                         Create Branch
                     </a>
@@ -80,21 +80,21 @@
 
                                             <div class="btn-group btn-group-sm">
 
-                                                @can('branch.view')
+                                                @can('view branch')
                                                     <a href="{{ route('branch.show', $branch->id) }}"
                                                        class="btn btn-sm btn-primary">
                                                         Show
                                                     </a>
                                                 @endcan
 
-                                                @can('branch.edit')
+                                                @can('edit branch')
                                                     <a href="{{ route('branch.edit', $branch->id) }}"
                                                        class="btn btn-sm btn-warning">
                                                         Edit
                                                     </a>
                                                 @endcan
 
-                                                @can('branch.delete')
+                                                @can('delete branch')
                                                     <form action="{{ route('branch.destroy', $branch->id) }}"
                                                           method="POST"
                                                           onsubmit="return confirm('Do you want to delete this branch?')"

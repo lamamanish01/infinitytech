@@ -61,7 +61,7 @@
                                 <div class="input-group mb-3">
                                     <input type="password" name="password"
                                            class="form-control @error('password') is-invalid @enderror"
-                                           placeholder="{{ __('New password') }}">
+                                           placeholder="{{ __('New password') }}" required>
                                     <div class="input-group-append">
                                         <div class="input-group-text">
                                             <span class="fas fa-lock"></span>
@@ -78,7 +78,7 @@
                                     <input type="password" name="password_confirmation"
                                            class="form-control @error('password_confirmation') is-invalid @enderror"
                                            placeholder="{{ __('New password confirmation') }}"
-                                           autocomplete="new-password">
+                                           autocomplete="new-password" required>
                                     <div class="input-group-append">
                                         <div class="input-group-text">
                                             <span class="fas fa-lock"></span>

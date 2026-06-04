@@ -76,54 +76,56 @@
 
                 </div>
 
-                <div class="card card-primary">
+                @can('add branch balance')
+                    <div class="card card-primary">
 
-                    <div class="card-header">
-                        Add Balance
+                        <div class="card-header">
+                            Add Balance
+                        </div>
+
+                        <div class="card-body">
+
+                            <form method="POST"
+                                action="{{ route('branch.addBalance') }}">
+
+                                @csrf
+
+                                <input type="hidden"
+                                    name="branch_id"
+                                    value="{{ $branch->id }}">
+
+                                <div class="form-group">
+
+                                    <label>Amount</label>
+
+                                    <input type="number"
+                                        step="0.01"
+                                        name="amount"
+                                        class="form-control"
+                                        required>
+
+                                </div>
+
+                                <div class="form-group">
+
+                                    <label>Remarks</label>
+
+                                    <input type="text"
+                                        name="remarks"
+                                        class="form-control">
+
+                                </div>
+
+                                <button class="btn btn-success">
+                                    Add Balance
+                                </button>
+
+                            </form>
+
+                        </div>
+
                     </div>
-
-                    <div class="card-body">
-
-                        <form method="POST"
-                              action="{{ route('branch.addBalance') }}">
-
-                            @csrf
-
-                            <input type="hidden"
-                                   name="branch_id"
-                                   value="{{ $branch->id }}">
-
-                            <div class="form-group">
-
-                                <label>Amount</label>
-
-                                <input type="number"
-                                       step="0.01"
-                                       name="amount"
-                                       class="form-control"
-                                       required>
-
-                            </div>
-
-                            <div class="form-group">
-
-                                <label>Remarks</label>
-
-                                <input type="text"
-                                       name="remarks"
-                                       class="form-control">
-
-                            </div>
-
-                            <button class="btn btn-success">
-                                Add Balance
-                            </button>
-
-                        </form>
-
-                    </div>
-
-                </div>
+                @endcan
 
             </div>
 
@@ -198,7 +200,7 @@
                                         </td>
 
                                         <td>
-
+                                            @can('reverse branchTransaction')
                                             @if(!$txn->is_void)
 
                                                 <form method="POST"
@@ -221,6 +223,7 @@
                                                 </span>
 
                                             @endif
+                                            @endcan
 
                                         </td>
 

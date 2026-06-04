@@ -19,15 +19,16 @@ class TicketController extends Controller
 
     public function __construct()
     {
-        $this->middleware('permission:view ticket')->only(['index', 'show']);
-        $this->middleware('permission:create ticket')->only(['create', 'store']);
-        $this->middleware('permission:edit ticket')->only(['edit', 'update']);
-        $this->middleware('permission:delete ticket')->only(['destroy']);
+        $this->middleware('permission:view tickets')->only(['index', 'show']);
+        $this->middleware('permission:create tickets')->only(['create', 'store']);
+        $this->middleware('permission:edit tickets')->only(['edit', 'update']);
+        $this->middleware('permission:delete tickets')->only(['destroy']);
 
-        $this->middleware('permission:assign ticket')->only(['assign']);
-        $this->middleware('permission:reply ticket')->only(['reply', 'customerReply']);
-        $this->middleware('permission:ticket note')->only(['internalNote']);
-        $this->middleware('permission:ticket status')->only(['updateStatus']);
+        $this->middleware('permission:assign tickets')->only(['assign']);
+        $this->middleware('permission:reply tickets')->only(['reply', 'customerReply']);
+        $this->middleware('permission:note tickets')->only(['internalNote']);
+        $this->middleware('permission:close tickets')->only(['internalNote']);
+        $this->middleware('permission:status tickets')->only(['updateStatus']);
     }
 
     public function index()

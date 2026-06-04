@@ -422,37 +422,57 @@
 
         <div class="card-body d-flex flex-wrap gap-2">
 
-            <a href="{{ route('recharges.create', $customer->id) }}" class="btn btn-warning btn-sm">
-                Recharge
-            </a>
+            @can('recharge customers')
+                <a href="{{ route('recharges.create', $customer->id) }}"
+                class="btn btn-warning btn-sm">
+                    Recharge
+                </a>
+            @endcan
 
-            <a href="{{ route('customers.expiry-form', $customer->id) }}" class="btn btn-danger btn-sm">
-                Change Expiry
-            </a>
+            @can('change expiry customers')
+                <a href="{{ route('customers.expiry-form', $customer->id) }}"
+                class="btn btn-danger btn-sm">
+                    Change Expiry
+                </a>
+            @endcan
 
-            <form action="{{ route('provide-grace', $customer->id) }}" method="POST">
-                @csrf
-                <button class="btn btn-info btn-sm">+3 Days Grace</button>
-            </form>
+            @can('grace customers')
+                <form action="{{ route('provide-grace', $customer->id) }}" method="POST">
+                    @csrf
+                    <button class="btn btn-info btn-sm">
+                        +3 Days Grace
+                    </button>
+                </form>
+            @endcan
 
-            <form action="{{ route('customer.disconnect', $customer->id) }}" method="POST">
-                @csrf
-                <button class="btn btn-dark btn-sm">Disconnect</button>
-            </form>
+            @can('disconnect customers')
+                <form action="{{ route('customer.disconnect', $customer->id) }}" method="POST">
+                    @csrf
+                    <button class="btn btn-dark btn-sm">
+                        Disconnect
+                    </button>
+                </form>
+            @endcan
 
-            <form action="{{ route('customer.bind-mac', $customer->id) }}" method="POST">
-                @csrf
-                <button class="btn btn-primary btn-sm" @if($customer->mac_address) disabled @endif>
-                    Bind MAC
-                </button>
-            </form>
+            @can('bind mac customers')
+                <form action="{{ route('customer.bind-mac', $customer->id) }}" method="POST">
+                    @csrf
+                    <button class="btn btn-primary btn-sm"
+                        @if($customer->mac_address) disabled @endif>
+                        Bind MAC
+                    </button>
+                </form>
+            @endcan
 
-            <form action="{{ route('customer.unbind-mac', $customer->id) }}" method="POST">
-                @csrf
-                <button class="btn btn-danger btn-sm" @if(!$customer->mac_address) disabled @endif>
-                    Unbind MAC
-                </button>
-            </form>
+            @can('unbind mac customers')
+                <form action="{{ route('customer.unbind-mac', $customer->id) }}" method="POST">
+                    @csrf
+                    <button class="btn btn-danger btn-sm"
+                        @if(!$customer->mac_address) disabled @endif>
+                        Unbind MAC
+                    </button>
+                </form>
+            @endcan
 
         </div>
 

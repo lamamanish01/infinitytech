@@ -11,10 +11,10 @@ class BranchController extends Controller
 {
     function __construct()
     {
-        $this->middleware('permission:view branches')->only(['index', 'show']);
-        $this->middleware('permission:create branches')->only(['create', 'store', 'addBalance']);
-        $this->middleware('permission:edit branches')->only(['edit', 'update']);
-        $this->middleware('permission:delete branches')->only(['destroy']);
+        $this->middleware('permission:view branch')->only(['index', 'show']);
+        $this->middleware('permission:create branch')->only(['create', 'store', 'addBalance', 'reverse branchTransaction']);
+        $this->middleware('permission:edit branch')->only(['edit', 'update']);
+        $this->middleware('permission:delete branch')->only(['destroy']);
     }
 
     public function index()

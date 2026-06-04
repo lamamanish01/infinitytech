@@ -12,7 +12,7 @@
 
             <div class="col-sm-6 text-right">
 
-                @can('customers.create')
+                @can('create customers')
                     <a class="btn btn-primary" href="{{ route('customers.create') }}">
                         Create Customer
                     </a>
@@ -102,14 +102,14 @@
                                                     Show
                                                 </a>
 
-                                                @can('customers.edit')
+                                                @can('edit customers')
                                                     <a href="{{ route('customers.edit', $customer->id) }}"
                                                        class="btn btn-sm btn-warning">
                                                         Edit
                                                     </a>
                                                 @endcan
 
-                                                @can('customers.delete')
+                                                @can('delete customers')
                                                     <form action="{{ route('customers.destroy', $customer->id) }}"
                                                           method="POST"
                                                           onsubmit="return confirm('Delete this customer?')"

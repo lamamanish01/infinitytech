@@ -38,14 +38,14 @@
                         <td>
                             <div class="btn-group">
 
-                                @can('acsserver edit')
+                                @can('edit acsserver')
                                     <a href="{{ route('server.edit', $tr069server->id) }}"
                                        class="btn btn-sm btn-warning">
                                         Edit
                                     </a>
                                 @endcan
 
-                                @can('acsserver delete')
+                                @can('delete acsserver')
                                     <form action="{{ route('server.destroy', $tr069server->id) }}"
                                           method="POST"
                                           onsubmit="return confirm('Delete this server?')">
