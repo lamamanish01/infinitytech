@@ -65,7 +65,9 @@
 
                                         <td>{{ $customers->firstItem() + $loop->index }}</td>
 
-                                        <td>{{ $customer->username }}</td>
+                                        <td>
+                                            <a href="{{route('customers.show', $customer->id)}}">{{ $customer->username }}</a>
+                                        </td>
 
                                         <td>{{ $customer->internetPlan->bandwidth_name ?? 'N/A' }}</td>
 
@@ -75,22 +77,24 @@
 
                                         <td>
                                             @if($expire)
-                                                {{ $expire->format('Y-m-d') }}
+                                                <span class="badge bg-danger">{{ $expire->format('Y-m-d') }}</span>
                                             @else
                                                 <span class="text-muted">N/A</span>
                                             @endif
                                         </td>
 
                                         <td>
-                                            @if(!$expire)
-                                                <span class="badge badge-secondary">Unknown</span>
+                                            @php
+                                                $status = $customer->status;
+                                            @endphp
 
-                                            @elseif($isExpired)
-                                                <span class="badge badge-danger">Expired</span>
-
-                                            @else
-                                                <span class="badge badge-success">Active</span>
-                                            @endif
+                                            <span class="badge
+                                                @if($status == 'active') bg-success
+                                                @elseif($status == 'grace') bg-warning text-dark
+                                                @else bg-danger
+                                                @endif">
+                                                {{ strtoupper($status) }}
+                                            </span>
                                         </td>
 
                                         <td>

@@ -40,33 +40,6 @@ class CustomerController extends Controller
         ]);
     }
 
-    // public function index(Request $request)
-    // {
-    //     $query = Customer::with(['internetPlan']);
-    //     // $query = $customer->internetPlan;
-
-    //     if ($request->filled('q')) {
-
-    //         $q = $request->q;
-
-    //         $query->where(function ($sub) use ($q) {
-    //             $sub->where('username', 'like', "%{$q}%")
-    //                 ->orWhere('name', 'like', "%{$q}%")
-    //                 ->orWhere('contact_number', 'like', "%{$q}%")
-    //                 ->orWhere('mac_address', 'like', "%{$q}%")
-    //                 ->orWhere('status', 'like', "%{$q}%");
-    //         });
-    //     }
-
-    //     $customers = $query->paginate(10);
-
-    //     return view('customers.index', compact('customers'));
-
-
-    //     // $customers = Customer::orderBy('name', 'ASC')->paginate(10);
-    //     // return view('customers.index', compact('customers'));
-    // }
-
     public function index(Request $request)
     {
         return view('customers.index', [
