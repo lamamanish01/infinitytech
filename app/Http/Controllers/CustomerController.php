@@ -270,7 +270,7 @@ class CustomerController extends Controller
         GracePeriod::updateOrCreate(
             [
                 'customer_id' => $customerId,
-                'grace_days' => 3,
+                'grace_days' => 2,
                 'grace_start' => $start,
                 'grace_end' => $end
             ]

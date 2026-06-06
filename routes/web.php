@@ -5,6 +5,7 @@ use App\Http\Controllers\BranchController;
 use App\Http\Controllers\CronJobController;
 use App\Http\Controllers\CronLogController;
 use App\Http\Controllers\CustomerController;
+use App\Http\Controllers\CustomerImportController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\InternetPlanController;
 use App\Http\Controllers\MenuController;
@@ -58,6 +59,9 @@ Route::middleware('auth')->group(function () {
     Route::get('/customers/expired', [CustomerController::class, 'expired']);
     Route::get('/customers/expiring', [CustomerController::class, 'expiring'])
         ->name('customers.expiring');
+    Route::get('/customers/import', [CustomerImportController::class, 'showForm'])->name('customers.import.form');
+    Route::post('/customers/import', [CustomerImportController::class, 'import'])->name('customers.import');
+    Route::get('/customers/import/template', [CustomerImportController::class, 'downloadTemplate'])->name('customers.import.template');
     Route::resource('/customers', CustomerController::class);
     Route::get('/customers/{customer}/expiry', [CustomerController::class, 'expiryForm'])
         ->name('customers.expiry-form');
@@ -71,7 +75,6 @@ Route::middleware('auth')->group(function () {
         ->name('customer.forceDisconnect');
     Route::post('/customers/{id}/mac/bind', [CustomerController::class, 'bindMac'])->name('customer.bind-mac');
     Route::post('/customers/{id}/mac/unbind', [CustomerController::class, 'unbindMac'])->name('customer.unbind-mac');
-
 
     Route::get('/recharges/create/{customerId}', [RechargeController::class, 'create'])
         ->name('recharges.create');
