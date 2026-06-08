@@ -8,6 +8,8 @@ use App\Models\RadCheck;
 use App\Models\RadPostAuth;
 use App\Models\RadReply;
 use App\Models\Recharge;
+use App\Models\Tr069Device;
+use App\Models\Tr069Server;
 use App\Services\MacService;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
@@ -101,26 +103,26 @@ class Customer extends Model
         }
 
         $now = now();
+        $expire = $this->expire_date->copy()->endOfDay();
+        $activeGrace = $this->activeGracePeriod; // already filtered
 
-        $expire = Carbon::parse($this->expire_date)->endOfDay();
+        $cutoffDate = $activeGrace ? $activeGrace->grace_end->copy() : $expire;
 
-        $grace = GracePeriod::where('customer_id', $this->id)
-            ->latest()
-            ->first();
-
-        $graceEnd = $grace?->grace_end
-            ? Carbon::parse($grace->grace_end)
-            : $expire;
-
-        if ($now->greaterThan($graceEnd)) {
+        if ($now->greaterThan($cutoffDate)) {
             return 'expired';
         }
-
         if ($now->greaterThan($expire)) {
             return 'grace';
         }
-
         return 'active';
+    }
+
+    public function activeGracePeriod()
+    {
+        return $this->hasOne(GracePeriod::class)
+                    ->where('grace_start', '<=', now())
+                    ->where('grace_end', '>=', now())
+                    ->latest('grace_end');
     }
 
     public function radAccts()
@@ -241,6 +243,16 @@ class Customer extends Model
             });
 
         });
+    }
+
+    public function device()
+    {
+        return $this->hasOne(Tr069Device::class);
+    }
+
+    public function server()
+    {
+        return $this->belongsTo(Tr069Server::class);
     }
 }
 
