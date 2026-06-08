@@ -135,12 +135,12 @@
                                 @if($grace)
                                     <li class="list-group-item d-flex justify-content-between">
                                         Grace Start
-                                        <span>{{ $grace->grace_start }}</span>
+                                        <span>{{ $grace->grace_start->format('Y-m-d') }}</span>
                                     </li>
 
                                     <li class="list-group-item d-flex justify-content-between">
                                         Grace End
-                                        <span>{{ $grace->grace_end }}</span>
+                                        <span>{{ $grace->grace_end->format('Y-m-d') }}</span>
                                     </li>
                                 @endif
 
