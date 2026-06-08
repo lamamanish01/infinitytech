@@ -40,7 +40,6 @@ class UpdateExpiredCustomers extends Command
         ];
 
         try {
-            // Eager load active grace period (only current one)
             Customer::with(['activeGracePeriod' => function ($query) {
                 $query->where('grace_start', '<=', now())
                       ->where('grace_end', '>=', now())
@@ -58,7 +57,6 @@ class UpdateExpiredCustomers extends Command
                         $now = now();
                         $expireDate = $customer->expire_date->copy()->endOfDay();
 
-                        // Get active grace period from eager loaded relation
                         $activeGrace = $customer->activeGracePeriod->first();
                         $cutoffDate = $activeGrace ? Carbon::parse($activeGrace->grace_end) : $expireDate;
 
@@ -80,7 +78,7 @@ class UpdateExpiredCustomers extends Command
                             continue;
                         }
 
-                        // --- Status change ---
+                        // --- Status change (transaction) ---
                         DB::transaction(function () use ($customer, $newStatus, $oldStatus, $mikrotik, $radius, &$stats) {
                             $customer->update(['status' => $newStatus]);
                             $stats['updated']++;
@@ -89,44 +87,9 @@ class UpdateExpiredCustomers extends Command
                                 $stats['grace']++;
                             }
 
-                            // One‑time cleanup when becoming expired
                             if ($newStatus === 'expired') {
                                 $stats['expired']++;
-
-                                if (!empty($customer->username)) {
-                                    // Disconnect from MikroTik
-                                    try {
-                                        Log::info('Disconnecting expired user', [
-                                            'username' => $customer->username,
-                                            'customer_id' => $customer->id
-                                        ]);
-                                        $mikrotik->disconnectPPPoE($customer->username);
-                                    } catch (\Throwable $e) {
-                                        Log::error('MikroTik disconnect failed', [
-                                            'customer_id' => $customer->id,
-                                            'error' => $e->getMessage(),
-                                        ]);
-                                    }
-
-                                    // Close RADIUS accounting session
-                                    DB::table('radacct')
-                                        ->where('username', $customer->username)
-                                        ->whereNull('acctstoptime')
-                                        ->update([
-                                            'acctstoptime' => now(),
-                                            'acctterminatecause' => 'Expired'
-                                        ]);
-
-                                    // Remove from RADIUS
-                                    try {
-                                        $radius->removeCustomer($customer);
-                                    } catch (\Throwable $e) {
-                                        Log::error('Radius remove failed', [
-                                            'customer_id' => $customer->id,
-                                            'error' => $e->getMessage(),
-                                        ]);
-                                    }
-                                }
+                                $this->handleExpiredCustomer($customer, $mikrotik, $radius);
                             }
                         });
 
@@ -143,11 +106,7 @@ class UpdateExpiredCustomers extends Command
             CronLog::create([
                 'command' => $this->signature,
                 'status'  => 'success',
-                'message' => "Processed: {$stats['processed']} | " .
-                             "Updated: {$stats['updated']} | " .
-                             "Grace: {$stats['grace']} | " .
-                             "Expired: {$stats['expired']} | " .
-                             "Failed: {$stats['failed']}"
+                'message' => "Processed: {$stats['processed']} | Updated: {$stats['updated']} | Grace: {$stats['grace']} | Expired: {$stats['expired']} | Failed: {$stats['failed']}"
             ]);
 
             Log::info('Customer expiry cron finished', $stats);
@@ -158,10 +117,71 @@ class UpdateExpiredCustomers extends Command
                 'status'  => 'failed',
                 'message' => $e->getMessage()
             ]);
-
             Log::error('Customer expiry cron crashed', ['error' => $e->getMessage()]);
         }
 
         return self::SUCCESS;
+    }
+
+    /**
+     * Handle cleanup for a customer that just became expired.
+     */
+    private function handleExpiredCustomer($customer, $mikrotik, $radius)
+    {
+        // Ensure we have a username
+        $username = $customer->username;
+        if (empty($username)) {
+            Log::warning('Expired customer has no username – cannot cleanup RADIUS', [
+                'customer_id' => $customer->id,
+                'status'      => $customer->status
+            ]);
+            return;
+        }
+
+        Log::info('Starting expired cleanup', [
+            'customer_id' => $customer->id,
+            'username'    => $username
+        ]);
+
+        // 1. Disconnect from MikroTik (failure does not stop the rest)
+        try {
+            $mikrotik->disconnectPPPoE($username);
+            Log::info('Disconnected expired user', ['username' => $username]);
+        } catch (\Throwable $e) {
+            Log::error('MikroTik disconnect failed', [
+                'customer_id' => $customer->id,
+                'error'       => $e->getMessage(),
+            ]);
+        }
+
+        // 2. Close RADIUS accounting session
+        try {
+            $updated = DB::table('radacct')
+                ->where('username', $username)
+                ->whereNull('acctstoptime')
+                ->update([
+                    'acctstoptime'       => now(),
+                    'acctterminatecause' => 'Expired'
+                ]);
+            Log::info('Closed RADIUS accounting sessions', ['username' => $username, 'updated' => $updated]);
+        } catch (\Throwable $e) {
+            Log::error('Failed to close RADIUS accounting', [
+                'customer_id' => $customer->id,
+                'error'       => $e->getMessage(),
+            ]);
+        }
+
+        // 3. Remove from RADIUS (radcheck, radusergroup, etc.)
+        try {
+            Log::info('Calling RadiusService::removeCustomer()', ['username' => $username]);
+            $radius->removeCustomer($customer);
+            Log::info('Successfully removed customer from RADIUS', ['customer_id' => $customer->id]);
+        } catch (\Throwable $e) {
+            Log::error('Radius remove failed', [
+                'customer_id' => $customer->id,
+                'username'    => $username,
+                'error'       => $e->getMessage(),
+            ]);
+        }
     }
 }

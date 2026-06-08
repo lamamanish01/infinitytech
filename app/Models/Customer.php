@@ -104,11 +104,10 @@ class Customer extends Model
 
         $now = now();
         $expire = $this->expire_date->copy()->endOfDay();
-        $activeGrace = $this->activeGracePeriod; // already filtered
+        $activeGrace = $this->activeGracePeriod; // returns model or null
+        $graceEnd = $activeGrace ? $activeGrace->grace_end : null;
 
-        $cutoffDate = $activeGrace ? $activeGrace->grace_end->copy() : $expire;
-
-        if ($now->greaterThan($cutoffDate)) {
+        if ($graceEnd && $now->greaterThan($graceEnd)) {
             return 'expired';
         }
         if ($now->greaterThan($expire)) {
