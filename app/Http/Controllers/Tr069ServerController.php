@@ -8,10 +8,6 @@ use App\Models\Tr069Server;
 
 class Tr069ServerController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
-
     public function __construct()
     {
         $this->middleware('permission:view acsserver')->only(['index', 'show']);
@@ -20,57 +16,99 @@ class Tr069ServerController extends Controller
         $this->middleware('permission:delete acsserver')->only(['destroy']);
     }
 
+    /**
+     * Display a listing of servers.
+     */
     public function index()
     {
-        $tr069servers = Tr069Server::get();
-        return view('tr069server.index', compact('tr069servers'));
+        $tr069Servers = Tr069Server::withCount('devices')
+            ->latest()
+            ->get();
+
+        $totalServers = $tr069Servers->count();
+        $activeServers = $tr069Servers->where('status', 'active')->count();
+        $downServers = $tr069Servers->where('status', '!=', 'active')->count();
+
+        return view('tr069server.index', compact(
+            'tr069Servers',
+            'totalServers',
+            'activeServers',
+            'downServers'
+        ));
     }
 
     /**
-     * Show the form for creating a new resource.
+     * Show form for creating a new server.
      */
     public function create()
     {
-        //
+        return view('tr069server.create');
     }
 
     /**
-     * Store a newly created resource in storage.
+     * Store a newly created server.
      */
     public function store(StoreTr069ServerRequest $request)
     {
-        //
+        Tr069Server::create([
+            'name'          => $request->name,
+            'acs_url'       => $request->acs_url,
+            'acs_username'  => $request->acs_username,
+            'acs_password'  => $request->acs_password,
+            'status'        => $request->status ?? 'active',
+        ]);
+
+        return redirect()
+            ->route('tr069server.index')
+            ->with('success', 'Server created successfully');
     }
 
     /**
-     * Display the specified resource.
+     * Display the specified server with its devices.
      */
     public function show(Tr069Server $tr069Server)
     {
-        //
+        $tr069Server->load('devices');
+        return view('tr069server.show', compact('tr069Server'));
     }
 
     /**
-     * Show the form for editing the specified resource.
+     * Show form for editing a server.
      */
     public function edit(Tr069Server $tr069Server)
     {
-        //
+        // Fixed view path: was 'tr069.servers.edit' -> now 'tr069server.edit'
+        return view('tr069server.edit', compact('tr069Server'));
     }
 
     /**
-     * Update the specified resource in storage.
+     * Update the specified server.
      */
     public function update(UpdateTr069ServerRequest $request, Tr069Server $tr069Server)
     {
-        //
+        $tr069Server->update([
+            'name'          => $request->name,
+            'acs_url'       => $request->acs_url,
+            'acs_username'  => $request->acs_username,
+            'acs_password'  => $request->acs_password,
+            'status'        => $request->status,
+        ]);
+
+        return redirect()
+            ->route('tr069server.index')
+            ->with('success', 'Server updated successfully');
     }
 
     /**
-     * Remove the specified resource from storage.
+     * Remove the specified server.
      */
-    public function destroy(Tr069Server $tr069Server)
+    public function destroy($id)  // Fixed: accept $id, not the model binding
     {
-        //
+        $server = Tr069Server::findOrFail($id);
+        $server->delete();
+
+        return redirect()
+            ->route('tr069server.index')
+            ->with('success', 'Server deleted successfully');
     }
 }

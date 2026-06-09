@@ -11,12 +11,13 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('tr069_servers', function (Blueprint $table) {
+        Schema::create('tr069_servers', function ($table) {
             $table->id();
-            $table->string('name')->nullable();
-            $table->string('ip')->nullable();
-            $table->integer('web_port')->default(3000);
-            $table->integer('api_port')->default(7557);
+            $table->string('name');
+            $table->string('acs_url');
+            $table->string('acs_username')->nullable();
+            $table->string('acs_password')->nullable();
+            $table->string('status')->default('active');
             $table->timestamps();
         });
     }

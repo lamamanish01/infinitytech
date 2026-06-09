@@ -96,32 +96,55 @@ class Customer extends Model
         return $this->gracePeriods()->latest()->first();
     }
 
-    public function calculateStatus()
-    {
-        if (!$this->expire_date) {
-            return 'active';
-        }
-
-        $now = now();
-        $expire = $this->expire_date->copy()->endOfDay();
-        $activeGrace = $this->activeGracePeriod; // returns model or null
-        $graceEnd = $activeGrace ? $activeGrace->grace_end : null;
-
-        if ($graceEnd && $now->greaterThan($graceEnd)) {
-            return 'expired';
-        }
-        if ($now->greaterThan($expire)) {
-            return 'grace';
-        }
-        return 'active';
-    }
-
     public function activeGracePeriod()
     {
         return $this->hasOne(GracePeriod::class)
                     ->where('grace_start', '<=', now())
                     ->where('grace_end', '>=', now())
                     ->latest('grace_end');
+    }
+
+    public function calculateStatus(): string
+    {
+        if (!$this->expire_date) {
+            return 'active';
+        }
+
+        $now = now();
+
+        $expireDate = Carbon::parse(
+            $this->expire_date
+        )->endOfDay();
+
+        if ($now->lte($expireDate)) {
+            return 'active';
+        }
+
+        if ($this->activeGracePeriod) {
+            return 'grace';
+        }
+
+        return 'expired';
+    }
+
+    public function getCalculatedStatusAttribute(): string
+    {
+        return $this->calculateStatus();
+    }
+
+    public function isActive(): bool
+    {
+        return $this->calculateStatus() === 'active';
+    }
+
+    public function isGrace(): bool
+    {
+        return $this->calculateStatus() === 'grace';
+    }
+
+    public function isExpired(): bool
+    {
+        return $this->calculateStatus() === 'expired';
     }
 
     public function radAccts()

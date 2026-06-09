@@ -11,7 +11,7 @@ class UpdateTr069DeviceRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return false;
+        return true;
     }
 
     /**
@@ -22,7 +22,11 @@ class UpdateTr069DeviceRequest extends FormRequest
     public function rules(): array
     {
         return [
-            //
+            'name' => 'required|string|max:255',
+            'acs_url' => 'required|url',
+            'acs_username' => 'nullable|string',
+            'acs_password' => 'nullable|string',
+            'status' => 'required|in:active,down',
         ];
     }
 }
