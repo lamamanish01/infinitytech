@@ -76,6 +76,33 @@ Route::middleware('auth')->group(function () {
     Route::post('/customers/{id}/mac/bind', [CustomerController::class, 'bindMac'])->name('customer.bind-mac');
     Route::post('/customers/{id}/mac/unbind', [CustomerController::class, 'unbindMac'])->name('customer.unbind-mac');
 
+    Route::prefix('tr069')->middleware('auth')->group(function () {
+        Route::post(
+            '/device/{id}/router-update',
+            [Tr069DeviceController::class, 'routerMgmtUpdate']
+        )->name('tr069.device.router.update');
+
+        Route::post(
+            '/device/{id}/reboot',
+            [Tr069DeviceController::class, 'reboot']
+        )->name('tr069.device.reboot');
+
+        Route::post(
+            '/device/{id}/factory-reset',
+            [Tr069DeviceController::class, 'factoryReset']
+        )->name('tr069.device.factory-reset');
+
+        Route::post(
+            '/device/{id}/push-acs',
+            [Tr069DeviceController::class, 'pushAcs']
+        )->name('tr069.device.push-acs');
+
+        Route::get(
+            '/device/{id}/logs',
+            [Tr069DeviceController::class, 'logs']
+        )->name('tr069.device.logs');
+    });
+
     Route::get('/recharges/create/{customerId}', [RechargeController::class, 'create'])
         ->name('recharges.create');
     Route::post('/recharges', [RechargeController::class, 'store'])

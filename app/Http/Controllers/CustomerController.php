@@ -81,6 +81,14 @@ class CustomerController extends Controller
             'branch_id' => 'required',
         ]);
 
+        $exists = Customer::where('username', $request->username)->exists();
+
+        if ($exists) {
+            return back()->withErrors([
+                'username' => 'This username is already in use.'
+            ])->withInput();
+        }
+
         $customer = Customer::create([
             'name' => $request->name,
             'email' => $request->email,

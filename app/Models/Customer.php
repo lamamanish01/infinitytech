@@ -276,5 +276,10 @@ class Customer extends Model
     {
         return $this->belongsTo(Tr069Server::class);
     }
+
+    public function routerDevices()
+    {
+        return $this->hasMany(Tr069Device::class, 'ppp_username', 'username');
+    }
 }
 

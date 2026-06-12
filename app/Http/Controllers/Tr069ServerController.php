@@ -66,9 +66,10 @@ class Tr069ServerController extends Controller
     /**
      * Display the specified server with its devices.
      */
-    public function show(Tr069Server $tr069Server)
+    public function show($id)
     {
-        $tr069Server->load('devices');
+        $tr069Server = Tr069Server::with('devices')->findOrFail($id);
+
         return view('tr069server.show', compact('tr069Server'));
     }
 
