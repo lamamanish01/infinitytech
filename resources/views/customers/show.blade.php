@@ -378,9 +378,9 @@
 
                                     <div class="card-body">
 
-                                        <p><strong>Serial:</strong> {{ $router->serial_number }}</p>
-                                        <p><strong>Model:</strong> {{ $router->model ?? '-' }}</p>
-                                        <p><strong>MAC:</strong> {{ $router->mac_address ?? '-' }}</p>
+                                        <p><strong>Serial:</strong> {{ $router->serial }}</p>
+                                        <p><strong>Product Class:</strong> {{ $router->product_class ?? '-' }}</p>
+                                        <p><strong>Manufacturer:</strong> {{ $router->manufacturer ?? '-' }}</p>
 
                                     </div>
 
@@ -412,14 +412,15 @@
                                                     <input type="text"
                                                         name="ssid_24"
                                                         class="form-control"
-                                                        value="{{ old('ssid_24', $router->ssid_24 ?? '') }}">
+                                                        value="{{ old('wifi_ssid_24', $router->wifi_24_ssid ?? '') }}">
                                                 </div>
 
                                                 <div class="mb-2">
                                                     <label>Password</label>
                                                     <input type="text"
                                                         name="password_24"
-                                                        class="form-control">
+                                                        class="form-control"
+                                                        value="{{ old('wifi_24_password', $router->wifi_24_password ?? '') }}">
                                                 </div>
 
                                                 <div class="form-check form-switch">
@@ -445,14 +446,15 @@
                                                     <input type="text"
                                                         name="ssid_5"
                                                         class="form-control"
-                                                        value="{{ old('ssid_5', $router->ssid_5 ?? '') }}">
+                                                        value="{{ old('wifi_5_ssid', $router->wifi_5_ssid ?? '') }}">
                                                 </div>
 
                                                 <div class="mb-2">
                                                     <label>Password</label>
                                                     <input type="text"
                                                         name="password_5"
-                                                        class="form-control">
+                                                        class="form-control"
+                                                        value="{{ $router->wifi_5_password }}">
                                                 </div>
 
                                                 <div class="form-check form-switch">
@@ -504,7 +506,8 @@
                                             <label>Password</label>
                                             <input type="password"
                                                 name="pppoe_password"
-                                                class="form-control">
+                                                class="form-control"
+                                                value="{{ $customer->password }}">
                                         </div>
 
                                         <div class="text-end mt-3">
@@ -726,25 +729,29 @@
                 </form>
             @endcan
 
-            @can('bind mac customers')
-                <form action="{{ route('customer.bind-mac', $customer->id) }}" method="POST">
-                    @csrf
-                    <button class="btn btn-primary btn-sm"
-                        @if($customer->mac_address) disabled @endif>
-                        Bind MAC
-                    </button>
-                </form>
-            @endcan
+            @if($customer->mac_address)
 
-            @can('unbind mac customers')
-                <form action="{{ route('customer.unbind-mac', $customer->id) }}" method="POST">
-                    @csrf
-                    <button class="btn btn-danger btn-sm"
-                        @if(!$customer->mac_address) disabled @endif>
-                        Unbind MAC
-                    </button>
-                </form>
-            @endcan
+                @can('unbind mac customers')
+                    <form action="{{ route('customer.unbind-mac', $customer->id) }}" method="POST">
+                        @csrf
+                        <button type="submit" class="btn btn-danger btn-sm">
+                            Unbind MAC
+                        </button>
+                    </form>
+                @endcan
+
+            @else
+
+                @can('bind mac customers')
+                    <form action="{{ route('customer.bind-mac', $customer->id) }}" method="POST">
+                        @csrf
+                        <button type="submit" class="btn btn-primary btn-sm">
+                            Bind MAC
+                        </button>
+                    </form>
+                @endcan
+
+            @endif
 
         </div>
 

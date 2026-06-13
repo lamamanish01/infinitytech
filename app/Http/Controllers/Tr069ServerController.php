@@ -68,9 +68,10 @@ class Tr069ServerController extends Controller
      */
     public function show($id)
     {
-        $tr069Server = Tr069Server::with('devices')->findOrFail($id);
+        $tr069Server = Tr069Server::findOrFail($id);
+        $devices = $tr069Server->devices()->paginate(10);
 
-        return view('tr069server.show', compact('tr069Server'));
+        return view('tr069server.show', compact('tr069Server', 'devices'));
     }
 
     /**

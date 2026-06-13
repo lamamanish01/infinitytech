@@ -35,6 +35,7 @@
                     <div class="col-md-3">
                         <select name="frequency" class="form-control">
                             <option value="minute">Minute</option>
+                            <option value="five_minute">Every Five Minute</option>
                             <option value="hourly">Hourly</option>
                             <option value="daily">Daily</option>
                             <option value="weekly">Weekly</option>
@@ -101,6 +102,7 @@
 
                                 <select name="frequency" class="form-control form-control-sm">
                                     <option value="minute" {{ $job->frequency=='minute'?'selected':'' }}>Minute</option>
+                                    <option value="five_minute" {{ $job->frequency=='five_minute' ? 'selected' : '' }}>Every Five Minutes</option>
                                     <option value="hourly" {{ $job->frequency=='hourly'?'selected':'' }}>Hourly</option>
                                     <option value="daily" {{ $job->frequency=='daily'?'selected':'' }}>Daily</option>
                                     <option value="weekly" {{ $job->frequency=='weekly'?'selected':'' }}>Weekly</option>

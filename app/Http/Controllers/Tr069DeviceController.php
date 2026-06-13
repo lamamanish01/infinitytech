@@ -171,9 +171,14 @@ class Tr069DeviceController extends Controller
     public function reboot($id)
     {
         $device = Tr069Device::findOrFail($id);
-        return $device->reboot()
-            ? back()->with('success', 'Reboot command sent.')
-            : back()->with('error', 'Reboot failed.');
+
+        $success = $device->reboot();
+
+        if ($success) {
+            return back()->with('success', 'Reboot command sent to device.');
+        } else {
+            return back()->with('error', 'Failed to send reboot command. Device may be offline or ACS unreachable.');
+        }
     }
 
     /**
