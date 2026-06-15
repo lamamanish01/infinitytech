@@ -10,54 +10,49 @@ use App\Models\CronJob;
 class CleanRadacctTable extends Command
 {
     protected $signature = 'radius:clean-radacct';
-
     protected $description = 'Clean old radacct session logs';
 
     public function handle()
     {
         $job = CronJob::where('key', $this->signature)->first();
 
-        if (!$job || !$job->is_active) {
-            $this->info('Radacct cleanup cron disabled');
+        if (!$job) {
+            $this->error("Cron job configuration not found for: {$this->signature}");
+            return self::FAILURE;
+        }
 
-            CronLog::create([
-                'command' => $this->signature,
-                'status'  => 'skipped',
-                'message' => 'Cron disabled'
-            ]);
-
-            return self::SUCCESS;
+        if (!$job->is_active) {
+            $this->error("Cron job '{$this->signature}' is inactive. Skipping execution.");
+            return self::FAILURE;
         }
 
         try {
-
-            $days = 30; // keep last 30 days
+            // Configurable retention days (default 30)
+            $retentionDays = config('radius.radacct_retention_days', 30);
+            $cutoff = now()->subDays($retentionDays);
 
             $deleted = DB::table('radacct')
-                ->where('acctstarttime', '<', now()->subDays($days))
+                ->where('acctstarttime', '<', $cutoff)
                 ->delete();
 
             CronLog::create([
                 'command' => $this->signature,
                 'status'  => 'success',
-                'message' => "radacct cleaned: {$deleted} records (kept last {$days} days)"
+                'message' => "radacct cleaned: {$deleted} records (kept last {$retentionDays} days)",
             ]);
 
             $this->info("✔ Deleted {$deleted} radacct records");
+            return self::SUCCESS;
 
         } catch (\Throwable $e) {
-
             CronLog::create([
                 'command' => $this->signature,
                 'status'  => 'failed',
-                'message' => $e->getMessage()
+                'message' => $e->getMessage(),
             ]);
 
             $this->error("❌ Failed: " . $e->getMessage());
-
             return self::FAILURE;
         }
-
-        return self::SUCCESS;
     }
 }

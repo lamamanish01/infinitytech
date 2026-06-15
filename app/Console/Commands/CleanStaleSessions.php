@@ -11,86 +11,54 @@ use Carbon\Carbon;
 class CleanStaleSessions extends Command
 {
     protected $signature = 'customers:clean-stale-sessions';
-
     protected $description = 'Safely close stale FreeRADIUS sessions (ISP safe mode)';
 
     public function handle(): int
     {
-        /*
-        |--------------------------------------------------------------------------
-        | CRON CONTROL
-        |--------------------------------------------------------------------------
-        */
+        // Check if cron job is configured and active
         $job = CronJob::where('key', $this->signature)->first();
 
-        if (!$job || !$job->is_active) {
-            $this->info('Stale session cron disabled');
-            return self::SUCCESS;
+        if (!$job) {
+            $this->error("Cron job configuration not found for: {$this->signature}");
+            return self::FAILURE;
+        }
+
+        if (!$job->is_active) {
+            $this->error("Cron job '{$this->signature}' is inactive. Skipping execution.");
+            return self::FAILURE;
         }
 
         try {
+            // Configurable cutoff (default 15 minutes)
+            $cutoffMinutes = config('radius.stale_session_minutes', 15);
+            $cutoff = Carbon::now()->subMinutes($cutoffMinutes);
 
-            /*
-            |--------------------------------------------------------------------------
-            | SAFE CUTOFF (15 MINUTES)
-            |--------------------------------------------------------------------------
-            */
-            $cutoff = Carbon::now()->subMinutes(15);
-
-            /*
-            |--------------------------------------------------------------------------
-            | CLOSE STALE SESSIONS (CORRECT ISP LOGIC)
-            |--------------------------------------------------------------------------
-            | RULE:
-            | - session must be active (acctstoptime IS NULL)
-            | - AND last activity is older than 15 minutes
-            |--------------------------------------------------------------------------
-            */
+            // Close stale RADIUS sessions
             $updated = DB::table('radacct')
                 ->whereNull('acctstoptime')
                 ->where(function ($q) use ($cutoff) {
-
-                    $q->where(function ($q1) use ($cutoff) {
-
-                        $q1->whereNotNull('acctupdatetime')
-                           ->where('acctupdatetime', '<', $cutoff);
-
-                    })
-                    ->orWhere(function ($q2) use ($cutoff) {
-
-                        $q2->whereNull('acctupdatetime')
-                           ->where('acctstarttime', '<', $cutoff);
-
-                    });
-
+                    $q->whereNotNull('acctupdatetime')
+                      ->where('acctupdatetime', '<', $cutoff)
+                      ->orWhere(function ($q2) use ($cutoff) {
+                          $q2->whereNull('acctupdatetime')
+                             ->where('acctstarttime', '<', $cutoff);
+                      });
                 })
                 ->update([
                     'acctstoptime' => now(),
                     'acctterminatecause' => 'Stale-Session'
                 ]);
 
-            /*
-            |--------------------------------------------------------------------------
-            | LOG SUCCESS
-            |--------------------------------------------------------------------------
-            */
             CronLog::create([
                 'command' => $this->signature,
                 'status'  => 'success',
-                'message' => "Stale sessions closed: {$updated}",
+                'message' => "Stale sessions closed: {$updated} (cutoff: {$cutoffMinutes} min)",
             ]);
 
             $this->info("✔ Stale sessions closed: {$updated}");
-
             return self::SUCCESS;
 
         } catch (\Throwable $e) {
-
-            /*
-            |--------------------------------------------------------------------------
-            | LOG ERROR
-            |--------------------------------------------------------------------------
-            */
             CronLog::create([
                 'command' => $this->signature,
                 'status'  => 'failed',
@@ -98,7 +66,6 @@ class CleanStaleSessions extends Command
             ]);
 
             $this->error("❌ " . $e->getMessage());
-
             return self::FAILURE;
         }
     }
