@@ -3,16 +3,27 @@
 namespace App\Services;
 
 use App\Services\MikrotikService;
-use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 
 class RadiusService
 {
+    /**
+     * Create or update Radius user.
+     */
     public static function syncCustomer($customer)
     {
         $plan = $customer->internetPlan;
 
-        if (!$plan) return;
+        if (!$plan) {
+            return;
+        }
+
+        // Remove Reject flag if customer is active again
+        DB::table('radcheck')
+            ->where('username', $customer->username)
+            ->where('attribute', 'Auth-Type')
+            ->where('value', 'Reject')
+            ->delete();
 
         DB::table('radcheck')->updateOrInsert(
             [
@@ -62,26 +73,46 @@ class RadiusService
         }
     }
 
+    /**
+     * Disable customer instead of deleting Radius records.
+     */
     public static function removeCustomer($customer)
     {
-
-        DB::table('radcheck')
-            ->where('username', $customer->username)
-            ->delete();
-
-        DB::table('radreply')
-            ->where('username', $customer->username)
-            ->delete();
+        DB::table('radcheck')->updateOrInsert(
+            [
+                'username'  => $customer->username,
+                'attribute' => 'Auth-Type',
+            ],
+            [
+                'op'    => ':=',
+                'value' => 'Reject',
+            ]
+        );
 
         DB::table('radacct')
             ->where('username', $customer->username)
             ->whereNull('acctstoptime')
             ->update([
-                'acctstoptime' => now(),
-                'acctterminatecause' => 'Admin-Remove'
+                'acctstoptime'       => now(),
+                'acctterminatecause' => 'Expired',
             ]);
     }
 
+    /**
+     * Enable customer after renewal.
+     */
+    public static function enableCustomer($customer)
+    {
+        DB::table('radcheck')
+            ->where('username', $customer->username)
+            ->where('attribute', 'Auth-Type')
+            ->where('value', 'Reject')
+            ->delete();
+    }
+
+    /**
+     * Disconnect active session.
+     */
     public static function disconnect($customer)
     {
         try {
@@ -90,119 +121,36 @@ class RadiusService
                 ->where('username', $customer->username)
                 ->whereNull('acctstoptime')
                 ->update([
-                    'acctstoptime' => now(),
-                    'acctterminatecause' => 'Admin-Disconnect'
+                    'acctstoptime'       => now(),
+                    'acctterminatecause' => 'Admin-Disconnect',
                 ]);
 
             if ($customer->mikrotik) {
-
                 app(MikrotikService::class)
                     ->disconnectPPPoE(
                         $customer->mikrotik,
                         $customer->username
                     );
             }
+
             if ($updated === 0) {
                 return [
-                    'status' => false,
-                    'message' => 'User is not currently online'
+                    'status'  => false,
+                    'message' => 'User is not currently online',
                 ];
             }
 
             return [
-                'status' => true,
-                'message' => 'User disconnected successfully'
+                'status'  => true,
+                'message' => 'User disconnected successfully',
             ];
 
         } catch (\Exception $e) {
 
             return [
-                'status' => false,
-                'message' => $e->getMessage()
+                'status'  => false,
+                'message' => $e->getMessage(),
             ];
         }
     }
-
-    // /* ---------------------------------
-    //  | FORCE DISCONNECT (REAL CoA)
-    //  * ---------------------------------*/
-    // public static function forceDisconnect($customer)
-    // {
-    //     try {
-
-    //         $sessions = DB::table('radacct')
-    //             ->where('username', $customer->username)
-    //             ->whereNull('acctstoptime')
-    //             ->get();
-
-    //         if ($sessions->isEmpty()) {
-    //             return [
-    //                 'status' => false,
-    //                 'message' => 'No active session found'
-    //             ];
-    //         }
-
-    //         foreach ($sessions as $session) {
-
-    //             self::sendCoA(
-    //                 $session->nasipaddress,
-    //                 $customer->username,
-    //                 $session->acctsessionid
-    //             );
-
-    //             DB::table('radacct')
-    //                 ->where('radacctid', $session->radacctid)
-    //                 ->update([
-    //                     'acctstoptime' => now(),
-    //                     'acctterminatecause' => 'Force-Disconnect'
-    //                 ]);
-    //         }
-
-    //         return [
-    //             'status' => true,
-    //             'message' => 'User force disconnected successfully'
-    //         ];
-
-    //     } catch (\Exception $e) {
-
-    //         Log::error('ForceDisconnect Error', [
-    //             'user' => $customer->username ?? null,
-    //             'error' => $e->getMessage()
-    //         ]);
-
-    //         return [
-    //             'status' => false,
-    //             'message' => $e->getMessage()
-    //         ];
-    //     }
-    // }
-
-    // /* ---------------------------------
-    //  | CoA SENDER (FIXED)
-    //  * ---------------------------------*/
-    // private static function sendCoA($nasIp, $username, $sessionId)
-    // {
-    //     $nas = DB::table('nas')
-    //         ->where('nasname', $nasIp)
-    //         ->first();
-
-    //     if (!$nas)
-    //         return false;
-
-    //     $packet = "User-Name = \"{$username}\"\nAcct-Session-Id = \"{$sessionId}\"";
-
-    //     $cmd = "echo " . escapeshellarg($packet) .
-    //         " | radclient -x {$nasIp}:{$nas->ports} disconnect {$nas->secret}";
-
-    //     exec($cmd, $output, $status);
-
-    //     Log::info("CoA Sent", [
-    //         'nas' => $nasIp,
-    //         'user' => $username,
-    //         'status' => $status,
-    //         'output' => $output
-    //     ]);
-
-    //     return $status === 0;
-    // }
 }

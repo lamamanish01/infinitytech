@@ -96,12 +96,13 @@ class Customer extends Model
         return $this->gracePeriods()->latest()->first();
     }
 
-    public function activeGracePeriod()
+    public function getActiveGracePeriod()
     {
-        return $this->hasOne(GracePeriod::class)
-                    ->where('grace_start', '<=', now())
-                    ->where('grace_end', '>=', now())
-                    ->latest('grace_end');
+        return $this->gracePeriods()
+            ->where('grace_start', '<=', now())
+            ->where('grace_end', '>=', now())
+            ->orderByDesc('grace_end')
+            ->first();
     }
 
     public function calculateStatus(): string
@@ -112,15 +113,15 @@ class Customer extends Model
 
         $now = now();
 
-        $expireDate = Carbon::parse(
-            $this->expire_date
-        )->endOfDay();
+        $expireDate = Carbon::parse($this->expire_date)->endOfDay();
 
         if ($now->lte($expireDate)) {
             return 'active';
         }
 
-        if ($this->activeGracePeriod) {
+        $grace = $this->getActiveGracePeriod();
+
+        if ($grace && $now->lte(Carbon::parse($grace->grace_end)->endOfDay())) {
             return 'grace';
         }
 
@@ -215,7 +216,6 @@ class Customer extends Model
 
         if ($expire->lt(now())) {
 
-            // check grace
             $grace = $this->activeGrace();
 
             if ($grace && Carbon::parse($grace->grace_end)->gte(now())) {
