@@ -21,15 +21,15 @@ class UpdateExpiredCustomers extends Command
     {
         $startedAt = microtime(true);
 
+        /*
+        |--------------------------------------------------------------------------
+        | CHECK CRON STATUS
+        |--------------------------------------------------------------------------
+        */
         $job = CronJob::where('key', $this->signature)->first();
 
-        if (!$job) {
-            $this->error("Cron job configuration not found");
-            return self::FAILURE;
-        }
-
-        if (!$job->is_active) {
-            $this->info("Cron is inactive");
+        if (!$job || !$job->is_active) {
+            $this->info('Cron inactive or not found');
             return self::SUCCESS;
         }
 
@@ -61,18 +61,31 @@ class UpdateExpiredCustomers extends Command
                             $oldStatus = $customer->status;
                             $newStatus = $customer->calculateStatus();
 
+                            /*
+                            |--------------------------------------------------------------------------
+                            | SKIP IF NO CHANGE
+                            |--------------------------------------------------------------------------
+                            */
                             if ($oldStatus === $newStatus) {
                                 continue;
                             }
 
-                            // COUNT ONLY REAL TRANSITIONS
+                            /*
+                            |--------------------------------------------------------------------------
+                            | COUNT STATUS
+                            |--------------------------------------------------------------------------
+                            */
                             match ($newStatus) {
                                 'active'  => $stats['active']++,
                                 'grace'   => $stats['grace']++,
                                 'expired' => $stats['expired']++,
                             };
 
-                            // UPDATE FIRST (IMPORTANT)
+                            /*
+                            |--------------------------------------------------------------------------
+                            | UPDATE STATUS FIRST
+                            |--------------------------------------------------------------------------
+                            */
                             DB::transaction(function () use ($customer, $newStatus, &$stats) {
                                 $customer->update([
                                     'status' => $newStatus,
@@ -92,7 +105,7 @@ class UpdateExpiredCustomers extends Command
                                 $radius->enableCustomer($customer);
 
                                 Log::info('Customer activated', [
-                                    'id' => $customer->id
+                                    'id' => $customer->id,
                                 ]);
                             }
 
@@ -103,7 +116,7 @@ class UpdateExpiredCustomers extends Command
                             */
                             if ($newStatus === 'grace') {
                                 Log::info('Customer in grace period', [
-                                    'id' => $customer->id
+                                    'id' => $customer->id,
                                 ]);
                             }
 
@@ -138,9 +151,9 @@ class UpdateExpiredCustomers extends Command
                 'message' => $message,
             ]);
 
-            $this->info($message);
-
             Log::info('Cron finished', $stats);
+
+            $this->info($message);
 
         } catch (\Throwable $e) {
 
@@ -151,7 +164,7 @@ class UpdateExpiredCustomers extends Command
             ]);
 
             Log::error('Cron crashed', [
-                'error' => $e->getMessage()
+                'error' => $e->getMessage(),
             ]);
 
             return self::FAILURE;
@@ -160,9 +173,11 @@ class UpdateExpiredCustomers extends Command
         return self::SUCCESS;
     }
 
-    /**
-     * Handle expired customer
-     */
+    /*
+    |--------------------------------------------------------------------------
+    | HANDLE EXPIRED CUSTOMER
+    |--------------------------------------------------------------------------
+    */
     private function handleExpiredCustomer($customer, $mikrotik, $radius): void
     {
         $username = $customer->username;
@@ -173,13 +188,13 @@ class UpdateExpiredCustomers extends Command
 
         /*
         |--------------------------------------------------------------------------
-        | 1. Disconnect MikroTik
+        | 1. DISCONNECT FROM MIKROTIK
         |--------------------------------------------------------------------------
         */
         try {
             $mikrotik->disconnectPPPoE($username);
         } catch (\Throwable $e) {
-            Log::error('MikroTik disconnect failed', [
+            Log::error('Mikrotik disconnect failed', [
                 'username' => $username,
                 'error'    => $e->getMessage(),
             ]);
@@ -187,7 +202,7 @@ class UpdateExpiredCustomers extends Command
 
         /*
         |--------------------------------------------------------------------------
-        | 2. Close RADIUS session
+        | 2. CLOSE RADIUS SESSION
         |--------------------------------------------------------------------------
         */
         try {
@@ -199,7 +214,7 @@ class UpdateExpiredCustomers extends Command
                     'acctterminatecause' => 'Expired',
                 ]);
         } catch (\Throwable $e) {
-            Log::error('radacct update failed', [
+            Log::error('radacct close failed', [
                 'username' => $username,
                 'error'    => $e->getMessage(),
             ]);
@@ -207,13 +222,13 @@ class UpdateExpiredCustomers extends Command
 
         /*
         |--------------------------------------------------------------------------
-        | 3. Disable RADIUS login (Auth-Type := Reject)
+        | 3. DISABLE LOGIN (RADIUS)
         |--------------------------------------------------------------------------
         */
         try {
             $radius->removeCustomer($customer);
         } catch (\Throwable $e) {
-            Log::error('Radius disable failed', [
+            Log::error('radius disable failed', [
                 'username' => $username,
                 'error'    => $e->getMessage(),
             ]);

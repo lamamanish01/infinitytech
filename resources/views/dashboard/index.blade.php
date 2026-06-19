@@ -45,17 +45,19 @@
             </div>
         </div>
 
-        {{-- EXPIRING (REPLACED PLANS) --}}
+        {{-- EXPIRING SOON --}}
         <div class="col-lg-3 col-6">
-            <div class="small-box bg-warning text-dark">
+            <div class="small-box bg-warning">
                 <div class="inner">
                     <h3>{{ $expiringCustomers ?? 0 }}</h3>
                     <p>Expiring Soon</p>
                 </div>
+
                 <div class="icon">
                     <i class="bi bi-clock-history"></i>
                 </div>
-                <a href="{{ url('/customers/expiring') }}" class="small-box-footer text-dark">
+
+                <a href="{{ url('/customers/expiring') }}" class="small-box-footer">
                     More info <i class="bi bi-arrow-right"></i>
                 </a>
             </div>
@@ -63,15 +65,17 @@
 
         {{-- EXPIRED --}}
         <div class="col-lg-3 col-6">
-            <div class="small-box bg-danger text-white">
+            <div class="small-box bg-danger">
                 <div class="inner">
                     <h3>{{ $expiredCustomers ?? 0 }}</h3>
                     <p>Expired Customers</p>
                 </div>
+
                 <div class="icon">
                     <i class="bi bi-exclamation-triangle"></i>
                 </div>
-                <a href="{{ url('/customers/expired') }}" class="small-box-footer text-white">
+
+                <a href="{{ url('/customers/expired') }}" class="small-box-footer">
                     More info <i class="bi bi-arrow-right"></i>
                 </a>
             </div>

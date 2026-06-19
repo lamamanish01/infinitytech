@@ -22,35 +22,60 @@ class DashboardController extends Controller
 
     public function index()
     {
+        /*
+        |--------------------------------------------------------------------------
+        | ONLINE CUSTOMERS (REAL SESSION CHECK)
+        |--------------------------------------------------------------------------
+        */
         $onlineCustomers = Customer::whereHas('activeSession', function ($q) {
             $q->whereNull('acctstoptime')
-            ->where('acctupdatetime', '>=', now()->subMinutes(15));
+              ->where('acctupdatetime', '>=', now()->subMinutes(15));
         })->distinct()->count();
 
+        /*
+        |--------------------------------------------------------------------------
+        | EXPIRING SOON (NEXT 3 DAYS)
+        |--------------------------------------------------------------------------
+        */
         $expiringCustomers = Customer::where('status', 'active')
+            ->whereNotNull('expire_date')
             ->whereBetween('expire_date', [
                 now(),
                 now()->addDays(3)
-            ])->count();
+            ])
+            ->count();
+
+        /*
+        |--------------------------------------------------------------------------
+        | EXPIRED CUSTOMERS (FIXED)
+        |--------------------------------------------------------------------------
+        | Handles case + whitespace issues
+        |--------------------------------------------------------------------------
+        */
+        $expiredCustomers = Customer::whereRaw(
+            'LOWER(TRIM(status)) = ?',
+            ['expired']
+        )->count();
+
+        /*
+        |--------------------------------------------------------------------------
+        | ACTIVE SESSIONS (RADIUS)
+        |--------------------------------------------------------------------------
+        */
+        $activeSessions = DB::table('radacct')
+            ->whereNull('acctstoptime')
+            ->whereNotNull('username')
+            ->distinct()
+            ->count('username');
 
         return view('dashboard.index', [
             'onlineCustomers'   => $onlineCustomers,
             'totalCustomers'    => Customer::count(),
-
-            // 🔥 REPLACED THIS LINE
             'expiringCustomers' => $expiringCustomers,
-
-            'expiredCustomers'  => Customer::where('status', 'expired')->count(),
-
+            'expiredCustomers'  => $expiredCustomers,
             'branchBalance'     => Branch::sum('balance'),
-
-            'activeSessions'    => DB::table('radacct')
-                ->whereNull('acctstoptime')
-                ->whereNotNull('username')
-                ->distinct()
-                ->count('username'),
-
-            'nasCount' => Nas::count(),
+            'activeSessions'    => $activeSessions,
+            'nasCount'          => Nas::count(),
         ]);
     }
 
