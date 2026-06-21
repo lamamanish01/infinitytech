@@ -107,22 +107,26 @@ class Customer extends Model
 
     public function calculateStatus(): string
     {
-        if (!$this->expire_date) {
-            return 'active';
-        }
-
         $now = now();
 
-        $expireDate = Carbon::parse($this->expire_date)->endOfDay();
-
-        if ($now->lte($expireDate)) {
+        if (is_null($this->expire_date)) {
             return 'active';
         }
 
-        $grace = $this->getActiveGracePeriod();
+        if ($this->expire_date->isFuture()) {
+            return 'active';
+        }
 
-        if ($grace && $now->lte(Carbon::parse($grace->grace_end)->endOfDay())) {
+        if ($this->gracePeriods()->where('grace_end', '>=', $now)->exists()) {
             return 'grace';
+        }
+
+        $graceDays = (int) $this->grace_days;
+        if ($graceDays > 0) {
+            $graceEnd = $this->expire_date->copy()->addDays($graceDays);
+            if ($graceEnd->isFuture()) {
+                return 'grace';
+            }
         }
 
         return 'expired';

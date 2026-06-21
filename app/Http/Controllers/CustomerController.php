@@ -264,42 +264,44 @@ class CustomerController extends Controller
     {
         $customer = Customer::findOrFail($customerId);
 
-        $existing = GracePeriod::where('customer_id', $customerId)
-            ->where('grace_end', '>=', now())
-            ->first();
+        if ($customer->expire_date && $customer->expire_date->isFuture()) {
+            return back()->with('error', 'Customer is still active. Grace period is only allowed after expiration.');
+        }
 
-        if ($existing) {
-            return back()->with('error', 'Grace already active for this customer');
+        $activeGrace = GracePeriod::where('customer_id', $customerId)
+            ->where('grace_end', '>=', now())
+            ->exists();
+
+        if ($activeGrace) {
+            return back()->with('error', 'An active grace period already exists for this customer.');
         }
 
         $start = now();
         $end = $start->copy()->addDays(3);
 
-        GracePeriod::updateOrCreate(
-            [
-                'customer_id' => $customerId,
-                'grace_days' => 2,
+        DB::transaction(function () use ($customer, $start, $end) {
+            GracePeriod::create([
+                'customer_id' => $customer->id,
+                'grace_days'  => 3,
                 'grace_start' => $start,
-                'grace_end' => $end
-            ]
-        );
+                'grace_end'   => $end,
+            ]);
 
-        $customer->update([
-            'status' => 'grace'
-        ]);
+            $customer->update([
+                'status' => 'grace',
+            ]);
+        });
 
         Activity::add(
             'Customer in Grace Period',
-            $customer->name . ' is now in grace period',
+            $customer->name . ' is now in grace period until ' . $end->toDateString(),
             'fas fa-clock text-warning',
             route('customers.show', $customer->id)
         );
 
-        RadiusService::syncCustomer(
-            $customer->fresh()
-        );
+        RadiusService::syncCustomer($customer->fresh());
 
-        return back()->with('success', 'Grace updated successfully');
+        return back()->with('success', 'Grace period activated successfully.');
     }
 
     public function disconnect($id)

@@ -21,14 +21,8 @@ class UpdateExpiredCustomers extends Command
     {
         $startedAt = microtime(true);
 
-        /*
-        |--------------------------------------------------------------------------
-        | CHECK CRON STATUS
-        |--------------------------------------------------------------------------
-        */
         $job = CronJob::where('key', $this->signature)->first();
-
-        if (!$job || !$job->is_active) {
+        if (! $job || ! $job->is_active) {
             $this->info('Cron inactive or not found');
             return self::SUCCESS;
         }
@@ -48,101 +42,74 @@ class UpdateExpiredCustomers extends Command
         ];
 
         try {
-
             Customer::whereNotNull('expire_date')
                 ->chunkById(200, function ($customers) use ($mikrotik, $radius, &$stats) {
-
                     foreach ($customers as $customer) {
+                        $stats['processed']++;
+
+                        $lockKey = "customer_update_{$customer->id}";
+                        if (! cache()->add($lockKey, true, 10)) {
+                            Log::debug("Skipped customer [{$customer->id}] – already locked");
+                            continue;
+                        }
 
                         try {
-
-                            $stats['processed']++;
-
-                            $oldStatus = $customer->status;
+                            // ✅ Use the raw stored status to avoid any accessor interference
+                            $oldStatus = $customer->getRawOriginal('status');
                             $newStatus = $customer->calculateStatus();
 
-                            /*
-                            |--------------------------------------------------------------------------
-                            | SKIP IF NO CHANGE
-                            |--------------------------------------------------------------------------
-                            */
+                            Log::debug('Customer status calculation', [
+                                'id'          => $customer->id,
+                                'username'    => $customer->username,
+                                'expire_date' => $customer->expire_date?->toDateTimeString(),
+                                'stored_status' => $oldStatus,
+                                'new_status'  => $newStatus,
+                            ]);
+
+                            // No change needed?
                             if ($oldStatus === $newStatus) {
+                                cache()->forget($lockKey);
                                 continue;
                             }
 
-                            /*
-                            |--------------------------------------------------------------------------
-                            | COUNT STATUS
-                            |--------------------------------------------------------------------------
-                            */
+                            // Update the stored status in the database
+                            DB::transaction(function () use ($customer, $newStatus) {
+                                $customer->update(['status' => $newStatus]);
+                            });
+
+                            // Refresh to get the updated model
+                            $customer->refresh();
+
+                            // Apply external actions based on the new status
+                            $this->applyExternalActions($customer, $newStatus, $mikrotik, $radius);
+
+                            $stats['updated']++;
                             match ($newStatus) {
                                 'active'  => $stats['active']++,
                                 'grace'   => $stats['grace']++,
                                 'expired' => $stats['expired']++,
                             };
 
-                            /*
-                            |--------------------------------------------------------------------------
-                            | UPDATE STATUS FIRST
-                            |--------------------------------------------------------------------------
-                            */
-                            DB::transaction(function () use ($customer, $newStatus, &$stats) {
-                                $customer->update([
-                                    'status' => $newStatus,
-                                ]);
-
-                                $stats['updated']++;
-                            });
-
-                            $customer->refresh();
-
-                            /*
-                            |--------------------------------------------------------------------------
-                            | ACTIVE
-                            |--------------------------------------------------------------------------
-                            */
-                            if ($newStatus === 'active') {
-                                $radius->enableCustomer($customer);
-
-                                Log::info('Customer activated', [
-                                    'id' => $customer->id,
-                                ]);
-                            }
-
-                            /*
-                            |--------------------------------------------------------------------------
-                            | GRACE
-                            |--------------------------------------------------------------------------
-                            */
-                            if ($newStatus === 'grace') {
-                                Log::info('Customer in grace period', [
-                                    'id' => $customer->id,
-                                ]);
-                            }
-
-                            /*
-                            |--------------------------------------------------------------------------
-                            | EXPIRED
-                            |--------------------------------------------------------------------------
-                            */
-                            if ($newStatus === 'expired') {
-                                $this->handleExpiredCustomer($customer, $mikrotik, $radius);
-                            }
+                            Log::info('Customer status changed', [
+                                'id'     => $customer->id,
+                                'from'   => $oldStatus,
+                                'to'     => $newStatus,
+                            ]);
 
                         } catch (\Throwable $e) {
-
                             $stats['failed']++;
-
                             Log::error('Customer update failed', [
                                 'id'    => $customer->id,
                                 'error' => $e->getMessage(),
+                                'trace' => $e->getTraceAsString(),
                             ]);
+                        } finally {
+                            cache()->forget($lockKey);
                         }
                     }
                 });
 
             $duration = round(microtime(true) - $startedAt, 2);
-
             $message = "Processed: {$stats['processed']} | Updated: {$stats['updated']} | Active: {$stats['active']} | Grace: {$stats['grace']} | Expired: {$stats['expired']} | Failed: {$stats['failed']} | Duration: {$duration}s";
 
             CronLog::create([
@@ -152,45 +119,50 @@ class UpdateExpiredCustomers extends Command
             ]);
 
             Log::info('Cron finished', $stats);
-
             $this->info($message);
 
         } catch (\Throwable $e) {
-
             CronLog::create([
                 'command' => $this->signature,
                 'status'  => 'failed',
                 'message' => $e->getMessage(),
             ]);
 
-            Log::error('Cron crashed', [
-                'error' => $e->getMessage(),
-            ]);
-
+            Log::error('Cron crashed', ['error' => $e->getMessage()]);
             return self::FAILURE;
         }
 
         return self::SUCCESS;
     }
 
-    /*
-    |--------------------------------------------------------------------------
-    | HANDLE EXPIRED CUSTOMER
-    |--------------------------------------------------------------------------
-    */
-    private function handleExpiredCustomer($customer, $mikrotik, $radius): void
+    private function applyExternalActions(
+        Customer $customer,
+        string $newStatus,
+        MikrotikService $mikrotik,
+        RadiusService $radius
+    ): void {
+        switch ($newStatus) {
+            case 'active':
+                $radius->enableCustomer($customer);
+                break;
+            case 'grace':
+                // No external action needed
+                break;
+            case 'expired':
+                $this->handleExpiredCustomer($customer, $mikrotik, $radius);
+                break;
+            default:
+                throw new \InvalidArgumentException("Unknown status: {$newStatus}");
+        }
+    }
+
+    private function handleExpiredCustomer(Customer $customer, MikrotikService $mikrotik, RadiusService $radius): void
     {
         $username = $customer->username;
-
-        if (!$username) {
+        if (empty($username)) {
             return;
         }
 
-        /*
-        |--------------------------------------------------------------------------
-        | 1. DISCONNECT FROM MIKROTIK
-        |--------------------------------------------------------------------------
-        */
         try {
             $mikrotik->disconnectPPPoE($username);
         } catch (\Throwable $e) {
@@ -200,11 +172,6 @@ class UpdateExpiredCustomers extends Command
             ]);
         }
 
-        /*
-        |--------------------------------------------------------------------------
-        | 2. CLOSE RADIUS SESSION
-        |--------------------------------------------------------------------------
-        */
         try {
             DB::table('radacct')
                 ->where('username', $username)
@@ -220,15 +187,10 @@ class UpdateExpiredCustomers extends Command
             ]);
         }
 
-        /*
-        |--------------------------------------------------------------------------
-        | 3. DISABLE LOGIN (RADIUS)
-        |--------------------------------------------------------------------------
-        */
         try {
             $radius->removeCustomer($customer);
         } catch (\Throwable $e) {
-            Log::error('radius disable failed', [
+            Log::error('Radius remove failed', [
                 'username' => $username,
                 'error'    => $e->getMessage(),
             ]);
