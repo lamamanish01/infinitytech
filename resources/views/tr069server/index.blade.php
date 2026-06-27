@@ -48,56 +48,58 @@
                         </div>
                     </div>
 
-                    <table class="table table-bordered table-striped">
-                        <thead>
-                            <tr>
-                                <th>ID</th>
-                                <th>Name</th>
-                                <th>ACS URL</th>
-                                <th>Status</th>
-                                <th>Devices</th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @forelse($tr069Servers as $server)
-                            <tr>
-                                <td>{{ $server->id }}</td>
-                                <td>{{ $server->name }}</td>
-                                <td>{{ $server->acs_url }}</td>
-                                <td>
-                                    <span class="badge {{ $server->status == 'active' ? 'bg-success' : 'bg-danger' }}">
-                                        {{ ucfirst($server->status) }}
-                                    </span>
-                                </td>
-                                <td>{{ $server->devices_count }}</td>
-                                <td>
-                                    <a href="{{ route('tr069server.show', $server) }}" class="btn btn-sm btn-info">
-                                        <i class="fas fa-eye"></i>
-                                    </a>
-                                    @can('edit acsserver')
-                                    <a href="{{ route('tr069server.edit', $server) }}" class="btn btn-sm btn-warning">
-                                        <i class="fas fa-edit"></i>
-                                    </a>
-                                    @endcan
-                                    @can('delete acsserver')
-                                    <form action="{{ route('tr069server.destroy', $server->id) }}" method="POST" class="d-inline">
-                                        @csrf
-                                        @method('DELETE')
-                                        <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Delete this server?')">
-                                            <i class="fas fa-trash"></i>
-                                        </button>
-                                    </form>
-                                    @endcan
-                                </td>
-                            </tr>
-                            @empty
-                            <tr>
-                                <td colspan="6" class="text-center">No TR-069 servers found.</td>
-                            </tr>
-                            @endforelse
-                        </tbody>
-                    </table>
+                    <div class="table-responsive">
+                        <table class="table table-bordered table-striped">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Name</th>
+                                    <th>ACS URL</th>
+                                    <th>Status</th>
+                                    <th>Devices</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @forelse($tr069Servers as $server)
+                                <tr>
+                                    <td>{{ $server->id }}</td>
+                                    <td>{{ $server->name }}</td>
+                                    <td>{{ $server->acs_url }}</td>
+                                    <td>
+                                        <span class="badge {{ $server->status == 'active' ? 'bg-success' : 'bg-danger' }}">
+                                            {{ ucfirst($server->status) }}
+                                        </span>
+                                    </td>
+                                    <td>{{ $server->devices_count }}</td>
+                                    <td>
+                                        <a href="{{ route('tr069server.show', $server) }}" class="btn btn-sm btn-info">
+                                            <i class="fas fa-eye"></i>
+                                        </a>
+                                        @can('edit acsserver')
+                                        <a href="{{ route('tr069server.edit', $server) }}" class="btn btn-sm btn-warning">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
+                                        @endcan
+                                        @can('delete acsserver')
+                                        <form action="{{ route('tr069server.destroy', $server->id) }}" method="POST" class="d-inline">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Delete this server?')">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </form>
+                                        @endcan
+                                    </td>
+                                </tr>
+                                @empty
+                                <tr>
+                                    <td colspan="6" class="text-center">No TR-069 servers found.</td>
+                                </tr>
+                                @endforelse
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
         </div>
