@@ -14,6 +14,7 @@ use Maatwebsite\Excel\Concerns\SkipsOnFailure;
 use Maatwebsite\Excel\Concerns\SkipsFailures;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Log;
+use PhpOffice\PhpSpreadsheet\Shared\Date as ExcelDate;
 
 class CustomersImport implements ToModel, WithHeadingRow, WithValidation, SkipsOnFailure
 {
@@ -31,20 +32,25 @@ class CustomersImport implements ToModel, WithHeadingRow, WithValidation, SkipsO
 
     public function model(array $row)
     {
-        // Skip duplicate username
-        if (Customer::where('username', $row['username'])->exists()) {
+        // Trim all strings
+        $row = array_map(function ($value) {
+            return is_string($value) ? trim($value) : $value;
+        }, $row);
+
+        $username = $row['username'] ?? '';
+
+        // 1. Duplicate check
+        if (Customer::where('username', $username)->exists()) {
             $this->skippedCount++;
-            $this->errors[] = "Username '{$row['username']}' already exists – skipped.";
+            $this->errors[] = "Username '{$username}' already exists – skipped.";
             return null;
         }
 
-        // Lookup internet plan ID - ROBUST VERSION
+        // 2. Internet Plan Lookup
         $planId = null;
         $rateLimit = null;
         if (!empty($row['internet_plan'])) {
-            $searchTerm = trim($row['internet_plan']);
-            Log::info("Looking for internet plan: '{$searchTerm}'");
-
+            $searchTerm = $row['internet_plan'];
             $plan = InternetPlan::where('rate_limit', $searchTerm)->first()
                 ?? InternetPlan::whereRaw('LOWER(rate_limit) = ?', [strtolower($searchTerm)])->first()
                 ?? InternetPlan::where('name', $searchTerm)->first()
@@ -53,18 +59,15 @@ class CustomersImport implements ToModel, WithHeadingRow, WithValidation, SkipsO
 
             if ($plan) {
                 $planId = $plan->id;
-                $rateLimit = $plan->rate_limit; // store for RADIUS reply
-                Log::info("Found plan: ID {$planId}, Name: {$plan->name}, Rate: {$plan->rate_limit}");
+                $rateLimit = $plan->rate_limit;
             } else {
                 $this->skippedCount++;
-                $availablePlans = InternetPlan::select('id', 'name', 'rate_limit')->get()->toArray();
-                $this->errors[] = "Internet plan '{$searchTerm}' not found. Available plans: " . json_encode($availablePlans);
-                Log::warning("Plan not found: '{$searchTerm}'");
+                $this->errors[] = "Internet plan '{$searchTerm}' not found.";
                 return null;
             }
         }
 
-        // Lookup branch ID by name
+        // 3. Branch Lookup
         $branchId = null;
         if (!empty($row['branch'])) {
             $branch = Branch::where('name', $row['branch'])->first();
@@ -72,22 +75,26 @@ class CustomersImport implements ToModel, WithHeadingRow, WithValidation, SkipsO
                 $branchId = $branch->id;
             } else {
                 $this->skippedCount++;
-                $this->errors[] = "Branch '{$row['branch']}' not found – row skipped.";
+                $this->errors[] = "Branch '{$row['branch']}' not found.";
                 return null;
             }
         }
 
-        // Create customer (without saving yet)
+        // 4. Parse Dates (Now validation won't block this!)
+        $expireDate = $this->parseDate($row['expire_date'] ?? null);
+        $registeredAt = $this->parseDate($row['registered_at'] ?? null) ?? now();
+
+        // 5. Create and Save Customer
         $customer = new Customer([
-            'name'             => $row['name'],
-            'username'         => $row['username'],
-            'password'         => $row['password'], // will be hashed by mutator
+            'name'             => $row['name'] ?? '',
+            'username'         => $username,
+            'password'         => $row['password'] ?? '',
             'email'            => $row['email'] ?? null,
             'contact_number'   => $row['contact_number'] ?? null,
             'address'          => $row['address'] ?? null,
             'mac_address'      => $row['mac_address'] ?? null,
-            'expire_date'      => isset($row['expire_date']) ? Carbon::parse($row['expire_date']) : null,
-            'registered_at'    => isset($row['registered_at']) ? Carbon::parse($row['registered_at']) : now(),
+            'expire_date'      => $expireDate,
+            'registered_at'    => $registeredAt,
             'status'           => $row['status'] ?? 'active',
             'remarks'          => $row['remarks'] ?? null,
             'internet_plan_id' => $planId,
@@ -95,66 +102,72 @@ class CustomersImport implements ToModel, WithHeadingRow, WithValidation, SkipsO
             'user_id'          => $this->userId,
         ]);
 
-        // Save customer to database
         $customer->save();
 
-        // After saving, create RADIUS records
+        // 6. RADIUS Records
         $this->createRadiusRecords($customer, $row['password'], $rateLimit);
 
         $this->importedCount++;
         return $customer;
     }
 
-    /**
-     * Create RADIUS radcheck and radreply entries for the customer.
-     *
-     * @param Customer $customer
-     * @param string $plainPassword
-     * @param string|null $rateLimit
-     */
+    protected function parseDate($value)
+    {
+        if (empty($value)) return null;
+
+        // Excel serial number (e.g., 46200 for 2026-06-22)
+        if (is_numeric($value) && $value > 0 && $value < 50000) {
+            return Carbon::instance(ExcelDate::excelToDateTimeObject($value));
+        }
+
+        if (is_string($value)) {
+            // DD/MM/YYYY
+            if (preg_match('/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/', $value, $matches)) {
+                return Carbon::createFromFormat('d/m/Y', $value);
+            }
+            // YYYY-MM-DD
+            if (preg_match('/^(\d{4})-(\d{2})-(\d{2})$/', $value, $matches)) {
+                return Carbon::createFromFormat('Y-m-d', $value);
+            }
+            try {
+                return Carbon::parse($value);
+            } catch (\Exception $e) {
+                Log::warning("Could not parse date: '{$value}'");
+                return null;
+            }
+        }
+
+        return null;
+    }
+
     protected function createRadiusRecords($customer, $plainPassword, $rateLimit)
     {
         try {
-            // 1. Add radcheck: Cleartext-Password (or Encrypted-Password depending on your RADIUS setup)
             RadCheck::updateOrCreate(
                 ['username' => $customer->username, 'attribute' => 'Cleartext-Password'],
-                [
-                    'op'    => ':=',
-                    'value' => $plainPassword
-                ]
+                ['op' => ':=', 'value' => $plainPassword]
             );
 
             RadReply::updateOrCreate(
-                    [
-                        'username'  => $customer->username,
-                        'attribute' => 'Framed-Pool',
-                    ],
-                    [
-                        'op'    => ':=',
-                        'value' => 'PPPoE-Pool',
-                    ]
-                );
+                ['username' => $customer->username, 'attribute' => 'Framed-Pool'],
+                ['op' => ':=', 'value' => 'PPPoE-Pool']
+            );
 
-            // 2. Add radreply: Mikrotik-Rate-Limit (or other vendor-specific attribute)
             if ($rateLimit) {
                 RadReply::updateOrCreate(
                     ['username' => $customer->username, 'attribute' => 'Mikrotik-Rate-Limit'],
-                    [
-                        'op'    => ':=',
-                        'value' => $rateLimit
-                    ]
+                    ['op' => ':=', 'value' => $rateLimit]
                 );
             }
-
-
-            Log::info("RADIUS records created for username: {$customer->username}");
         } catch (\Exception $e) {
-            Log::error("Failed to create RADIUS records for {$customer->username}: " . $e->getMessage());
-            // Optionally add to errors array
-            $this->errors[] = "RADIUS setup failed for {$customer->username}: " . $e->getMessage();
+            Log::error("RADIUS failed for {$customer->username}: " . $e->getMessage());
+            $this->errors[] = "RADIUS failed for {$customer->username}.";
         }
     }
 
+    /**
+     * FIXED: Removed 'date' rule so Excel serials and DD/MM/YYYY pass through.
+     */
     public function rules(): array
     {
         return [
@@ -163,8 +176,8 @@ class CustomersImport implements ToModel, WithHeadingRow, WithValidation, SkipsO
             '*.password' => 'required|string|min:4',
             '*.email'    => 'nullable|email',
             '*.status'   => 'nullable|in:active,grace,expired,suspended,discontinued',
-            '*.expire_date' => 'nullable|date',
-            '*.registered_at' => 'nullable|date',
+            '*.expire_date'    => 'nullable', // Changed from 'date'
+            '*.registered_at'  => 'nullable', // Changed from 'date'
         ];
     }
 
