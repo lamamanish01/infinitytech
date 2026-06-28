@@ -63,12 +63,6 @@
                     </div>
 
         </div>
-
-    </div>
-
-    {{-- PAGINATION --}}
-    <div class="mt-3 d-flex justify-content-end">
-        {{ $authLogs->links() }}
     </div>
 
 </div>
