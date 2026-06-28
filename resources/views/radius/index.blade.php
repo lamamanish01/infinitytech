@@ -27,42 +27,55 @@
 
             <div class="table-responsive">
 
-                        <table class="table table-bordered table-sm">
+                <table class="table table-bordered table-sm">
 
-                            <thead>
-                                <tr>
-                                    <th>#</th>
-                                    <th>User</th>
-                                    <th>Pass</th>
-                                    <th>Reply</th>
-                                    <th>Date</th>
-                                </tr>
-                            </thead>
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>User</th>
+                            <th>Pass</th>
+                            <th>Reply</th>
+                            <th>Date</th>
+                        </tr>
+                    </thead>
 
-                            <tbody>
+                    <tbody>
 
-                                @foreach($authLogs as $log)
+                        @foreach($authLogs as $log)
 
-                                    <tr>
-                                        <td>{{ $loop->iteration }}</td>
-                                        <td>{{ $log->username }}</td>
-                                        <td>{{ $log->pass }}</td>
-                                        <td>{{ $log->reply }}</td>
-                                        <td>{{ optional($log->authdate)->toDateTimeString() }}</td>
-                                    </tr>
+                            {{-- Conditional row background based on reply --}}
+                            @php
+                                $rowClass = '';
+                                if ($log->reply == 'Access-Accept') {
+                                    $rowClass = 'table-success'; // light green
+                                } elseif ($log->reply == 'Access-Reject') {
+                                    $rowClass = 'table-danger';  // light red
+                                }
+                            @endphp
 
-                                @endforeach
+                            <tr class="{{ $rowClass }}">
+                                <td>{{ $loop->iteration }}</td>
+                                <td>{{ $log->username }}</td>
+                                <td>{{ $log->pass }}</td>
+                                <td>{{ $log->reply }}</td>
+                                <td>{{ optional($log->authdate)->toDateTimeString() }}</td>
+                            </tr>
 
-                            </tbody>
+                        @endforeach
 
-                        </table>
-                            <div class="mt-3">
-                                {{ $authLogs->links() }}
-                            </div>
+                    </tbody>
 
-                    </div>
+                </table>
+
+                {{-- PAGINATION --}}
+                <div class="mt-3">
+                    {{ $authLogs->links() }}
+                </div>
+
+            </div>
 
         </div>
+
     </div>
 
 </div>
