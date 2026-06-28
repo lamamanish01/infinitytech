@@ -130,6 +130,14 @@
         "parent_id": 5,
         "order": 2,
         "role": "view mikrotik"
+      },
+      {
+        "title": "Connection Logs",
+        "url": "/radius",
+        "icon": null,
+        "parent_id": 5,
+        "order": 3,
+        "role": "view connection log"
       }
     ]
   },

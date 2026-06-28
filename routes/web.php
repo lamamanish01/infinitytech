@@ -12,6 +12,7 @@ use App\Http\Controllers\MenuController;
 use App\Http\Controllers\MikrotikController;
 use App\Http\Controllers\NasController;
 use App\Http\Controllers\PermissionController;
+use App\Http\Controllers\RadiusController;
 use App\Http\Controllers\RechargeController;
 use App\Http\Controllers\RoleController;
 use App\Http\Controllers\SearchController;
@@ -173,4 +174,6 @@ Route::middleware('auth')->group(function () {
         ->name('activity.read');
     Route::get('/activities/mark-all-read', [ActivityLogController::class, 'markAllRead'])
         ->name('activities.markAllRead');
+
+    Route::resource('radius', RadiusController::class);
 });

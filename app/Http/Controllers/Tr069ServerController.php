@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Requests\StoreTr069ServerRequest;
 use App\Http\Requests\UpdateTr069ServerRequest;
 use App\Models\Tr069Server;
+use Illuminate\Http\Request;
 
 class Tr069ServerController extends Controller
 {
@@ -66,11 +67,39 @@ class Tr069ServerController extends Controller
     /**
      * Display the specified server with its devices.
      */
-    public function show($id)
+    public function show(Request $request, $id)
     {
-        $tr069Server = Tr069Server::findOrFail($id);
-        $devices = $tr069Server->devices()->paginate(10);
+        $tr069Server = Tr069Server::withCount([
+            'devices', // total count
+            'devices as online_count' => function ($query) {
+                $query->where('status', 'online');
+            },
+            'devices as offline_count' => function ($query) {
+                $query->where('status', 'offline');
+            },
+        ])->findOrFail($id);
 
+        // 2. Get the search term from the request
+        $search = $request->input('search');
+
+        // 3. Build the device query with search filter (across ALL pages)
+        $devices = $tr069Server->devices()
+            ->when($search, function ($query, $search) {
+                return $query->where(function ($q) use ($search) {
+                    $q->where('serial', 'like', "%{$search}%")
+                      ->orWhere('ppp_username', 'like', "%{$search}%")
+                      ->orWhere('manufacturer', 'like', "%{$search}%")
+                      ->orWhere('product_class', 'like', "%{$search}%")
+                      ->orWhere('oui', 'like', "%{$search}%")
+                      ->orWhere('mac_address', 'like', "%{$search}%")
+                      ->orWhere('router_mac', 'like', "%{$search}%")
+                      ->orWhere('ip_address', 'like', "%{$search}%");
+                });
+            })
+            ->paginate(15) // 15 per page
+            ->appends(['search' => $search]); // Preserve search term in pagination links
+
+        // 4. Pass both variables to the view
         return view('tr069server.show', compact('tr069Server', 'devices'));
     }
 

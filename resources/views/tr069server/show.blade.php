@@ -20,19 +20,13 @@
         </a>
     </div>
 
-    @php
-        $totalDevices = $tr069Server->devices->count();
-        $onlineDevices = $tr069Server->devices->where('status', 'online')->count();
-        $offlineDevices = $tr069Server->devices->where('status', 'offline')->count();
-    @endphp
-
-    {{-- SUMMARY CARDS --}}
+    {{-- SUMMARY CARDS (using pre-computed counts) --}}
     <div class="row mb-3">
 
         <div class="col-md-3">
             <div class="card border-primary shadow-sm">
                 <div class="card-body text-center">
-                    <h5>{{ $totalDevices }}</h5>
+                    <h5>{{ $tr069Server->devices_count ?? 0 }}</h5>
                     <small>Total Devices</small>
                 </div>
             </div>
@@ -41,7 +35,7 @@
         <div class="col-md-3">
             <div class="card border-success shadow-sm">
                 <div class="card-body text-center">
-                    <h5>{{ $onlineDevices }}</h5>
+                    <h5>{{ $tr069Server->online_count ?? 0 }}</h5>
                     <small>Online Devices</small>
                 </div>
             </div>
@@ -50,7 +44,7 @@
         <div class="col-md-3">
             <div class="card border-danger shadow-sm">
                 <div class="card-body text-center">
-                    <h5>{{ $offlineDevices }}</h5>
+                    <h5>{{ $tr069Server->offline_count ?? 0 }}</h5>
                     <small>Offline Devices</small>
                 </div>
             </div>
@@ -112,20 +106,20 @@
 
                         <tr>
                             <th>Total Devices</th>
-                            <td>{{ $totalDevices }}</td>
+                            <td>{{ $tr069Server->devices_count ?? 0 }}</td>
                         </tr>
 
                         <tr>
                             <th>Online</th>
                             <td class="text-success">
-                                {{ $onlineDevices }}
+                                {{ $tr069Server->online_count ?? 0 }}
                             </td>
                         </tr>
 
                         <tr>
                             <th>Offline</th>
                             <td class="text-danger">
-                                {{ $offlineDevices }}
+                                {{ $tr069Server->offline_count ?? 0 }}
                             </td>
                         </tr>
 
@@ -137,19 +131,43 @@
 
         </div>
 
-        {{-- DEVICE LIST (PAGINATED) --}}
+        {{-- DEVICE LIST (PAGINATED & SEARCHABLE) --}}
         <div class="col-md-8">
 
             <div class="card shadow-sm">
 
-                <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                {{-- CARD HEADER WITH SEARCH FORM --}}
+                <div class="card-header bg-white d-flex justify-content-between align-items-center flex-wrap gap-2">
 
                     <strong>Connected Devices</strong>
 
-                    <input type="text"
-                           class="form-control form-control-sm w-25"
-                           id="deviceSearch"
-                           placeholder="Search... (current page only)">
+                    <form method="GET"
+                          action="{{ route('tr069server.show', $tr069Server->id) }}"
+                          class="d-flex gap-2"
+                          id="searchForm">
+
+                        <input type="text"
+                               name="search"
+                               class="form-control form-control-sm"
+                               style="min-width: 200px;"
+                               placeholder="Search all devices..."
+                               value="{{ request('search') }}"
+                               id="deviceSearchInput">
+
+                        {{-- Search button --}}
+                        <button type="submit" class="btn btn-primary btn-sm py-0 px-2" style="font-size: 0.5rem;">
+                            <i class="fas fa-search"></i> Search
+                        </button>
+
+                        {{-- Clear button --}}
+                        @if(request('search'))
+                            <a href="{{ route('tr069server.show', $tr069Server->id) }}"
+                            class="btn btn-secondary btn-sm py-0 px-2" style="font-size: 0.5rem;">
+                                <i class="fas fa-times"></i> Clear
+                            </a>
+                        @endif
+
+                    </form>
 
                 </div>
 
@@ -210,7 +228,11 @@
 
                                     <tr>
                                         <td colspan="10" class="text-center py-4">
-                                            No devices found.
+                                            @if(request('search'))
+                                                No devices found matching "<strong>{{ request('search') }}</strong>".
+                                            @else
+                                                No devices found.
+                                            @endif
                                         </td>
                                     </tr>
 
@@ -222,7 +244,7 @@
 
                     </div>
 
-                    {{-- PAGINATION LINKS --}}
+                    {{-- PAGINATION LINKS (preserves search term) --}}
                     <div class="mt-3 px-3 pb-3">
                         {{ $devices->links() }}
                     </div>
@@ -238,13 +260,17 @@
 </div>
 
 <script>
-    // Client‑side search (works only on the currently visible page)
-    document.getElementById('deviceSearch').addEventListener('keyup', function() {
-        let value = this.value.toLowerCase();
-        document.querySelectorAll('#deviceTable tbody tr').forEach(row => {
-            row.style.display = row.innerText.toLowerCase().includes(value) ? '' : 'none';
+    let searchTimeout;
+    const searchInput = document.getElementById('deviceSearchInput');
+
+    if (searchInput) {
+        searchInput.addEventListener('keyup', function() {
+            clearTimeout(searchTimeout);
+            searchTimeout = setTimeout(() => {
+                document.getElementById('searchForm').submit();
+            }, 500);
         });
-    });
+    }
 </script>
 
 @endsection
