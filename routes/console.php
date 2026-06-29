@@ -10,5 +10,6 @@ Artisan::command('inspire', function () {
 
 Schedule::command('cron:run-dynamic')
     ->everyMinute()
+    ->timezone('Asia/Kathmandu')
     ->withoutOverlapping();
 
