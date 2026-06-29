@@ -8,7 +8,7 @@ class RadiusController extends Controller
 {
     public function index()
     {
-        $authLogs = RadPostAuth::paginate(15);
+        $authLogs = RadPostAuth::orderBy('authdate', 'desc')->paginate(15);
         return view('radius.index', compact('authLogs'));
     }
 }
