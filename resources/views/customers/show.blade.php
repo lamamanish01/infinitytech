@@ -216,7 +216,11 @@
                                 <tbody>
                                     <tr>
                                         <td>{{ $customer->active->ip_address }}</td>
-                                        <td>{{ $customer->active->start_time }}</td>
+                                        <td>
+                                            {{ \Carbon\Carbon::parse($customer->active->start_time)
+                                                ->timezone('Asia/Kathmandu')
+                                                ->format('Y-m-d H:i:s') }}
+                                        </td>
                                         <td>
                                             @if($lastSession && $lastSession->acctstoptime)
                                                 {{ \Carbon\Carbon::parse($lastSession->acctstoptime)->timezone('Asia/Kathmandu')->format('Y-m-d h:i:s') }}
