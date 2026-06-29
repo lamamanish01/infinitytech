@@ -43,7 +43,7 @@
                                     <th>Plan</th>
                                     <th>Name</th>
                                     <th>Contact</th>
-                                    <th>Expire</th>
+                                    <th>Expiry Date</th>
                                     <th>Status</th>
                                     <th width="160">Action</th>
                                 </tr>
@@ -75,13 +75,7 @@
 
                                         <td>{{ $customer->contact_number }}</td>
 
-                                        <td>
-                                            @if($expire)
-                                                <span class="badge bg-danger">{{ $expire->format('Y-m-d') }}</span>
-                                            @else
-                                                <span class="text-muted">N/A</span>
-                                            @endif
-                                        </td>
+                                        <td>{{ $customer->expire_date->timezone('Asia/Kathmandu')->format('Y-m-d') }}</td>
 
                                         <td>
                                             @php

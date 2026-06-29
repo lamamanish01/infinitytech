@@ -219,7 +219,7 @@
                                         <td>{{ $customer->active->start_time }}</td>
                                         <td>
                                             @if($lastSession && $lastSession->acctstoptime)
-                                                {{ \Carbon\Carbon::parse($lastSession->acctstoptime)->format('Y-m-d h:i:s') }}
+                                                {{ \Carbon\Carbon::parse($lastSession->acctstoptime)->timezone('Asia/Kathmandu')->format('Y-m-d h:i:s') }}
                                             @else
                                                 <span class="badge badge-success">
                                                     Never Disconnected

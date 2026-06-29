@@ -99,7 +99,7 @@
                                         </td>
 
                                         <td>
-                                            {{ $log->created_at->format('Y-m-d H:i') }}
+                                            {{ $log->created_at->timezone('Asia/Kathmandu')->format('Y-m-d H:i') }}
                                         </td>
 
                                     </tr>
