@@ -43,6 +43,7 @@
                                     <th>Plan</th>
                                     <th>Name</th>
                                     <th>Contact</th>
+                                    <th>Address</th>
                                     <th>Expiry Date</th>
                                     <th>Status</th>
                                     <th width="160">Action</th>
@@ -64,19 +65,14 @@
                                     <tr>
 
                                         <td>{{ $customers->firstItem() + $loop->index }}</td>
-
                                         <td>
                                             <a href="{{route('customers.show', $customer->id)}}">{{ $customer->username }}</a>
                                         </td>
-
                                         <td>{{ $customer->internetPlan->bandwidth_name ?? 'N/A' }}</td>
-
                                         <td>{{ $customer->name }}</td>
-
                                         <td>{{ $customer->contact_number }}</td>
-
+                                        <td>{{ $customer->address }}</td>
                                         <td>{{ $customer->expire_date->timezone('Asia/Kathmandu')->format('Y-m-d') }}</td>
-
                                         <td>
                                             @php
                                                 $status = $customer->status;

@@ -16,9 +16,10 @@ class SyncOnlineCustomers extends Command
 
     private const CACHE_KEY = 'online_customers';
 
-    // Make threshold configurable via config/cron.php or env
-    private int $onlineThreshold = 15; // minutes
-    private string $timezone = 'Asia/Kathmandu';
+    /**
+     * Users active within this many minutes are considered online.
+     */
+    private int $onlineThreshold = 15;
 
     public function handle(): int
     {
@@ -36,19 +37,16 @@ class SyncOnlineCustomers extends Command
 
         try {
             $cutoff = $this->getCutoffTime();
-
             $onlineUsers = $this->getOnlineUsers($cutoff);
-
             $count = count($onlineUsers);
 
             $this->storeCache($onlineUsers);
-
             $this->logIfChanged($count);
 
             CronLog::create([
                 'command' => $this->signature,
                 'status'  => 'success',
-                'message' => "Online snapshot: {$count} users (TZ: {$this->timezone})",
+                'message' => "Online snapshot: {$count} users",
             ]);
 
             $this->info("✔ Online snapshot synced: {$count} users");
@@ -69,37 +67,35 @@ class SyncOnlineCustomers extends Command
     }
 
     /**
-     * Cutoff time using Asia/Kathmandu → converted to UTC for DB
+     * Cutoff time in the same timezone as the database.
+     * (Assumes app timezone === DB timezone, both UTC ideally.)
      */
     private function getCutoffTime()
     {
-        return now($this->timezone)
-            ->subMinutes($this->onlineThreshold)
-            ->utc();
+        return now()->subMinutes($this->onlineThreshold);
     }
 
     /**
-     * Fetch online users efficiently.
-     * - Uses a union approach to avoid OR with null checks (better index usage).
-     * - Still applies DISTINCT to get unique usernames.
+     * Fetch online users with a UNION query for performance.
+     *
+     * Recommended indexes:
+     *   ALTER TABLE radacct ADD INDEX idx_active_updatetime (acctstoptime, acctupdatetime);
+     *   ALTER TABLE radacct ADD INDEX idx_active_starttime (acctstoptime, acctstarttime);
      */
     private function getOnlineUsers($cutoff): array
     {
-        // First subquery: sessions with acctupdatetime >= cutoff
         $sub1 = DB::table('radacct')
             ->whereNull('acctstoptime')
             ->whereNotNull('acctupdatetime')
             ->where('acctupdatetime', '>=', $cutoff)
             ->select('username');
 
-        // Second subquery: sessions with null acctupdatetime but acctstarttime >= cutoff
         $sub2 = DB::table('radacct')
             ->whereNull('acctstoptime')
             ->whereNull('acctupdatetime')
             ->where('acctstarttime', '>=', $cutoff)
             ->select('username');
 
-        // Union them, then get distinct usernames
         return $sub1->union($sub2)
             ->distinct()
             ->pluck('username')
@@ -107,17 +103,15 @@ class SyncOnlineCustomers extends Command
     }
 
     /**
-     * Cache online snapshot with a TTL long enough to serve between cron runs.
-     * The TTL should be at least the cron interval; we set it to 5 minutes.
+     * Cache the snapshot with a TTL longer than the cron interval.
      */
     private function storeCache(array $users): void
     {
-        // Use a TTL that is longer than the typical cron interval (e.g., 5 minutes)
         Cache::put(self::CACHE_KEY, $users, now()->addMinutes(5));
     }
 
     /**
-     * Log changes only, with more detailed diff information.
+     * Log changes only when the count differs.
      */
     private function logIfChanged(int $count): void
     {
@@ -133,9 +127,8 @@ class SyncOnlineCustomers extends Command
             Log::info('Online customers changed', [
                 'previous' => $previous,
                 'current'  => $count,
-                'added'    => array_slice($added, 0, 10),  // limit to avoid huge logs
+                'added'    => array_slice($added, 0, 10),
                 'removed'  => array_slice($removed, 0, 10),
-                'timezone' => $this->timezone,
             ]);
 
             Cache::put(self::CACHE_KEY . '_previous_count', $count, now()->addDay());
