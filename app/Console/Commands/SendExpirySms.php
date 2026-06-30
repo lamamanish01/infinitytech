@@ -42,7 +42,7 @@ class SendExpirySms extends Command
 
             SmsQueue::create([
                 'username' => $customer->username,
-                'mobile'   => $customer->mobile,
+                'mobile'   => $customer->contact_number,
                 'message'  => $message,
                 'type'     => 'expiry_reminder',
                 'status'   => SmsQueue::STATUS_PENDING,
