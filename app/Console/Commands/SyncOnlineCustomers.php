@@ -16,6 +16,7 @@ class SyncOnlineCustomers extends Command
 
     private const CACHE_KEY = 'online_customers';
 
+    // Make threshold configurable via config/cron.php or env
     private int $onlineThreshold = 15; // minutes
     private string $timezone = 'Asia/Kathmandu';
 
@@ -55,7 +56,6 @@ class SyncOnlineCustomers extends Command
             return self::SUCCESS;
 
         } catch (\Throwable $e) {
-
             CronLog::create([
                 'command' => $this->signature,
                 'status'  => 'failed',
@@ -79,52 +79,67 @@ class SyncOnlineCustomers extends Command
     }
 
     /**
-     * Fetch online users
+     * Fetch online users efficiently.
+     * - Uses a union approach to avoid OR with null checks (better index usage).
+     * - Still applies DISTINCT to get unique usernames.
      */
     private function getOnlineUsers($cutoff): array
     {
-        return DB::table('radacct')
+        // First subquery: sessions with acctupdatetime >= cutoff
+        $sub1 = DB::table('radacct')
             ->whereNull('acctstoptime')
-            ->where(function ($query) use ($cutoff) {
+            ->whereNotNull('acctupdatetime')
+            ->where('acctupdatetime', '>=', $cutoff)
+            ->select('username');
 
-                $query->where(function ($q) use ($cutoff) {
-                    $q->whereNotNull('acctupdatetime')
-                      ->where('acctupdatetime', '>=', $cutoff);
-                })
-                ->orWhere(function ($q) use ($cutoff) {
-                    $q->whereNull('acctupdatetime')
-                      ->where('acctstarttime', '>=', $cutoff);
-                });
+        // Second subquery: sessions with null acctupdatetime but acctstarttime >= cutoff
+        $sub2 = DB::table('radacct')
+            ->whereNull('acctstoptime')
+            ->whereNull('acctupdatetime')
+            ->where('acctstarttime', '>=', $cutoff)
+            ->select('username');
 
-            })
+        // Union them, then get distinct usernames
+        return $sub1->union($sub2)
             ->distinct()
             ->pluck('username')
             ->toArray();
     }
 
     /**
-     * Cache online snapshot
+     * Cache online snapshot with a TTL long enough to serve between cron runs.
+     * The TTL should be at least the cron interval; we set it to 5 minutes.
      */
     private function storeCache(array $users): void
     {
-        Cache::put(self::CACHE_KEY, $users, now()->addMinutes(2));
+        // Use a TTL that is longer than the typical cron interval (e.g., 5 minutes)
+        Cache::put(self::CACHE_KEY, $users, now()->addMinutes(5));
     }
 
     /**
-     * Log changes only
+     * Log changes only, with more detailed diff information.
      */
     private function logIfChanged(int $count): void
     {
         $previous = Cache::get(self::CACHE_KEY . '_previous_count');
 
         if ($previous !== $count) {
+            $currentUsers = Cache::get(self::CACHE_KEY, []);
+            $prevUsers = Cache::get(self::CACHE_KEY . '_previous_users', []);
+
+            $added = array_diff($currentUsers, $prevUsers);
+            $removed = array_diff($prevUsers, $currentUsers);
+
             Log::info('Online customers changed', [
                 'previous' => $previous,
                 'current'  => $count,
+                'added'    => array_slice($added, 0, 10),  // limit to avoid huge logs
+                'removed'  => array_slice($removed, 0, 10),
                 'timezone' => $this->timezone,
             ]);
 
             Cache::put(self::CACHE_KEY . '_previous_count', $count, now()->addDay());
+            Cache::put(self::CACHE_KEY . '_previous_users', $currentUsers, now()->addDay());
         }
     }
 }

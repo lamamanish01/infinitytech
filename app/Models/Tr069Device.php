@@ -108,8 +108,8 @@ class Tr069Device extends Model
     public function changeWiFiPassword(string $password, int $band = 1): bool
     {
         $path = $band == 1
-            ? "InternetGatewayDevice.LANDevice.1.WLANConfiguration.1.KeyPassphrase"
-            : "InternetGatewayDevice.LANDevice.1.WLANConfiguration.5.KeyPassphrase";
+            ? "InternetGatewayDevice.LANDevice.1.WLANConfiguration.1.PreSharedKey.1.PreSharedKey"
+            : "InternetGatewayDevice.LANDevice.1.WLANConfiguration.5.PreSharedKey.1.PreSharedKey";
         return $this->setParameterValues([[$path, $password, 'xsd:string']]);
     }
 
