@@ -2,82 +2,55 @@
 
 namespace App\Console\Commands;
 
-use Illuminate\Console\Command;
 use App\Models\Customer;
 use App\Models\SmsQueue;
-use App\Models\CronLog;
 use App\Models\CronJob;
-use Carbon\Carbon;
+use Illuminate\Console\Command;
 
 class SendExpirySms extends Command
 {
-    protected $signature = 'sms:expiry-reminder';
+    protected $signature = 'sms:send-expiry-sms';
+    protected $description = 'Queue expiry reminder SMS for customers expiring in 3 days';
 
-    protected $description = 'Send SMS to customers whose internet will expire in 3 days';
-
-    public function handle()
+    public function handle(): int
     {
-        $job = CronJob::where('key', $this->signature)->first();
-
-        if (!$job || !$job->is_active) {
-            $this->info('Expiry SMS cron is disabled');
+        $cron = CronJob::where('key', $this->signature)->first();
+        if (!$cron || !$cron->is_active) {
+            $this->warn("Cron job '{$this->signature}' is inactive.");
             return self::SUCCESS;
         }
 
-        try {
+        $threeDaysFromNow = now()->addDays(3)->toDateString();
+        $customers = Customer::whereDate('expiry_date', $threeDaysFromNow)->get();
 
-            $targetDate = Carbon::now()->addDays(3)->toDateString();
+        if ($customers->isEmpty()) {
+            $this->info('No customers expiring in 3 days.');
+            return self::SUCCESS;
+        }
 
-            $customers = Customer::whereDate('expire_date', $targetDate)->get();
+        foreach ($customers as $customer) {
+            $exists = SmsQueue::where('username', $customer->username)
+                ->where('type', 'expiry_reminder')
+                ->where('status', SmsQueue::STATUS_PENDING)
+                ->exists();
 
-            $count = 0;
-
-            foreach ($customers as $customer) {
-
-                // ❌ prevent duplicate SMS in same day
-                $exists = SmsQueue::where('mobile', $customer->contact_number)
-                    ->where('type', 'expiry_reminder')
-                    ->whereDate('created_at', today())
-                    ->exists();
-
-                if ($exists) {
-                    continue;
-                }
-
-                SmsQueue::create([
-                    'username' => $customer->username,
-                    'mobile'   => $customer->contact_number,
-                    'message'  => "Dear {$customer->name}, your internet will expire in 3 days. Please renew to avoid service interruption.",
-                    'type'     => 'expiry_reminder',
-                    'status'   => 'pending',
-                    'retry_count' => 0,
-                    'send_at'  => now(),
-                ]);
-
-                $count++;
+            if ($exists) {
+                continue;
             }
 
-            CronLog::create([
-                'command' => $this->signature,
-                'status'  => 'success',
-                'message' => "Expiry SMS queued for {$count} customers",
+            $message = "Dear {$customer->name}, your subscription expires on {$customer->expiry_date}. Please renew to avoid service interruption.";
+
+            SmsQueue::create([
+                'username' => $customer->username,
+                'mobile'   => $customer->mobile,
+                'message'  => $message,
+                'type'     => 'expiry_reminder',
+                'status'   => SmsQueue::STATUS_PENDING,
+                'send_at'  => now(),
             ]);
-
-            $this->info("✔ {$count} SMS queued");
-
-            return self::SUCCESS;
-
-        } catch (\Throwable $e) {
-
-            CronLog::create([
-                'command' => $this->signature,
-                'status'  => 'failed',
-                'message' => $e->getMessage(),
-            ]);
-
-            $this->error("❌ Failed: " . $e->getMessage());
-
-            return self::FAILURE;
         }
+
+        $this->info("Queued expiry reminders for {$customers->count()} customers.");
+        return self::SUCCESS;
     }
 }

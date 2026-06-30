@@ -6,6 +6,7 @@ use App\Http\Controllers\CronJobController;
 use App\Http\Controllers\CronLogController;
 use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\CustomerImportController;
+use App\Http\Controllers\CustomSmsController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\InternetPlanController;
 use App\Http\Controllers\MenuController;
@@ -137,21 +138,24 @@ Route::middleware('auth')->group(function () {
         ->name('tickets.status');
 
     Route::prefix('sms')->name('sms.')->group(function () {
-        Route::get('/', [SmsGatewayController::class, 'index'])
-            ->name('index');
-        Route::get('/create', [SmsGatewayController::class, 'create'])
-            ->name('create');
-        Route::post('/store', [SmsGatewayController::class, 'store'])
-            ->name('store');
-        Route::post('/send', [SmsGatewayController::class, 'send'])
-            ->name('send');
-        Route::post('/queue', [SmsGatewayController::class, 'queue'])
-            ->name('queue');
-        Route::get('/custom', [SmsGatewayController::class, 'custom'])->name('custom');
-        Route::post('/custom', [SmsGatewayController::class, 'sendCustom'])->name('sendCustom');
-    });
+        // Gateway management
+        Route::get('/', [SmsGatewayController::class, 'index'])->name('index');
+        Route::get('/create', [SmsGatewayController::class, 'create'])->name('create');
+        Route::post('/store', [SmsGatewayController::class, 'store'])->name('store');
+        Route::get('/{id}/edit', [SmsGatewayController::class, 'edit'])->name('edit');
+        Route::put('/{id}', [SmsGatewayController::class, 'update'])->name('update');
+        Route::delete('/{id}', [SmsGatewayController::class, 'destroy'])->name('destroy');
 
-    Route::get('/sms/logs', [SmsGatewayController::class, 'logs'])->name('sms.logs');
+        // Custom SMS (bulk)
+        Route::get('/custom', [CustomSmsController::class, 'create'])->name('custom.create');
+        Route::post('/custom', [CustomSmsController::class, 'store'])->name('custom.store');
+
+        // SMS logs
+        Route::get('/logs', [SmsGatewayController::class, 'logs'])->name('logs');
+
+        // Send a single SMS immediately (optional)
+        Route::post('/send', [SmsGatewayController::class, 'send'])->name('send');
+    });
 
 
     Route::resource('mikrotik', MikrotikController::class);
