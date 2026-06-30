@@ -108,6 +108,15 @@
   },
   {
     "id": 5,
+    "title": "Billings",
+    "url": "",
+    "icon": "fa-file-invoice",
+    "parent_id": null,
+    "order": 4,
+    "role": "view billings"
+  },
+  {
+    "id": 6,
     "title": "System",
     "url": "",
     "icon": "fa-cog",
@@ -119,7 +128,7 @@
         "title": "NAS",
         "url": "/nas",
         "icon": null,
-        "parent_id": 5,
+        "parent_id": 6,
         "order": 1,
         "role": "view nas"
       },
@@ -127,7 +136,7 @@
         "title": "Mikrotik",
         "url": "/mikrotik",
         "icon": null,
-        "parent_id": 5,
+        "parent_id": 6,
         "order": 2,
         "role": "view mikrotik"
       },
@@ -135,26 +144,26 @@
         "title": "Connection Logs",
         "url": "/radius",
         "icon": null,
-        "parent_id": 5,
+        "parent_id": 6,
         "order": 3,
         "role": "view connection log"
       }
     ]
   },
   {
-    "id": 6,
+    "id": 7,
     "title": "Ticket",
     "url": "",
     "icon": "fa-ticket-alt",
     "parent_id": null,
-    "order": 6,
+    "order": 7,
     "role": "view tickets",
     "children": [
       {
         "title": "List of Ticket",
         "url": "/ticket",
         "icon": null,
-        "parent_id": 6,
+        "parent_id": 7,
         "order": 1,
         "role": "view tickets"
       }

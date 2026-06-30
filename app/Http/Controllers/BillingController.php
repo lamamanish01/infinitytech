@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Billing;
 use Illuminate\Http\Request;
 
 class BillingController extends Controller
@@ -9,9 +10,31 @@ class BillingController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        //
+        $query = Billing::with('customer');
+
+        // Search by billing_no, invoice_number, or customer name
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function ($q) use ($search) {
+                $q->where('billing_no', 'LIKE', "%{$search}%")
+                  ->orWhere('invoice_number', 'LIKE', "%{$search}%")
+                  ->orWhereHas('customer', function ($sq) use ($search) {
+                      $sq->where('name', 'LIKE', "%{$search}%");
+                  });
+            });
+        }
+
+        // Filter by status
+        if ($request->filled('status')) {
+            $query->where('status', $request->status);
+        }
+
+        // Order by latest billing date, then paginate
+        $billings = $query->latest('billing_date')->paginate(15);
+
+        return view('billing.index', compact('billings'));
     }
 
     /**

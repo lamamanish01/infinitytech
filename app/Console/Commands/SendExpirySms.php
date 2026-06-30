@@ -21,7 +21,7 @@ class SendExpirySms extends Command
         }
 
         $threeDaysFromNow = now()->addDays(3)->toDateString();
-        $customers = Customer::whereDate('expiry_date', $threeDaysFromNow)->get();
+        $customers = Customer::whereDate('expire_date', $threeDaysFromNow)->get();
 
         if ($customers->isEmpty()) {
             $this->info('No customers expiring in 3 days.');
@@ -38,7 +38,7 @@ class SendExpirySms extends Command
                 continue;
             }
 
-            $message = "Dear {$customer->name}, your subscription expires on {$customer->expiry_date}. Please renew to avoid service interruption.";
+            $message = "Dear {$customer->name}, your subscription expires on {$customer->expire_date}. Please renew to avoid service interruption.";
 
             SmsQueue::create([
                 'username' => $customer->username,

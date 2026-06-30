@@ -1,5 +1,3 @@
-{{-- resources/views/customers/online.blade.php --}}
-
 @extends('layouts.app')
 
 @section('content')
@@ -22,6 +20,47 @@
             </span>
         </div>
 
+    </div>
+
+    {{-- ========== SEARCH FORM (NEW) ========== --}}
+    <div class="card shadow-sm border-0 mb-3">
+        <div class="card-body">
+            <form action="{{ route('customers.online') }}" method="GET" class="row g-3">
+
+                <div class="col-md-4">
+                    <label for="search" class="form-label">Search</label>
+                    <input type="text" class="form-control" id="search" name="search"
+                           placeholder="Name, username, IP, or MAC"
+                           value="{{ request('search') }}">
+                </div>
+
+                <div class="col-md-3">
+                    <label for="package" class="form-label">Package</label>
+                    <select class="form-control" id="package" name="package">
+                        <option value="">All Packages</option>
+                        @foreach($packages as $package)
+                            <option value="{{ $package->id }}"
+                                {{ request('package') == $package->id ? 'selected' : '' }}>
+                                {{ $package->bandwidth_name }}
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
+
+                <div class="col-md-2 d-flex align-items-end">
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="bi bi-search"></i> Search
+                    </button>
+                </div>
+
+                <div class="col-md-2 d-flex align-items-end">
+                    <a href="{{ route('customers.online') }}" class="btn btn-outline-secondary w-100">
+                        Reset
+                    </a>
+                </div>
+
+            </form>
+        </div>
     </div>
 
     {{-- CARD --}}
@@ -210,7 +249,8 @@
     {{-- PAGINATION --}}
     <div class="mt-3 d-flex justify-content-end">
 
-        {{ $customers->links() }}
+        {{-- Append current query string to keep search/filter when navigating pages --}}
+        {{ $customers->appends(request()->query())->links() }}
 
     </div>
 

@@ -47,10 +47,7 @@ class CustomerController extends Controller
                 ->when($request->q, function ($query, $q) {
                     $query->where(function ($sub) use ($q) {
                         $sub->where('username', 'like', "%$q%")
-                            ->orWhere('name', 'like', "%$q%")
-                            ->orWhere('contact_number', 'like', "%$q%")
-                            ->orWhere('mac_address', 'like', "%$q%")
-                            ->orWhere('status', 'like', "%$q%");
+                            ->orWhere('contact_number', 'like', "%$q%");
                     });
                 })
                 ->paginate(10)
@@ -402,5 +399,33 @@ class CustomerController extends Controller
             ->paginate(25);
 
         return view('customers.expiring', compact('customersExpiring'));
+    }
+
+    public function searchOnline(Request $request)
+    {
+        $customers = Customer::whereHas('activeSession')->with(['activeSession', 'internetPlan']);
+
+        // 2. Apply search if the 'search' parameter is present.
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $customers->where(function ($query) use ($search) {
+                $query->where('name', 'LIKE', "%{$search}%")          // customer name
+                      ->orWhere('username', 'LIKE', "%{$search}%")   // login username
+                      ->orWhereHas('activeSession', function ($q) use ($search) {
+                          $q->where('framedipaddress', 'LIKE', "%{$search}%")
+                            ->orWhere('callingstationid', 'LIKE', "%{$search}%");
+                      });
+            });
+        }
+
+        if ($request->filled('package')) {
+            $customers->where('internet_plan_id', $request->package);
+        }
+
+        $customers = $customers->paginate(15);
+
+        $packages = InternetPlan::all();
+        
+        return view('customers.online', compact('customers', 'packages'));
     }
 }

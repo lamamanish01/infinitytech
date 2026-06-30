@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\ActivityLogController;
+use App\Http\Controllers\BillingController;
 use App\Http\Controllers\BranchController;
 use App\Http\Controllers\CronJobController;
 use App\Http\Controllers\CronLogController;
@@ -77,6 +78,7 @@ Route::middleware('auth')->group(function () {
         ->name('customer.forceDisconnect');
     Route::post('/customers/{id}/mac/bind', [CustomerController::class, 'bindMac'])->name('customer.bind-mac');
     Route::post('/customers/{id}/mac/unbind', [CustomerController::class, 'unbindMac'])->name('customer.unbind-mac');
+    Route::get('/customers/online', [CustomerController::class, 'searchOnline'])->name('customers.online');
 
     Route::prefix('tr069')->middleware('auth')->group(function () {
         Route::post(
@@ -113,6 +115,8 @@ Route::middleware('auth')->group(function () {
         ->name('recharges.edit');
     Route::patch('/recharges', [RechargeController::class, 'update'])
         ->name('recharges.update');
+
+    Route::resource('/billing', BillingController::class);
 
     Route::resource('/tr069server', Tr069ServerController::class);
     Route::resource('/tr069device', Tr069DeviceController::class);
