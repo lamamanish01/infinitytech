@@ -13,7 +13,6 @@ class Billing extends Model
         'billing_date',
         'amount',
         'status',
-        'invoice_number',
     ];
 
     protected $casts = [

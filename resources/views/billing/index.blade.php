@@ -77,9 +77,7 @@
                         <tr>
                             <th>#</th>
                             <th>Billing No</th>
-                            <th>Invoice No</th>
                             <th>Customer</th>
-                            <th>Recharge</th>
                             <th>Date</th>
                             <th>Amount</th>
                             <th>Status</th>
@@ -100,26 +98,14 @@
                                     <span class="fw-bold">{{ $billing->billing_no }}</span>
                                 </td>
 
+                                <td> {{ $billing->customer->name ?? 'N/A' }} </td>
+
                                 <td>
-                                    {{ $billing->invoice_number ?? '-' }}
+                                    {{ $billing->billing_date ? \Carbon\Carbon::parse($billing->billing_date)->format('Y-m-d') : '-' }}
                                 </td>
 
                                 <td>
-                                    {{ $billing->customer->name ?? 'N/A' }}
-                                    <br>
-                                    <small class="text-muted">ID: {{ $billing->customer_id }}</small>
-                                </td>
-
-                                <td>
-                                    {{ $billing->recharge_id ?? '-' }}
-                                </td>
-
-                                <td>
-                                    {{ $billing->billing_date ? \Carbon\Carbon::parse($billing->billing_date)->format('d-m-Y') : '-' }}
-                                </td>
-
-                                <td>
-                                    <span class="fw-bold">$ {{ number_format($billing->amount, 2) }}</span>
+                                    <span class="fw-bold">{{ number_format($billing->amount, 2) }}</span>
                                 </td>
 
                                 <td>
@@ -142,25 +128,25 @@
                                     <div class="btn-group btn-group-sm">
 
                                         {{-- VIEW --}}
-                                        <a href="{{ route('billings.show', $billing) }}"
-                                           class="btn btn-outline-primary">
-                                            <i class="bi bi-eye"></i>
+                                        <a href="{{ route('billing.show', $billing) }}"
+                                           class="btn btn-sm btn-primary">
+                                            View
                                         </a>
 
                                         {{-- EDIT --}}
-                                        <a href="{{ route('billings.edit', $billing) }}"
-                                           class="btn btn-outline-warning">
-                                            <i class="bi bi-pencil"></i>
+                                        <a href="{{ route('billing.edit', $billing) }}"
+                                           class="btn btn-sm btn-warning">
+                                            Edit
                                         </a>
 
                                         {{-- DELETE --}}
-                                        <form action="{{ route('billings.destroy', $billing) }}"
+                                        <form action="{{ route('billing.destroy', $billing) }}"
                                               method="POST"
                                               onsubmit="return confirm('Are you sure you want to delete this billing record?')">
                                             @csrf
                                             @method('DELETE')
-                                            <button type="submit" class="btn btn-outline-danger">
-                                                <i class="bi bi-trash"></i>
+                                            <button type="submit" class="btn btn-sm btn-danger">
+                                                Delete
                                             </button>
                                         </form>
 

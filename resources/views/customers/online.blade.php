@@ -158,7 +158,7 @@
                                 <td>
 
                                     <span class="text-success">
-                                        {{ $session->upload_mb ?? 0 }} MB
+                                        {{ $session->upload_mb ?? 0 }}
                                     </span>
 
                                 </td>
@@ -167,7 +167,7 @@
                                 <td>
 
                                     <span class="text-primary">
-                                        {{ $session->download_mb ?? 0 }} MB
+                                        {{ $session->download_mb ?? 0 }}
                                     </span>
 
                                 </td>

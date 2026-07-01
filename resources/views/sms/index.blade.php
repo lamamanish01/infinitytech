@@ -75,6 +75,7 @@
                                 <form action="{{ route('sms.send') }}" method="POST">
                                     @csrf
 
+                                    <input type="hidden" name="username" value="{{ $sms->username }}">
                                     <input type="hidden" name="mobile" value="{{ $sms->mobile }}">
                                     <input type="hidden" name="message" value="{{ $sms->message }}">
 

@@ -13,7 +13,7 @@ class SmsGatewayController extends Controller
     public function index()
     {
         $gateways = SmsGateway::all();
-        $queues = SmsQueue::all();
+        $queues = SmsQueue::latest()->paginate(15);
         return view('sms.index', compact('gateways', 'queues'));
     }
 
