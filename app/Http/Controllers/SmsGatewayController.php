@@ -65,25 +65,27 @@ class SmsGatewayController extends Controller
         return view('sms.logs', compact('logs'));
     }
 
-
     public function send(Request $request, SmsService $smsService)
     {
+        // Bulk send: all records that are not yet 'sent'
         if ($request->has('bulk')) {
-            $pending = SmsLog::where('status', 'pending')->get();
+            $unsent = SmsLog::where('status', '!=', 'sent')->get();
 
-            if ($pending->isEmpty()) {
-                return back()->with('info', 'No pending messages to send.');
+            if ($unsent->isEmpty()) {
+                return back()->with('info', 'No unsent messages to send.');
             }
 
             $sentCount = 0;
-            foreach ($pending as $log) {
-                $success = $smsService->sendNow($log->username, $log->mobile, $log->message);
-                if ($success) $sentCount++;
+            foreach ($unsent as $log) {
+                if ($smsService->sendNow($log->username, $log->mobile, $log->message)) {
+                    $sentCount++;
+                }
             }
 
-            return back()->with('success', "Processed {$sentCount} out of {$pending->count()} pending messages.");
+            return back()->with('success', "Processed {$sentCount} out of {$unsent->count()} unsent messages.");
         }
 
+        // Single send
         $validated = $request->validate([
             'username' => 'required|string',
             'mobile'   => 'required|string',

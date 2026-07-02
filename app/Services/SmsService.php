@@ -2,9 +2,8 @@
 
 namespace App\Services;
 
-use App\Models\SmsGateway;
+use App\Models\Gateway;
 use App\Models\SmsLog;
-use App\Models\SmsQueue;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 
@@ -12,39 +11,52 @@ class SmsService
 {
     protected $gateway;
 
-    public function __construct()
+    public function __construct(Gateway $gateway)
     {
-        $this->gateway = SmsGateway::active()->first();
-        if (!$this->gateway) {
-            throw new \Exception('No active SMS gateway found.');
-        }
+        $this->gateway = $gateway;
     }
 
-    /**
-     * Send immediately and log result
-     */
     public function sendNow(string $username, string $mobile, string $message): bool
     {
         try {
-            $response = Http::post($this->gateway->api_url, [
+            $response = Http::timeout(10)->post($this->gateway->api_url, [
                 'auth_token' => $this->gateway->auth_token,
                 'mobile'     => $mobile,
                 'message'    => $message,
             ]);
 
-            $success = $response->successful();
-            $responseBody = $response->body();
+            $httpSuccess = $response->successful();
+            $rawBody = $response->body();
+            $decoded = json_decode($rawBody, true);
+            $jsonError = json_last_error();
+
+            // Determine gateway-level success (adjust to your provider)
+            $gatewaySuccess = false;
+            if ($httpSuccess && $jsonError === JSON_ERROR_NONE && is_array($decoded)) {
+                $gatewaySuccess = ($decoded['status'] ?? '') === 'success' ||
+                                  ($decoded['success'] ?? false) === true ||
+                                  ($decoded['code'] ?? 0) === 200;
+            }
+
+            $success = $httpSuccess && $gatewaySuccess;
 
             SmsLog::create([
                 'username' => $username,
                 'mobile'   => $mobile,
                 'message'  => $message,
-                'response' => $responseBody,
+                'response' => $rawBody,
+                'parsed'   => $decoded,
                 'status'   => $success ? 'sent' : 'failed',
             ]);
 
             if (!$success) {
-                Log::error('SMS send failed', ['username' => $username, 'mobile' => $mobile, 'response' => $responseBody]);
+                Log::error('SMS send failed', [
+                    'username'   => $username,
+                    'mobile'     => $mobile,
+                    'http_code'  => $response->status(),
+                    'raw_body'   => $rawBody,
+                    'parsed'     => $decoded,
+                ]);
             }
 
             return $success;
@@ -55,40 +67,17 @@ class SmsService
                 'mobile'   => $mobile,
                 'message'  => $message,
                 'response' => $e->getMessage(),
+                'parsed'   => null,
                 'status'   => 'failed',
             ]);
 
-            Log::error('SMS send exception', ['username' => $username, 'error' => $e->getMessage()]);
+            Log::error('SMS send exception', [
+                'username' => $username,
+                'error'    => $e->getMessage(),
+                'trace'    => $e->getTraceAsString(),
+            ]);
+
             return false;
-        }
-    }
-
-    /**
-     * Queue a message (used by custom send)
-     */
-    public function queueMessage(string $username, string $mobile, string $message, string $type = 'custom'): void
-    {
-        SmsQueue::create([
-            'username' => $username,
-            'mobile'   => $mobile,
-            'message'  => $message,
-            'type'     => $type,
-            'status'   => SmsQueue::STATUS_PENDING,
-            'send_at'  => now(),
-        ]);
-    }
-
-    /**
-     * Process a single queue entry
-     */
-    public function processQueueEntry(SmsQueue $queue): void
-    {
-        $success = $this->sendNow($queue->username, $queue->mobile, $queue->message);
-
-        if ($success) {
-            $queue->markAsSent();
-        } else {
-            $queue->markAsFailed();
         }
     }
 }
