@@ -9,6 +9,7 @@ use App\Models\Customer;
 use App\Models\Ticket;
 use App\Models\TicketReply;
 use App\Models\User;
+use App\Notifications\TicketAssignedNotification;
 use Illuminate\Http\Request;
 
 class TicketController extends Controller
@@ -123,7 +124,6 @@ class TicketController extends Controller
         //
     }
 
-
     public function assign(Request $request, $id)
     {
         $request->validate([
@@ -131,7 +131,7 @@ class TicketController extends Controller
         ]);
 
         $ticket = Ticket::findOrFail($id);
-        $user = User::findOrFail($request->user_id);
+        $user = User::findOrFail($request->assigned_to);  // the assigned user
         $customer = $ticket->customer;
 
         $ticket->update([
@@ -139,6 +139,8 @@ class TicketController extends Controller
             'status' => 'in_progress',
             'assigned_at' => now(),
         ]);
+
+        $user->notify(new TicketAssignedNotification($ticket));
 
         Activity::add(
             'Ticket Assigned',

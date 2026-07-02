@@ -1,27 +1,38 @@
 @extends('layouts.app')
 
 @section('content')
-
 <div class="container-fluid">
 
+    {{-- HEADER with Logs link --}}
     <div class="d-flex justify-content-between align-items-center mb-3">
-
         <h4 class="mb-0">SMS Queue</h4>
-
-        @can('create sms')
-            <a href="{{ route('sms.create') }}" class="btn btn-primary btn-sm">
-                Create
+        <div>
+            <a href="{{ route('sms.logs') }}" class="btn btn-info btn-sm me-2">
+                📋 View Logs
             </a>
-        @endcan
-
+            @can('create sms')
+                <a href="{{ route('sms.create') }}" class="btn btn-primary btn-sm">
+                    Create
+                </a>
+            @endcan
+        </div>
     </div>
 
+    {{-- Flash messages --}}
+    @if(session('success'))
+        <div class="alert alert-success">{{ session('success') }}</div>
+    @endif
+    @if(session('error'))
+        <div class="alert alert-danger">{{ session('error') }}</div>
+    @endif
+    @if(session('info'))
+        <div class="alert alert-info">{{ session('info') }}</div>
+    @endif
+
+    {{-- Table --}}
     <div class="card card-info">
-
         <div class="card-body table-responsive">
-
             <table class="table table-bordered table-striped">
-
                 <thead>
                     <tr>
                         <th>#</th>
@@ -36,26 +47,14 @@
                         <th>Action</th>
                     </tr>
                 </thead>
-
                 <tbody>
-
                     @forelse($queues as $key => $sms)
-
                         <tr>
-
                             <td>{{ $queues->firstItem() + $key }}</td>
-
                             <td>{{ $sms->username }}</td>
                             <td>{{ $sms->mobile }}</td>
-
-                            <td>
-                                {{ \Illuminate\Support\Str::limit($sms->message, 40) }}
-                            </td>
-
-                            <td>
-                                <span class="badge bg-info">{{ $sms->type }}</span>
-                            </td>
-
+                            <td>{{ \Illuminate\Support\Str::limit($sms->message, 40) }}</td>
+                            <td><span class="badge bg-info">{{ $sms->type }}</span></td>
                             <td>
                                 @if($sms->status == 'pending')
                                     <span class="badge bg-warning">Pending</span>
@@ -65,48 +64,46 @@
                                     <span class="badge bg-danger">{{ $sms->status }}</span>
                                 @endif
                             </td>
-
                             <td>{{ $sms->retry_count }}</td>
                             <td>{{ $sms->send_at ?? 'N/A' }}</td>
                             <td>{{ $sms->created_at->format('Y-m-d H:i') }}</td>
-
                             <td>
-
+                                {{-- Single Send form --}}
+                                @if($sms->status != 'sent')
                                 <form action="{{ route('sms.send') }}" method="POST">
                                     @csrf
-
+                                    <input type="hidden" name="sms_id" value="{{ $sms->id }}">  {{-- ✅ essential --}}
                                     <input type="hidden" name="username" value="{{ $sms->username }}">
                                     <input type="hidden" name="mobile" value="{{ $sms->mobile }}">
                                     <input type="hidden" name="message" value="{{ $sms->message }}">
-
-                                    <button class="btn btn-sm btn-success">
-                                        Send
-                                    </button>
-
+                                    <button class="btn btn-sm btn-success">Send</button>
                                 </form>
-
+                                @else
+                                <span class="text-muted">Sent</span>
+                                @endif
                             </td>
-
                         </tr>
-
                     @empty
-
                         <tr>
-                            <td colspan="10" class="text-center">
-                                No SMS found
-                            </td>
+                            <td colspan="10" class="text-center">No SMS found</td>
                         </tr>
-
                     @endforelse
-
                 </tbody>
-
             </table>
-
         </div>
+    </div>
 
+    {{-- Bulk Send All Unsent --}}
+    <form action="{{ route('sms.send') }}" method="POST" class="mt-3">
+        @csrf
+        <input type="hidden" name="bulk" value="1">
+        <button class="btn btn-primary">Send All Unsent</button>
+    </form>
+
+    {{-- Pagination --}}
+    <div class="mt-3 d-flex justify-content-end">
+        {{ $queues->links() }}
     </div>
 
 </div>
-
 @endsection

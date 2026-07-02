@@ -2,18 +2,51 @@
 
 namespace App\Services;
 
-use App\Models\Gateway;
+use App\Models\SmsGateway;
 use App\Models\SmsLog;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
+use RuntimeException;
 
 class SmsService
 {
-    protected $gateway;
+    protected SmsGateway $gateway;
 
-    public function __construct(Gateway $gateway)
+    public function __construct(?SmsGateway $smsgateway = null)
     {
-        $this->gateway = $gateway;
+        // If an injected gateway is provided but has no ID, treat it as invalid
+        if ($smsgateway && $smsgateway->id) {
+            $this->gateway = $smsgateway;
+        } else {
+            // Otherwise fetch from DB: first active, then any gateway
+            $this->gateway = SmsGateway::where('is_active', true)->first();
+            if (!$this->gateway) {
+                $this->gateway = SmsGateway::first();
+            }
+        }
+
+        // Now validate
+        if (!$this->gateway) {
+            throw new RuntimeException('No gateway record found in sms_gateways table.');
+        }
+
+        if (!$this->gateway->id) {
+            throw new RuntimeException(
+                'Gateway object still has no ID – ensure your database has a record and the query is correct.'
+            );
+        }
+
+        if (empty($this->gateway->api_url)) {
+            throw new RuntimeException(
+                'Gateway ID ' . $this->gateway->id . ' has empty api_url. Update it via Tinker.'
+            );
+        }
+
+        if (empty($this->gateway->auth_token)) {
+            throw new RuntimeException(
+                'Gateway ID ' . $this->gateway->id . ' has empty auth_token. Update it.'
+            );
+        }
     }
 
     public function sendNow(string $username, string $mobile, string $message): bool
@@ -21,8 +54,8 @@ class SmsService
         try {
             $response = Http::timeout(10)->post($this->gateway->api_url, [
                 'auth_token' => $this->gateway->auth_token,
-                'mobile'     => $mobile,
-                'message'    => $message,
+                'to'         => $mobile,   // adjust if your API uses 'mobile' or 'phone'
+                'text'    => $message,
             ]);
 
             $httpSuccess = $response->successful();
@@ -30,12 +63,9 @@ class SmsService
             $decoded = json_decode($rawBody, true);
             $jsonError = json_last_error();
 
-            // Determine gateway-level success (adjust to your provider)
             $gatewaySuccess = false;
             if ($httpSuccess && $jsonError === JSON_ERROR_NONE && is_array($decoded)) {
-                $gatewaySuccess = ($decoded['status'] ?? '') === 'success' ||
-                                  ($decoded['success'] ?? false) === true ||
-                                  ($decoded['code'] ?? 0) === 200;
+                $gatewaySuccess = isset($decoded['error']) && $decoded['error'] === false;
             }
 
             $success = $httpSuccess && $gatewaySuccess;
@@ -45,7 +75,6 @@ class SmsService
                 'mobile'   => $mobile,
                 'message'  => $message,
                 'response' => $rawBody,
-                'parsed'   => $decoded,
                 'status'   => $success ? 'sent' : 'failed',
             ]);
 
@@ -54,8 +83,7 @@ class SmsService
                     'username'   => $username,
                     'mobile'     => $mobile,
                     'http_code'  => $response->status(),
-                    'raw_body'   => $rawBody,
-                    'parsed'     => $decoded,
+                    'response'   => $rawBody,
                 ]);
             }
 
@@ -67,14 +95,12 @@ class SmsService
                 'mobile'   => $mobile,
                 'message'  => $message,
                 'response' => $e->getMessage(),
-                'parsed'   => null,
                 'status'   => 'failed',
             ]);
 
             Log::error('SMS send exception', [
                 'username' => $username,
                 'error'    => $e->getMessage(),
-                'trace'    => $e->getTraceAsString(),
             ]);
 
             return false;

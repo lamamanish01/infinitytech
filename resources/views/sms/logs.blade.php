@@ -4,20 +4,18 @@
 
 <div class="container-fluid">
 
-    <!-- HEADER -->
+    <!-- HEADER with back button -->
     <div class="d-flex justify-content-between align-items-center mb-3">
-
         <h4 class="mb-0">SMS Logs</h4>
-
+        <a href="{{ route('sms.index') }}" class="btn btn-secondary btn-sm">
+            ← Back to Queue
+        </a>
     </div>
 
     <!-- TABLE CARD -->
     <div class="card shadow-sm">
-
         <div class="card-body table-responsive">
-
             <table class="table table-bordered table-striped">
-
                 <thead>
                     <tr>
                         <th>#</th>
@@ -29,29 +27,13 @@
                         <th>Created At</th>
                     </tr>
                 </thead>
-
                 <tbody>
-
                     @forelse($logs as $key => $log)
-
                         <tr>
-
-                            <td>
-                                {{ $logs->firstItem() + $key }}
-                            </td>
-
-                            <td>
-                                {{ $log->username }}
-                            </td>
-
-                            <td>
-                                {{ $log->mobile }}
-                            </td>
-
-                            <td>
-                                {{ \Illuminate\Support\Str::limit($log->message, 50) }}
-                            </td>
-
+                            <td>{{ $logs->firstItem() + $key }}</td>
+                            <td>{{ $log->username }}</td>
+                            <td>{{ $log->mobile }}</td>
+                            <td>{{ \Illuminate\Support\Str::limit($log->message, 50) }}</td>
                             <td>
                                 @if($log->status == 'sent')
                                     <span class="badge bg-success">Sent</span>
@@ -59,35 +41,23 @@
                                     <span class="badge bg-danger">Failed</span>
                                 @endif
                             </td>
-
                             <td>
                                 <small class="text-muted">
                                     {{ \Illuminate\Support\Str::limit($log->response, 60) }}
                                 </small>
                             </td>
-
-                            <td>
-                                {{ $log->created_at->format('Y-m-d H:i') }}
-                            </td>
-
+                            <td>{{ $log->created_at->format('Y-m-d H:i') }}</td>
                         </tr>
-
                     @empty
-
                         <tr>
                             <td colspan="7" class="text-center text-muted">
                                 No SMS logs found
                             </td>
                         </tr>
-
                     @endforelse
-
                 </tbody>
-
             </table>
-
         </div>
-
     </div>
 
     <!-- PAGINATION -->
