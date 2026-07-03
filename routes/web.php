@@ -9,6 +9,7 @@ use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\CustomerImportController;
 use App\Http\Controllers\CustomSmsController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\DeviceLogController;
 use App\Http\Controllers\InternetPlanController;
 use App\Http\Controllers\MenuController;
 use App\Http\Controllers\MikrotikController;
@@ -184,4 +185,9 @@ Route::middleware('auth')->group(function () {
         ->name('activities.markAllRead');
 
     Route::resource('radius', RadiusController::class);
+
+    Route::get('/devices', [DeviceLogController::class, 'index'])->name('devices.index');
+    Route::get('/devices/{id}', [DeviceLogController::class, 'show'])->name('devices.show');
+    Route::post('/devices/revoke', [DeviceLogController::class, 'revoke'])->name('devices.revoke');
+    Route::delete('/devices/clear', [DeviceLogController::class, 'clearLogs'])->name('devices.clear');
 });
