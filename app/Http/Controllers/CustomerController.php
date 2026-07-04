@@ -152,7 +152,6 @@ class CustomerController extends Controller
             'previousSessions',
             'billings',
             'authLogs',
-            'lanHosts'
         ));
     }
 
