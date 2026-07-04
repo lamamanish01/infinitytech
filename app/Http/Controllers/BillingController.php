@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Billing;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class BillingController extends Controller
 {
@@ -12,29 +13,39 @@ class BillingController extends Controller
      */
     public function index(Request $request)
     {
-        $query = Billing::with('customer');
-
-        // Search by billing_no, invoice_number, or customer name
-        if ($request->filled('search')) {
-            $search = $request->search;
-            $query->where(function ($q) use ($search) {
-                $q->where('billing_no', 'LIKE', "%{$search}%")
-                  ->orWhere('invoice_number', 'LIKE', "%{$search}%")
-                  ->orWhereHas('customer', function ($sq) use ($search) {
-                      $sq->where('name', 'LIKE', "%{$search}%");
-                  });
+        $query = Billing::query()
+            ->when($request->search, function ($q, $search) {
+                return $q->where('billing_no', 'LIKE', "%{$search}%")
+                        ->orWhereHas('customer', function ($q) use ($search) {
+                            $q->where('name', 'LIKE', "%{$search}%");
+                        });
+            })
+            ->when($request->status, function ($q, $status) {
+                return $q->where('status', $status);
             });
+
+        $billings = $query->paginate(10);
+
+        $monthlyData = (clone $query)
+            ->select(
+                DB::raw("DATE_FORMAT(billing_date, '%Y-%m') as month"),
+                DB::raw('SUM(amount) as total')
+            )
+            ->whereNotNull('billing_date')
+            ->groupBy('month')
+            ->orderBy('month', 'asc')
+            ->pluck('total', 'month')
+            ->toArray();
+
+        $monthLabels = [];
+        $monthValues = [];
+        foreach ($monthlyData as $month => $total) {
+            $date = \Carbon\Carbon::createFromFormat('Y-m', $month);
+            $monthLabels[] = $date->format('Y-m-d'); // e.g. "Jan 2025"
+            $monthValues[] = $total;
         }
 
-        // Filter by status
-        if ($request->filled('status')) {
-            $query->where('status', $request->status);
-        }
-
-        // Order by latest billing date, then paginate
-        $billings = $query->latest('billing_date')->paginate(15);
-
-        return view('billing.index', compact('billings'));
+        return view('billing.index', compact('billings', 'monthLabels', 'monthValues'));
     }
 
     /**
