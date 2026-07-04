@@ -22,12 +22,32 @@ class BillingController extends Controller
             })
             ->when($request->status, function ($q, $status) {
                 return $q->where('status', $status);
-            })
-            ->orderBy('billing_date', 'desc');;
+            });
 
-        $billings = $query->paginate(10);
+        // --- Main table results (ordered by latest billing_date) ---
+        $billings = (clone $query)->orderBy('billing_date', 'desc')->paginate(10);
 
+        // --- Summary stats (no order needed) ---
+        $summary = (clone $query)
+            ->reorder() // remove any ORDER BY
+            ->select(
+                DB::raw('COUNT(*) as total_count'),
+                DB::raw('SUM(amount) as total_amount'),
+                DB::raw('AVG(amount) as avg_amount')
+            )
+            ->first();
+
+        // --- Breakdown by status (no order needed) ---
+        $statusCounts = (clone $query)
+            ->reorder() // remove ORDER BY
+            ->select('status', DB::raw('COUNT(*) as count'), DB::raw('SUM(amount) as amount'))
+            ->groupBy('status')
+            ->pluck('amount', 'status')
+            ->toArray();
+
+        // --- Monthly totals (order by month) ---
         $monthlyData = (clone $query)
+            ->reorder() // remove ORDER BY
             ->select(
                 DB::raw("DATE_FORMAT(billing_date, '%Y-%m') as month"),
                 DB::raw('SUM(amount) as total')
@@ -42,11 +62,17 @@ class BillingController extends Controller
         $monthValues = [];
         foreach ($monthlyData as $month => $total) {
             $date = \Carbon\Carbon::createFromFormat('Y-m', $month);
-            $monthLabels[] = $date->format('Y-m-d'); // e.g. "Jan 2025"
+            $monthLabels[] = $date->format('M Y');
             $monthValues[] = $total;
         }
 
-        return view('billing.index', compact('billings', 'monthLabels', 'monthValues'));
+        return view('billing.index', compact(
+            'billings',
+            'summary',
+            'statusCounts',
+            'monthLabels',
+            'monthValues'
+        ));
     }
 
     /**
