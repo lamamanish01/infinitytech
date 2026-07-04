@@ -22,7 +22,8 @@ class BillingController extends Controller
             })
             ->when($request->status, function ($q, $status) {
                 return $q->where('status', $status);
-            });
+            })
+            ->orderBy('billing_date', 'desc');;
 
         $billings = $query->paginate(10);
 
