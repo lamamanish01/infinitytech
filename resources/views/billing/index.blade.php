@@ -73,7 +73,6 @@
                 <table class="table table-hover align-middle mb-0">
 
                     <thead class="table-light">
-
                         <tr>
                             <th>#</th>
                             <th>Billing No</th>
@@ -83,31 +82,22 @@
                             <th>Status</th>
                             <th class="text-end">Actions</th>
                         </tr>
-
                     </thead>
 
                     <tbody>
-
                         @forelse($billings as $billing)
-
                             <tr>
-
                                 <td>{{ $loop->iteration }}</td>
-
                                 <td>
                                     <span class="fw-bold">{{ $billing->billing_no }}</span>
                                 </td>
-
                                 <td> {{ $billing->customer->name ?? 'N/A' }} </td>
-
                                 <td>
                                     {{ $billing->billing_date ? \Carbon\Carbon::parse($billing->billing_date)->format('Y-m-d') : '-' }}
                                 </td>
-
                                 <td>
                                     <span class="fw-bold">{{ number_format($billing->amount, 2) }}</span>
                                 </td>
-
                                 <td>
                                     @php
                                         $statusColors = [
@@ -122,23 +112,18 @@
                                         {{ ucfirst($billing->status) }}
                                     </span>
                                 </td>
-
                                 <td class="text-end">
-
                                     <div class="btn-group btn-group-sm">
-
                                         {{-- VIEW --}}
                                         <a href="{{ route('billing.show', $billing) }}"
                                            class="btn btn-sm btn-primary">
                                             View
                                         </a>
-
                                         {{-- EDIT --}}
                                         <a href="{{ route('billing.edit', $billing) }}"
                                            class="btn btn-sm btn-warning">
                                             Edit
                                         </a>
-
                                         {{-- DELETE --}}
                                         <form action="{{ route('billing.destroy', $billing) }}"
                                               method="POST"
@@ -149,24 +134,26 @@
                                                 Delete
                                             </button>
                                         </form>
-
                                     </div>
-
                                 </td>
-
                             </tr>
-
                         @empty
-
                             <tr>
                                 <td colspan="9" class="text-center py-5 text-muted">
                                     No billing records found.
                                 </td>
                             </tr>
-
                         @endforelse
-
                     </tbody>
+
+                    {{-- NEW: TOTAL SUM FOOTER --}}
+                    <tfoot class="table-light fw-bold">
+                        <tr>
+                            <td colspan="4" class="text-end">Total (current page)</td>
+                            <td>{{ number_format($billings->sum('amount'), 2) }}</td>
+                            <td colspan="2"></td>
+                        </tr>
+                    </tfoot>
 
                 </table>
 
