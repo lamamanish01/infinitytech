@@ -133,6 +133,10 @@ class CustomerController extends Controller
             ->latest('authdate')
             ->paginate(10, ['*'], 'auth_page');
 
+        // $lanHosts = $customer->lanHosts()
+        //     ->with('device')  // eager load the CPE serial/name
+        //     ->paginate(20, ['*'], 'lan_hosts_page');
+
         $session = get_active_mac($customer->username);
 
         $lastSession = DB::table('radacct')
@@ -147,7 +151,8 @@ class CustomerController extends Controller
             'lastSession',
             'previousSessions',
             'billings',
-            'authLogs'
+            'authLogs',
+            'lanHosts'
         ));
     }
 
@@ -383,7 +388,8 @@ class CustomerController extends Controller
     {
          $customersExpired = Customer::where('status', 'expired')
                 ->latest()
-                ->paginate(25);
+                ->orderBy('expire_date', 'desc')
+                ->paginate(10);
 
         return view('customers.expired', compact('customersExpired'));
     }
@@ -396,7 +402,7 @@ class CustomerController extends Controller
                 now()->addDays(3)
             ])
             ->orderBy('expire_date', 'asc')
-            ->paginate(25);
+            ->paginate(10);
 
         return view('customers.expiring', compact('customersExpiring'));
     }
@@ -425,7 +431,7 @@ class CustomerController extends Controller
         $customers = $customers->paginate(15);
 
         $packages = InternetPlan::all();
-        
+
         return view('customers.online', compact('customers', 'packages'));
     }
 }

@@ -68,6 +68,9 @@ class DashboardController extends Controller
             ->distinct()
             ->count('username');
 
+        $stats = (new ServerStatsController)->getStats();
+        return view('dashboard.index', compact('stats'));
+
         return view('dashboard.index', [
             'onlineCustomers'   => $onlineCustomers,
             'totalCustomers'    => Customer::count(),

@@ -19,6 +19,7 @@ use App\Http\Controllers\RadiusController;
 use App\Http\Controllers\RechargeController;
 use App\Http\Controllers\RoleController;
 use App\Http\Controllers\SearchController;
+use App\Http\Controllers\ServerStatsController;
 use App\Http\Controllers\SmsGatewayController;
 use App\Http\Controllers\TicketController;
 use App\Http\Controllers\Tr069DeviceController;
@@ -190,4 +191,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/devices/{id}', [DeviceLogController::class, 'show'])->name('devices.show');
     Route::post('/devices/revoke', [DeviceLogController::class, 'revoke'])->name('devices.revoke');
     Route::delete('/devices/clear', [DeviceLogController::class, 'clearLogs'])->name('devices.clear');
+
+    Route::get('/admin/stats', [ServerStatsController::class, 'index'])->name('stats.index');
+    Route::get('/api/stats', [ServerStatsController::class, 'json'])->name('stats.json');
 });
