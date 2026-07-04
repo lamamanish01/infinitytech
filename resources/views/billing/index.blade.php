@@ -170,8 +170,9 @@
                 scales: {
                     y: {
                         beginAtZero: true,
-                        max: 20000, // fixed maximum
+                        max: 100000,
                         ticks: {
+                            stepSize: 5000, // ← increments by 5000
                             callback: function(value) {
                                 return value.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
                             }
@@ -190,7 +191,6 @@
                 }
             },
             plugins: [{
-                // Display values on top of bars
                 id: 'customLabels',
                 afterDraw: function(chart) {
                     const ctx2 = chart.ctx;
