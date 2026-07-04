@@ -69,7 +69,6 @@ class DashboardController extends Controller
             ->count('username');
 
         $stats = (new ServerStatsController)->getStats();
-        return view('dashboard.index', compact('stats'));
 
         return view('dashboard.index', [
             'onlineCustomers'   => $onlineCustomers,
@@ -79,6 +78,7 @@ class DashboardController extends Controller
             'branchBalance'     => Branch::sum('balance'),
             'activeSessions'    => $activeSessions,
             'nasCount'          => Nas::count(),
+            'stats'             => $stats
         ]);
     }
 
