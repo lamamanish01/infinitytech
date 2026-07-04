@@ -9,7 +9,5 @@ Artisan::command('inspire', function () {
 })->purpose('Display an inspiring quote')->hourly();
 
 Schedule::command('cron:run-dynamic')
-    ->everyMinute()
-    ->timezone('Asia/Kathmandu')
-    ->withoutOverlapping();
+    ->everyMinute();
 
