@@ -35,7 +35,7 @@ Route::get('/', function () {
 Auth::routes();
 
 Route::middleware('auth')->group(function () {
-    Route::view('about', 'about')->name('about');
+    // Route::view('about', 'about')->name('about');
 
     Route::resource('/users', UserController::class);
 

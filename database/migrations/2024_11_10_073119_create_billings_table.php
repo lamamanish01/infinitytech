@@ -12,7 +12,6 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('billings', function (Blueprint $table) {
-
             $table->id();
             $table->foreignId('customer_id')->constrained('customers')->cascadeOnDelete();
             $table->foreignId('recharge_id')->constrained('recharges')->cascadeOnDelete();
@@ -20,6 +19,7 @@ return new class extends Migration
             $table->date('billing_date');
             $table->decimal('amount', 10, 2);
             $table->enum('status', ['unpaid', 'paid', 'partial'])->default('unpaid');
+            $table->softDeletes();
             $table->timestamps();
         });
     }

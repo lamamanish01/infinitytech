@@ -6,6 +6,8 @@ use Illuminate\Database\Eloquent\Model;
 
 class Billing extends Model
 {
+    use SoftDeletes;
+
     protected $fillable = [
         'customer_id',
         'recharge_id',

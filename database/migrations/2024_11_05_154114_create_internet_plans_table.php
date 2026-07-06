@@ -19,6 +19,7 @@ return new class extends Migration
             $table->integer('duration');
             $table->string('type')->nullable();
             $table->string('rate_limit')->nullable();
+            $table->softDeletes();
             $table->timestamps();
         });
     }

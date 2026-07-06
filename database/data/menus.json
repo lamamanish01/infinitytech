@@ -109,7 +109,7 @@
   {
     "id": 5,
     "title": "Billings",
-    "url": "",
+    "url": "/billing",
     "icon": "fa-file-invoice",
     "parent_id": null,
     "order": 4,
@@ -146,6 +146,14 @@
         "icon": null,
         "parent_id": 6,
         "order": 3,
+        "role": "view connection log"
+      },
+      {
+        "title": "Tr069",
+        "url": "/tr069server",
+        "icon": null,
+        "parent_id": 6,
+        "order": 4,
         "role": "view connection log"
       }
     ]

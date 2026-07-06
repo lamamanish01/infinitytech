@@ -4,77 +4,89 @@
 
 <div class="container-fluid">
 
-    {{-- HEADER --}}
     <div class="d-flex justify-content-between align-items-center mb-3">
-
-        <div>
-            <h4 class="mb-0">All Radius Auth</h4>
-        </div>
-
-        {{--  @can('create nas')
-            <a href="{{ route('nas.create') }}"
-               class="btn btn-primary btn-sm">
-                + Add NAS
-            </a>
-        @endcan  --}}
-
+        <h4 class="mb-0">RADIUS Authentication Logs</h4>
+        <span class="badge bg-primary">
+            Total: {{ $authLogs->total() }}
+        </span>
     </div>
 
-    {{-- CARD --}}
-    <div class="card shadow-sm border-0">
+    <div class="card">
 
         <div class="card-body p-0">
 
             <div class="table-responsive">
 
-                <table class="table table-bordered table-sm">
+                <table class="table table-hover table-bordered mb-0">
 
-                    <thead>
+                    <thead class="table-light">
                         <tr>
-                            <th>#</th>
-                            <th>User</th>
-                            <th>Pass</th>
-                            <th>Reply</th>
-                            <th>Date</th>
+                            <th width="60">#</th>
+                            <th>Username</th>
+                            <th>Password</th>
+                            <th>Status</th>
+                            <th>Reply Message</th>
+                            <th>Nas IP Address</th>
+                            <th>Mac Address</th>
+                            <th width="180">Date</th>
                         </tr>
                     </thead>
 
                     <tbody>
 
-                        @foreach($authLogs as $log)
+                    @forelse($authLogs as $log)
 
-                            {{-- Conditional row background based on reply --}}
-                            @php
-                                $rowClass = '';
-                                if ($log->reply == 'Access-Accept') {
-                                    $rowClass = 'table-success'; // light green
-                                } elseif ($log->reply == 'Access-Reject') {
-                                    $rowClass = 'table-danger';  // light red
-                                }
-                            @endphp
+                        <tr>
 
-                            <tr class="{{ $rowClass }}">
-                                <td>{{ $loop->iteration }}</td>
-                                <td>{{ $log->username }}</td>
-                                <td>{{ $log->pass }}</td>
-                                <td>{{ $log->reply }}</td>
-                                <td>{{ optional($log->authdate)->toDateTimeString() }}</td>
-                            </tr>
+                            <td>{{ $authLogs->firstItem() + $loop->index }}</td>
 
-                        @endforeach
+                            <td>{{ $log->username }}</td>
+
+                            <td>{{ $log->pass }}</td>
+
+                            <td>
+                                @if($log->reply == 'Access-Accept')
+                                    <span class="badge bg-success">Access-Accept</span>
+                                @elseif($log->reply == 'Access-Reject')
+                                    <span class="badge bg-danger">Access-Reject</span>
+                                @else
+                                    <span class="badge bg-secondary">{{ $log->reply }}</span>
+                                @endif
+                            </td>
+
+                            <td>{{ $log->reply_message }}</td>
+
+                            <td>{{ $log->nasipaddress }}</td>
+
+                            <td>{{ $log->mac }}</td>
+
+                            <td>{{ optional($log->authdate)->format('Y-m-d H:i') }}</td>
+
+                        </tr>
+
+                    @empty
+
+                        <tr>
+                            <td colspan="8" class="text-center text-muted py-4">
+                                No authentication logs found.
+                            </td>
+                        </tr>
+
+                    @endforelse
 
                     </tbody>
 
                 </table>
 
-                {{-- PAGINATION --}}
-                <div class="mt-3">
-                    {{ $authLogs->links() }}
-                </div>
-
             </div>
 
         </div>
+
+        @if($authLogs->hasPages())
+            <div class="card-footer d-flex justify-content-end">
+                {{ $authLogs->links() }}
+            </div>
+        @endif
 
     </div>
 

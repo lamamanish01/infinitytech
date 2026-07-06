@@ -4,9 +4,12 @@ namespace App\Models;
 
 use App\Models\Recharge;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class InternetPlan extends Model
 {
+    use SoftDeletes;
+
     protected $fillable = [
         'name',
         'bandwidth_name',

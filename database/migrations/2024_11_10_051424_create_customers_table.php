@@ -28,6 +28,7 @@ return new class extends Migration
             $table->dateTime('registered_at')->nullable();
             $table->enum('status', ['active', 'grace', 'expired','suspended','discontinued'])->default('active');
             $table->text('remarks')->nullable();
+            $table->softDeletes();
             $table->timestamps();
         });
     }
