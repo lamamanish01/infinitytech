@@ -15,7 +15,8 @@ class CreateRadpostauthTable extends Migration
             $table->string('reply', 32)->default('');
             $table->string('reply_message', 32)->default('');
             $table->timestamp('authdate', 6)->useCurrent()->useCurrentOnUpdate();
-            $table->string('class', 64)->default('');
+            $table->string('nasipaddress', 15)->default('');
+            $table->string('mac', 48)->default('');
         });
     }
 
