@@ -21,6 +21,7 @@ return new class extends Migration
             $table->enum('status', ['unpaid', 'paid'])->default('unpaid');
             $table->string('payment_method')->nullable();
             $table->string('transaction_id')->nullable();
+            $table->softDeletes();
             $table->timestamps();
         });
     }

@@ -149,7 +149,7 @@
         "role": "view connection log"
       },
       {
-        "title": "Tr069",
+        "title": "TR069",
         "url": "/tr069server",
         "icon": null,
         "parent_id": 6,

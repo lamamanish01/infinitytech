@@ -8,10 +8,13 @@ use App\Models\Invoice;
 use App\Services\RadiusService;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Facades\DB;
 
 class Recharge extends Model
 {
+    use SoftDeletes;
+
     protected $fillable = [
         'customer_id',
         'internet_plan_id',

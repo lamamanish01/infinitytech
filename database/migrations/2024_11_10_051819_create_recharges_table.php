@@ -23,6 +23,7 @@ return new class extends Migration
             $table->string('payment_method')->nullable();
             $table->string('transaction_id')->nullable();
             $table->foreignId('user_id')->nullable()->constrained('users')->nullOnDelete();
+            $table->softDeletes();
             $table->timestamps();
         });
     }

@@ -109,7 +109,7 @@
 
                             <h4>Devices</h4>
                             @if($devices->count())
-                                <table class="table table-sm">
+                                <table class="table table-sm table-responsive">
                                     <thead>
                                         <tr>
                                             <th>Device</th>
@@ -145,7 +145,7 @@
 
                             <h4>Complete Login History</h4>
                             @if($logs->count())
-                                <table class="table table-sm">
+                                <table class="table table-sm table-responsive">
                                     <thead>
                                         <tr>
                                             <th>Login Time</th>
