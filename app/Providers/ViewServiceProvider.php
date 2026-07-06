@@ -3,6 +3,7 @@
 namespace App\Providers;
 
 use App\Models\ActivityLog;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
 
@@ -21,16 +22,22 @@ class ViewServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        View::composer('*', function ($view) {
+            View::composer('*', function ($view) {
 
-            $activities = ActivityLog::latest()->take(10)->get();
+        try {
 
-            $unreadCount = ActivityLog::where('is_read', false)->count();
+            if (Schema::hasTable('activity_logs')) {
+                $view->with('activities', ActivityLog::latest()->take(10)->get());
+                $view->with('unreadCount', ActivityLog::where('is_read', false)->count());
+            } else {
+                $view->with('activities', collect());
+                $view->with('unreadCount', 0);
+            }
 
-            $view->with([
-                'activities' => $activities,
-                'unreadCount' => $unreadCount
-            ]);
-        });
+        } catch (\Throwable $e) {
+            $view->with('activities', collect());
+            $view->with('unreadCount', 0);
+        }
+    });
     }
 }
