@@ -19,6 +19,7 @@ return new class extends Migration
             $table->unsignedBigInteger('parent_id')->nullable();
             $table->integer('order')->default(0)->nullable();
             $table->string('role')->nullable();
+            $table->softDeletes();
             $table->timestamps();
         });
     }

@@ -19,6 +19,7 @@ class CreateNasTable extends Migration
             $table->string('community', 50)->nullable();
             $table->string('description', 200)->nullable()->default('RADIUS Client');
             $table->index('nasname');
+            $table->softDeletes();
             $table->timestamps();
         });
     }

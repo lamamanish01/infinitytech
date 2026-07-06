@@ -18,6 +18,7 @@ return new class extends Migration
             $table->bigInteger('contact_number')->nullable();
             $table->decimal('balance', 12, 2)->default(0);
             $table->string('remarks')->nullable();
+            $table->softDeletes();
             $table->timestamps();
         });
     }

@@ -16,6 +16,7 @@ return new class extends Migration
             $table->string('name');
             $table->string('upload_rate');
             $table->string('download_rate');
+            $table->softDeletes();
             $table->timestamps();
         });
     }

@@ -19,6 +19,7 @@ return new class extends Migration
             $table->string('password');
             $table->foreignId('branch_id')->nullable();
             $table->rememberToken();
+            $table->softDeletes();
             $table->timestamps();
         });
 

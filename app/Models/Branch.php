@@ -6,10 +6,13 @@ use App\Models\BranchTransaction;
 use App\Models\Customer;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Facades\DB;
 
 class Branch extends Model
 {
+    use SoftDeletes;
+
     protected $fillable = ['name', 'address', 'contact_number', 'balance', 'remarks'];
 
     protected $casts = [

@@ -15,6 +15,7 @@ return new class extends Migration
             $table->string('acs_username')->nullable();
             $table->string('acs_password')->nullable();
             $table->string('status')->default('active');
+            $table->softDeletes();
             $table->timestamps();
         });
     }
