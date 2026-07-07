@@ -5,25 +5,60 @@
 <div class="container-fluid">
 
     {{-- ================= HEADER ================= --}}
-    <div class="d-flex justify-content-between align-items-center mb-3">
+    <div class="card shadow-sm mb-2">
+        <div class="card-body">
 
-        <div>
-            <h4 class="mb-0">{{ $customer->name }}</h4>
-            <small class="text-muted d-block">
-                {{ $customer->username }}
-            </small>
+            <div class="row align-items-center">
 
-            {{-- STATUS UNDER NAME --}}
-            <div class="mt-1">
-                @if($customer->is_online)
-                    <span class="badge bg-success px-3 py-2">● ONLINE</span>
-                @else
-                    <span class="badge bg-danger px-3 py-2">● OFFLINE</span>
-                @endif
-            </div>
-        </div>
+                {{-- Left Column --}}
+                <div class="col-6 col-md-3 mb-3">
+                    <h4 class="fw-bold">
+                        {{ $customer->name }}
+                    </h4>
 
-    </div>
+                    @if($customer->is_online)
+                        <span class="badge bg-success">● ONLINE</span>
+                    @else
+                        <span class="badge bg-danger">● OFFLINE</span>
+                    @endif
+                </div>
+
+                {{-- Right Column – centered on all screens --}}
+                <div class="col-6 col-md-3 text-right mt-3 mt-md-0">
+
+                    <div class="mb-2">
+                        {{ $customer->address ?? 'Address not available' }}
+                        <i class="fas fa-map-marker-alt text-danger me-2"></i>
+                    </div>
+
+                    <div class="mb-2">
+                        @if($customer->contact_number)
+                            <a href="tel:{{ preg_replace('/\s+/', '', $customer->contact) }}" class="text-decoration-none">
+                                {{ $customer->contact_number }}
+                            </a>
+                        @else
+                            N/A
+                        @endif
+                        <i class="fas fa-phone text-success me-2"></i>
+                    </div>
+
+                    <div>
+                        @if($customer->email)
+                            <a href="mailto:{{ $customer->email }}" class="text-decoration-none">
+                                {{ $customer->email }}
+                            </a>
+                        @else
+                            N/A
+                        @endif
+                        <i class="fas fa-envelope text-primary me-2"></i>
+                    </div>
+
+                </div>
+
+            </div> <!-- /row -->
+
+        </div> <!-- /card-body -->
+    </div> <!-- /card -->
 
     {{-- ================= CARD ================= --}}
     <div class="card shadow-sm">
@@ -108,6 +143,11 @@
                         <div class="col-md-6">
 
                             <ul class="list-group">
+
+                                <li class="list-group-item d-flex justify-content-between">
+                                    Username
+                                    <strong>{{ $customer->username ?? '-' }}</strong>
+                                </li>
 
                                 <li class="list-group-item d-flex justify-content-between">
                                     Plan
@@ -483,10 +523,8 @@
                                     <div class="card-body">
 
                                         <div class="row">
-
                                             {{-- 2.4GHz --}}
-                                            <div class="col-md-6">
-
+                                            <div class="{{ $router->wifi_5_ssid ? 'col-md-6' : 'col-md-12' }}">
                                                 <h6 class="text-primary">2.4 GHz</h6>
 
                                                 <div class="mb-2">
@@ -494,7 +532,7 @@
                                                     <input type="text"
                                                         name="ssid_24"
                                                         class="form-control"
-                                                        value="{{ old('wifi_ssid_24', $router->wifi_24_ssid ?? '') }}">
+                                                        value="{{ old('ssid_24', $router->wifi_24_ssid ?? '') }}">
                                                 </div>
 
                                                 <div class="mb-2">
@@ -502,7 +540,7 @@
                                                     <input type="text"
                                                         name="password_24"
                                                         class="form-control"
-                                                        value="{{ old('wifi_24_password', $router->wifi_24_password ?? '') }}">
+                                                        value="{{ old('password_24', $router->wifi_24_password ?? '') }}">
                                                 </div>
 
                                                 <div class="form-check form-switch">
@@ -511,46 +549,41 @@
                                                         name="hide_ssid_24"
                                                         value="1"
                                                         {{ $router->hide_ssid_24 ? 'checked' : '' }}>
-                                                    <label class="form-check-label">
-                                                        Hide SSID
-                                                    </label>
+                                                    <label class="form-check-label">Hide SSID</label>
                                                 </div>
-
                                             </div>
 
-                                            {{-- 5GHz --}}
-                                            <div class="col-md-6">
+                                            {{-- 5GHz – only if SSID exists --}}
+                                            @if($router->wifi_5_ssid)
+                                                <div class="col-md-6">
+                                                    <h6 class="text-success">5 GHz</h6>
 
-                                                <h6 class="text-success">5 GHz</h6>
+                                                    <div class="mb-2">
+                                                        <label>SSID</label>
+                                                        <input type="text"
+                                                            name="ssid_5"
+                                                            class="form-control"
+                                                            value="{{ old('ssid_5', $router->wifi_5_ssid) }}">
+                                                    </div>
 
-                                                <div class="mb-2">
-                                                    <label>SSID</label>
-                                                    <input type="text"
-                                                        name="ssid_5"
-                                                        class="form-control"
-                                                        value="{{ old('wifi_5_ssid', $router->wifi_5_ssid ?? '') }}">
+                                                    <div class="mb-2">
+                                                        <label>Password</label>
+                                                        <input type="text"
+                                                            name="password_5"
+                                                            class="form-control"
+                                                            value="{{ old('password_5', $router->wifi_5_password) }}">
+                                                    </div>
+
+                                                    <div class="form-check form-switch">
+                                                        <input class="form-check-input"
+                                                            type="checkbox"
+                                                            name="hide_ssid_5"
+                                                            value="1"
+                                                            {{ $router->hide_ssid_5 ? 'checked' : '' }}>
+                                                        <label class="form-check-label">Hide SSID</label>
+                                                    </div>
                                                 </div>
-
-                                                <div class="mb-2">
-                                                    <label>Password</label>
-                                                    <input type="text"
-                                                        name="password_5"
-                                                        class="form-control"
-                                                        value="{{ $router->wifi_5_password }}">
-                                                </div>
-
-                                                <div class="form-check form-switch">
-                                                    <input class="form-check-input"
-                                                        type="checkbox"
-                                                        name="hide_ssid_5"
-                                                        value="1"
-                                                        {{ $router->hide_ssid_5 ? 'checked' : '' }}>
-                                                    <label class="form-check-label">
-                                                        Hide SSID
-                                                    </label>
-                                                </div>
-
-                                            </div>
+                                            @endif
 
                                         </div>
 
