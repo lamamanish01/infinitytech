@@ -16,7 +16,7 @@
         <div class="card-body p-0">
 
             {{-- Responsive wrapper – scroll on small screens only --}}
-            <div class="table-responsive-sm">
+            <div class="table-responsive">
                 <table class="table table-hover table-bordered mb-0">
 
                     <thead class="table-light">
@@ -67,14 +67,13 @@
 
                     </tbody>
 
+                    {{-- Pagination – outside the scrolling container --}}
+                    @if($authLogs->hasPages())
+                        <div class="card-footer d-flex justify-content-end border-top-0">
+                            {{ $authLogs->links() }}
+                        </div>
+                    @endif
                 </table>
-
-                {{-- Pagination – outside the scrolling container --}}
-                @if($authLogs->hasPages())
-                    <div class="card-footer d-flex justify-content-end border-top-0">
-                        {{ $authLogs->links() }}
-                    </div>
-                @endif
             </div> {{-- /table-responsive-sm --}}
 
         </div> {{-- /card-body --}}
