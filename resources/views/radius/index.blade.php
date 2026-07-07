@@ -68,14 +68,14 @@
                     </tbody>
 
                 </table>
-            </div> {{-- /table-responsive-sm --}}
 
-            {{-- Pagination – outside the scrolling container --}}
-            @if($authLogs->hasPages())
-                <div class="card-footer d-flex justify-content-end border-top-0">
-                    {{ $authLogs->links() }}
-                </div>
-            @endif
+                {{-- Pagination – outside the scrolling container --}}
+                @if($authLogs->hasPages())
+                    <div class="card-footer d-flex justify-content-end border-top-0">
+                        {{ $authLogs->links() }}
+                    </div>
+                @endif
+            </div> {{-- /table-responsive-sm --}}
 
         </div> {{-- /card-body --}}
 
