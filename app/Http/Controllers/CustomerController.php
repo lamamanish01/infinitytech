@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Helpers\Activity;
+use App\Models\ActivityLog;
 use App\Models\Branch;
 use App\Models\Customer;
 use App\Models\GracePeriod;
@@ -104,6 +105,7 @@ class CustomerController extends Controller
             'Customer Created',
             $customer->name . ' has been created successfully',
             'fas fa-user-plus text-success',
+            $customer->username,
             route('customers.show', $customer->id)
         );
 
@@ -145,6 +147,10 @@ class CustomerController extends Controller
             ->orderByDesc('radacctid')
             ->first();
 
+        $activityLogs = ActivityLog::where('username', $customer->username)
+                                   ->orderBy('created_at', 'desc')
+                                   ->paginate(15);
+
         return view('customers.show', compact(
             'customer',
             'session',
@@ -152,6 +158,7 @@ class CustomerController extends Controller
             'previousSessions',
             'billings',
             'authLogs',
+            'activityLogs',
         ));
     }
 
@@ -184,6 +191,7 @@ class CustomerController extends Controller
             'Customer Updated',
             $customer->name . ' details have been updated',
             'fas fa-user-edit text-primary',
+            $customer->username ,
             route('customers.show', $customer->id)
         );
 
@@ -251,6 +259,7 @@ class CustomerController extends Controller
             'Expiry Date Updated',
             $customer->name . ' expiry changed to ' . $customer->expire_date,
             'fas fa-calendar-alt text-info',
+            $customer->username,
             route('customers.show', $customer->id)
         );
 
@@ -297,6 +306,7 @@ class CustomerController extends Controller
             'Customer in Grace Period',
             $customer->name . ' is now in grace period until ' . $end->toDateString(),
             'fas fa-clock text-warning',
+            $customer->username,
             route('customers.show', $customer->id)
         );
 
@@ -347,6 +357,7 @@ class CustomerController extends Controller
             'MAC Address Bind',
             $customer->name . ' MAC address has been bound',
             'fas fa-lock text-success',
+            $customer->username,
             route('customers.show', $customer->id)
         );
 
@@ -364,6 +375,7 @@ class CustomerController extends Controller
             'MAC Address Unbind',
             $customer->name . ' MAC address has been removed',
             'fas fa-unlock text-danger',
+            $customer->username,
             route('customers.show', $customer->id)
         );
 

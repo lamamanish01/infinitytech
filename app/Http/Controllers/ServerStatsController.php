@@ -9,6 +9,11 @@ class ServerStatsController extends Controller
     /**
      * Public method to get stats – callable from other controllers.
      */
+    function __construct()
+    {
+        $this->middleware('permission:view serverstats')->only(['index']);
+    }
+
     public function getStats()
     {
         return $this->gatherStats();

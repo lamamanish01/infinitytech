@@ -11,6 +11,15 @@ class BillingController extends Controller
     /**
      * Display a listing of the resource.
      */
+
+    function __construct()
+    {
+        $this->middleware('permission:view billing')->only(['index', 'show']);
+        $this->middleware('permission:create billing')->only(['create', 'store']);
+        $this->middleware('permission:edit billing')->only(['edit', 'update']);
+        $this->middleware('permission:delete billing')->only(['destroy']);
+    }
+
     public function index(Request $request)
     {
         $query = Billing::query()

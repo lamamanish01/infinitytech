@@ -127,6 +127,33 @@ class PermissionSeeder extends Seeder
             'view system logs',
             'view system activity',
             'change password',
+
+            // ================= CUSTOMER IMPORT =================
+            'customer_import showForm',
+            'customer_import import',
+            'customer_import downloadTemplate',
+
+            // ================= SMS =================
+            'view sms',
+            'create sms',
+            'edit sms',
+            'delete sms',
+
+            // ================= RADPOST AUTH =================
+            'view radpostauth',
+            'create radpostauth',
+            'edit radpostauth',
+            'delete radpostauth',
+
+            // ================= RADPOST AUTH =================
+            'view serverstats',
+
+            // ================= SMS GATEWAY =================
+            'view smsgateway',
+            'create smsgateway',
+            'edit smsgateway',
+            'delete smsgateway',
+            'send smsgateway',
         ];
 
         foreach ($permissions as $permission) {

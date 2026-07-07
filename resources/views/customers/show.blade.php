@@ -24,32 +24,20 @@
                 </div>
 
                 {{-- Right Column – centered on all screens --}}
-                <div class="col-6 col-md-3 text-right mt-3 mt-md-0">
+                <div class="col-6 col-md-3 text-right">
 
-                    <div class="mb-2">
+                    <div class="mb-0">
                         {{ $customer->address ?? 'Address not available' }}
                         <i class="fas fa-map-marker-alt text-danger me-2"></i>
                     </div>
 
-                    <div class="mb-2">
-                        @if($customer->contact_number)
-                            <a href="tel:{{ preg_replace('/\s+/', '', $customer->contact) }}" class="text-decoration-none">
-                                {{ $customer->contact_number }}
-                            </a>
-                        @else
-                            N/A
-                        @endif
+                    <div class="mb-0">
+                        {{ $customer->contact_number }}
                         <i class="fas fa-phone text-success me-2"></i>
                     </div>
 
-                    <div>
-                        @if($customer->email)
-                            <a href="mailto:{{ $customer->email }}" class="text-decoration-none">
-                                {{ $customer->email }}
-                            </a>
-                        @else
-                            N/A
-                        @endif
+                    <div class="mt-0">
+                        {{ $customer->email }}
                         <i class="fas fa-envelope text-primary me-2"></i>
                     </div>
 
@@ -73,7 +61,7 @@
                             data-bs-toggle="tab"
                             data-bs-target="#overview"
                             type="button">
-                        Overview
+                        <strong>Overview</strong>
                     </button>
                 </li>
 
@@ -82,7 +70,7 @@
                             data-bs-toggle="tab"
                             data-bs-target="#session"
                             type="button">
-                        Session
+                        <strong>Session</strong>
                     </button>
                 </li>
 
@@ -91,7 +79,7 @@
                             data-bs-toggle="tab"
                             data-bs-target="#router"
                             type="button">
-                        Router Mgmt
+                        <strong>Router Mgmt</strong>
                     </button>
                 </li>
 
@@ -100,7 +88,7 @@
                             data-bs-toggle="tab"
                             data-bs-target="#billing"
                             type="button">
-                        Billing
+                        <strong>Billing</strong>
                     </button>
                 </li>
 
@@ -109,16 +97,25 @@
                             data-bs-toggle="tab"
                             data-bs-target="#create-ticket"
                             type="button">
-                        Create Ticket
+                        <strong>Create Ticket</strong>
                     </button>
                 </li>
 
                 <li class="nav-item" role="presentation">
                     <button class="nav-link"
                             data-bs-toggle="tab"
-                            data-bs-target="#logs"
+                            data-bs-target="#auth-logs"
                             type="button">
-                        Auth Logs
+                        <strong>Auth Logs</strong>
+                    </button>
+                </li>
+
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link"
+                            data-bs-toggle="tab"
+                            data-bs-target="#activity-logs"
+                            type="button">
+                        <strong>Activity Logs</strong>
                     </button>
                 </li>
 
@@ -811,7 +808,7 @@
                 </div>
 
                 {{-- ================= AUTH LOGS ================= --}}
-                <div class="tab-pane fade" id="logs">
+                <div class="tab-pane fade" id="auth-logs">
 
                     <div class="table-responsive">
 
@@ -856,6 +853,61 @@
 
                     </div>
 
+                </div>
+
+                {{-- ================= ACTIVITY LOGS ================= --}}
+                <div class="tab-pane fade" id="activity-logs">
+                    <div class="table-responsive">
+                        <table class="table table-hover table-sm">
+                            <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th>Title</th>
+                                    <th>Message</th>
+                                    <th>User</th>
+                                    <th>Date</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @forelse($activityLogs as $activity)
+                                    <tr>
+                                        <td>{{ $loop->iteration }}</td>
+                                        <td>
+                                            <i class="{{ $activity->icon ?? 'fas fa-bell' }}"></i>
+                                            {{ $activity->title }}
+                                        </td>
+                                        <td>{{ $activity->message ?? '-' }}</td>
+                                        <td>{{ $activity->user->name ?? 'System' }}</td>
+                                        <td>
+                                            {{ $activity->created_at->format('Y-m-d H:i') }}
+                                            <br>
+                                            <small class="text-muted">
+                                                {{ $activity->created_at->diffForHumans() }}
+                                            </small>
+                                        </td>
+                                        <td>
+                                            @if($activity->is_read)
+                                                <span class="badge bg-success">Read</span>
+                                            @else
+                                                <span class="badge bg-warning">Unread</span>
+                                            @endif
+                                        </td>
+                                    </tr>
+                                @empty
+                                    <tr>
+                                        <td colspan="6" class="text-center text-muted">
+                                            No activities found for this customer.
+                                        </td>
+                                    </tr>
+                                @endforelse
+                            </tbody>
+                        </table>
+                    </div>
+                    {{-- Pagination --}}
+                    <div class="mt-3">
+                        {{ $activityLogs->links() }}
+                    </div>
                 </div>
 
             </div>

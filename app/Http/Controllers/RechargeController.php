@@ -62,6 +62,7 @@ class RechargeController extends Controller
                 'Recharge Added',
                 $customer->name . ' recharged Rs. ' . $recharge->price,
                 'fas fa-money-bill text-success',
+                $customer->username,
                 route('customers.show', $customer->id)
             );
 

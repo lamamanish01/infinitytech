@@ -8,6 +8,14 @@ use Illuminate\Http\Request;
 
 class CustomSmsController extends Controller
 {
+    function __construct()
+    {
+        $this->middleware('permission:view sms')->only(['index', 'show']);
+        $this->middleware('permission:create sms')->only(['create', 'store']);
+        $this->middleware('permission:edit sms')->only(['edit', 'update']);
+        $this->middleware('permission:delete sms')->only(['destroy']);
+    }
+
     public function create()
     {
         return view('sms.custom');

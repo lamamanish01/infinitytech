@@ -10,6 +10,13 @@ use Illuminate\Http\Request;
 class CustomerImportController extends Controller
 {
     // Show import form
+    function __construct()
+    {
+        $this->middleware('permission:customer_import showForm')->only(['showForm']);
+        $this->middleware('permission:customer_import import')->only(['import']);
+        $this->middleware('permission:customer_import downloadTemplate')->only(['downloadTemplate']);
+    }
+
     public function showForm()
     {
         return view('customers.import');

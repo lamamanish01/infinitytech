@@ -12,6 +12,15 @@ use Illuminate\Http\Request;
 
 class SmsGatewayController extends Controller
 {
+    function __construct()
+    {
+        $this->middleware('permission:view smsgateway')->only(['index', 'show']);
+        $this->middleware('permission:create smsgateway')->only(['create', 'store']);
+        $this->middleware('permission:edit smsgateway')->only(['edit', 'update']);
+        $this->middleware('permission:delete smsgateway')->only(['destroy']);
+        $this->middleware('permission:send smsgateway')->only(['send']);
+    }
+
     public function index()
     {
         $queues = SmsQueue::latest()->paginate(15);

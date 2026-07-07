@@ -179,6 +179,14 @@
         "parent_id": 6,
         "order": 4,
         "role": "view connection log"
+      },
+      {
+        "title": "SMS Queue",
+        "url": "/sms",
+        "icon": null,
+        "parent_id": 6,
+        "order": 5,
+        "role": "view sms"
       }
     ]
   },

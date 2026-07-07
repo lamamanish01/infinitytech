@@ -38,10 +38,13 @@
                                 </div>
                                 <div class="form-select">
                                     <label>Internet Plans:</label>
-                                        <select name="internet_plan_id" class="custom-select">
-                                            <option>Select Internet Plans</option>
-                                            @foreach ($internet_plans as $internet_plan)
-                                                <option value="{{$internet_plan->id}}">{{$internet_plan->bandwidth_name}}</option>
+                                        <select name="internet_plan_id" class="custom-select" required>
+                                            <option value="">Select Internet Plans</option>
+                                            @foreach ($internet_plans as $plan)
+                                                <option value="{{ $plan->id }}"
+                                                    @selected(old('internet_plan_id', $customer->internet_plan_id) == $plan->id)>
+                                                    {{ $plan->bandwidth_name }}
+                                                </option>
                                             @endforeach
                                         </select>
                                 </div>

@@ -273,6 +273,7 @@ class TicketController extends Controller
             ' to ' . $request->status .
             ' (Customer: ' . $customer->username . ')',
             'fas fa-sync-alt text-primary',
+            $customer->username,
             route('ticket.show', $ticket->id)
         );
 
