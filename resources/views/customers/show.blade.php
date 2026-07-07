@@ -72,9 +72,18 @@
                 <li class="nav-item" role="presentation">
                     <button class="nav-link"
                             data-bs-toggle="tab"
+                            data-bs-target="#create-ticket"
+                            type="button">
+                        Create Ticket
+                    </button>
+                </li>
+
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link"
+                            data-bs-toggle="tab"
                             data-bs-target="#logs"
                             type="button">
-                        Logs
+                        Auth Logs
                     </button>
                 </li>
 
@@ -180,6 +189,75 @@
                                 </li>
 
                             </ul>
+
+                        </div>
+
+                    </div>
+
+                     {{-- ================= QUICK ACTIONS ================= --}}
+                    <div class="card mt-3 shadow-sm">
+
+                        <div class="card-header bg-white">
+                            <strong>Quick Actions</strong>
+                        </div>
+
+                        <div class="card-body d-flex flex-wrap gap-2">
+
+                            @can('recharge customers')
+                                <a href="{{ route('recharges.create', $customer->id) }}"
+                                class="btn btn-warning btn-sm">
+                                    Recharge
+                                </a>
+                            @endcan
+
+                            @can('change expiry customers')
+                                <a href="{{ route('customers.expiry-form', $customer->id) }}"
+                                class="btn btn-danger btn-sm">
+                                    Change Expiry
+                                </a>
+                            @endcan
+
+                            @can('grace customers')
+                                <form action="{{ route('provide-grace', $customer->id) }}" method="POST">
+                                    @csrf
+                                    <button class="btn btn-info btn-sm">
+                                        +3 Days Grace
+                                    </button>
+                                </form>
+                            @endcan
+
+                            @can('disconnect customers')
+                                <form action="{{ route('customer.disconnect', $customer->id) }}" method="POST">
+                                    @csrf
+                                    <button class="btn btn-dark btn-sm">
+                                        Disconnect
+                                    </button>
+                                </form>
+                            @endcan
+
+                            @if($customer->mac_address)
+
+                                @can('unbind mac customers')
+                                    <form action="{{ route('customer.unbind-mac', $customer->id) }}" method="POST">
+                                        @csrf
+                                        <button type="submit" class="btn btn-danger btn-sm">
+                                            Unbind MAC
+                                        </button>
+                                    </form>
+                                @endcan
+
+                            @else
+
+                                @can('bind mac customers')
+                                    <form action="{{ route('customer.bind-mac', $customer->id) }}" method="POST">
+                                        @csrf
+                                        <button type="submit" class="btn btn-primary btn-sm">
+                                            Bind MAC
+                                        </button>
+                                    </form>
+                                @endcan
+
+                            @endif
 
                         </div>
 
@@ -644,7 +722,62 @@
 
                 </div>
 
-                {{-- ================= LOGS ================= --}}
+                {{-- ================= CREATE TICKET ================= --}}
+                <div class="tab-pane fade" id="create-ticket">
+
+                    <div class="card shadow-sm">
+                        <div class="card-header">
+                            <strong>Create Support Ticket</strong>
+                        </div>
+
+                        <div class="card-body">
+
+                            <form method="POST" action="{{ route('ticket.store') }}">
+                                @csrf
+
+                                <input type="hidden" name="customer_id" value="{{ $customer->id }}">
+
+                                <div class="mb-3">
+                                    <label class="form-label">Subject</label>
+                                    <input
+                                        type="text"
+                                        name="subject"
+                                        class="form-control"
+                                        value="{{ old('subject') }}"
+                                        required>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label class="form-label">Priority</label>
+                                    <select name="priority" class="form-control">
+                                        <option value="low">Low</option>
+                                        <option value="medium" selected>Medium</option>
+                                        <option value="high">High</option>
+                                        <option value="urgent">Urgent</option>
+                                    </select>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label class="form-label">Message</label>
+                                    <textarea
+                                        name="message"
+                                        rows="6"
+                                        class="form-control"
+                                        required>{{ old('message') }}</textarea>
+                                </div>
+
+                                <button type="submit" class="btn btn-success">
+                                    <i class="fas fa-ticket-alt"></i> Create Ticket
+                                </button>
+
+                            </form>
+
+                        </div>
+                    </div>
+
+                </div>
+
+                {{-- ================= AUTH LOGS ================= --}}
                 <div class="tab-pane fade" id="logs">
 
                     <div class="table-responsive">
@@ -657,6 +790,9 @@
                                     <th>User</th>
                                     <th>Pass</th>
                                     <th>Reply</th>
+                                    <th>Reply Message</th>
+                                    <th>Nas IP Address</th>
+                                    <th>Mac Address</th>
                                     <th>Date</th>
                                 </tr>
                             </thead>
@@ -670,6 +806,9 @@
                                         <td>{{ $log->username }}</td>
                                         <td>{{ $log->pass }}</td>
                                         <td>{{ $log->reply }}</td>
+                                        <td>{{ $log->reply_message }}</td>
+                                        <td>{{ $log->nasipaddress }}</td>
+                                        <td>{{ $log->mac }}</td>
                                         <td>{{ optional($log->authdate)->toDateTimeString() }}</td>
                                     </tr>
 
@@ -687,75 +826,6 @@
                 </div>
 
             </div>
-
-        </div>
-
-    </div>
-
-    {{-- ================= QUICK ACTIONS ================= --}}
-    <div class="card mt-3 shadow-sm">
-
-        <div class="card-header bg-white">
-            <strong>Quick Actions</strong>
-        </div>
-
-        <div class="card-body d-flex flex-wrap gap-2">
-
-            @can('recharge customers')
-                <a href="{{ route('recharges.create', $customer->id) }}"
-                class="btn btn-warning btn-sm">
-                    Recharge
-                </a>
-            @endcan
-
-            @can('change expiry customers')
-                <a href="{{ route('customers.expiry-form', $customer->id) }}"
-                class="btn btn-danger btn-sm">
-                    Change Expiry
-                </a>
-            @endcan
-
-            @can('grace customers')
-                <form action="{{ route('provide-grace', $customer->id) }}" method="POST">
-                    @csrf
-                    <button class="btn btn-info btn-sm">
-                        +3 Days Grace
-                    </button>
-                </form>
-            @endcan
-
-            @can('disconnect customers')
-                <form action="{{ route('customer.disconnect', $customer->id) }}" method="POST">
-                    @csrf
-                    <button class="btn btn-dark btn-sm">
-                        Disconnect
-                    </button>
-                </form>
-            @endcan
-
-            @if($customer->mac_address)
-
-                @can('unbind mac customers')
-                    <form action="{{ route('customer.unbind-mac', $customer->id) }}" method="POST">
-                        @csrf
-                        <button type="submit" class="btn btn-danger btn-sm">
-                            Unbind MAC
-                        </button>
-                    </form>
-                @endcan
-
-            @else
-
-                @can('bind mac customers')
-                    <form action="{{ route('customer.bind-mac', $customer->id) }}" method="POST">
-                        @csrf
-                        <button type="submit" class="btn btn-primary btn-sm">
-                            Bind MAC
-                        </button>
-                    </form>
-                @endcan
-
-            @endif
 
         </div>
 

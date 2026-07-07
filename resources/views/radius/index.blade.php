@@ -78,16 +78,15 @@
 
                 </table>
 
+                @if($authLogs->hasPages())
+                    <div class="card-footer d-flex justify-content-end">
+                        {{ $authLogs->links() }}
+                    </div>
+                @endif
+
             </div>
 
         </div>
-
-        @if($authLogs->hasPages())
-            <div class="card-footer d-flex justify-content-end">
-                {{ $authLogs->links() }}
-            </div>
-        @endif
-
     </div>
 
 </div>
