@@ -49,7 +49,7 @@
                     </div>
 
                     <div class="table-responsive">
-                        <table class="table table-bordered table-striped">
+                        <table class="table table-sm table-striped table-hover">
                             <thead>
                                 <tr>
                                     <th>ID</th>

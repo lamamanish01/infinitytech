@@ -11,13 +11,13 @@
         </span>
     </div>
 
-    <div class="card">
+    <div class="card shadow-sm border-0">
 
-        <div class="card-body p-0">
+        <div class="card-body table-responsive p-0">
 
             {{-- Responsive wrapper – scroll on small screens only --}}
             <div class="table-responsive">
-                <table class="table table-hover table-bordered mb-0">
+                <table class="table table-sm table-hover align-middle mb-0">
 
                     <thead class="table-light">
                         <tr>
@@ -66,14 +66,13 @@
                     @endforelse
 
                     </tbody>
-
-                    {{-- Pagination – outside the scrolling container --}}
+                </table>
+                {{-- Pagination – outside the scrolling container --}}
                     @if($authLogs->hasPages())
-                        <div class="card-footer d-flex justify-content-end border-top-0">
+                        <div class="mt-3">
                             {{ $authLogs->links() }}
                         </div>
                     @endif
-                </table>
             </div> {{-- /table-responsive-sm --}}
 
         </div> {{-- /card-body --}}

@@ -32,7 +32,7 @@
     {{-- Table --}}
     <div class="card card-info">
         <div class="card-body table-responsive">
-            <table class="table table-bordered table-striped">
+            <table class="table table-sm table-striped table-hover">
                 <thead>
                     <tr>
                         <th>#</th>
@@ -87,7 +87,7 @@
                                         </button>
                                     @endif
 
-                                    @can('delete sms queue')
+                                    @can('delete sms queues')
                                         <form action="{{ route('sms.queues.delete', $sms->id) }}"
                                             method="POST"
                                             onsubmit="return confirm('Are you sure you want to delete this SMS?')">
@@ -110,18 +110,17 @@
                 </tbody>
             </table>
         </div>
-    </div>
+        {{-- Bulk Send All Unsent --}}
+        <form action="{{ route('sms.send') }}" method="POST">
+            @csrf
+            <input type="hidden" name="bulk" value="1">
+            <button class="btn btn-primary">Send All Unsent</button>
+        </form>
 
-    {{-- Bulk Send All Unsent --}}
-    <form action="{{ route('sms.send') }}" method="POST" class="mt-3">
-        @csrf
-        <input type="hidden" name="bulk" value="1">
-        <button class="btn btn-primary">Send All Unsent</button>
-    </form>
-
-    {{-- Pagination --}}
-    <div class="mt-3 d-flex justify-content-end">
-        {{ $queues->links() }}
+        {{-- Pagination --}}
+        <div class="mt-3 d-flex justify-content-end">
+            {{ $queues->links() }}
+        </div>
     </div>
 
 </div>

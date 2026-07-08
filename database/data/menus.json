@@ -136,7 +136,7 @@
     "url": "/billing",
     "icon": "fa-file-invoice",
     "parent_id": null,
-    "order": 4,
+    "order": 5,
     "role": "view billings"
   },
   {
@@ -145,7 +145,7 @@
     "url": "",
     "icon": "fa-cog",
     "parent_id": null,
-    "order": 5,
+    "order": 6,
     "role": "view system",
     "children": [
       {
@@ -179,31 +179,58 @@
         "parent_id": 6,
         "order": 4,
         "role": "view connection log"
-      },
-      {
-        "title": "SMS Queue",
-        "url": "/sms",
-        "icon": null,
-        "parent_id": 6,
-        "order": 5,
-        "role": "view sms"
       }
     ]
   },
   {
     "id": 7,
+    "title": "SMS Gateway",
+    "url": "",
+    "icon": "fa-comment-dots",
+    "parent_id": null,
+    "order": 7,
+    "role": "view sms gateway",
+    "children": [
+      {
+        "title": "List of SMS Gateway",
+        "url": "/sms/queues",
+        "icon": null,
+        "parent_id": 7,
+        "order": 1,
+        "role": "view sms queues"
+      },
+      {
+        "title": "List of SMSQueues",
+        "url": "/sms/queues",
+        "icon": null,
+        "parent_id": 7,
+        "order": 2,
+        "role": "view sms queues"
+      },
+      {
+        "title": "List of SMSLogs",
+        "url": "/sms/logs",
+        "icon": null,
+        "parent_id": 7,
+        "order": 3,
+        "role": "view sms logs"
+      }
+    ]
+  },
+  {
+    "id": 8,
     "title": "Ticket",
     "url": "",
     "icon": "fa-ticket-alt",
     "parent_id": null,
-    "order": 7,
+    "order": 8,
     "role": "view tickets",
     "children": [
       {
         "title": "List of Ticket",
         "url": "/ticket",
         "icon": null,
-        "parent_id": 7,
+        "parent_id": 8,
         "order": 1,
         "role": "view tickets"
       }

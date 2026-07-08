@@ -102,12 +102,14 @@ class PermissionSeeder extends Seeder
             'delete cron jobs',
 
             // ================= SMS =================
-            'view smsgateway',
-            'create smsgateway',
-            'edit smsgateway',
-            'delete smsgateway',
+            'view sms gateway',
+            'create sms gateway',
+            'edit sms gateway',
+            'delete sms gateway',
             'send smsgateway',
-            'delete sms queue',
+            'view sms queues',
+            'view sms logs',
+            'delete sms queues',
 
             // ================= MENU =================
             'view menus',

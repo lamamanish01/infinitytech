@@ -51,7 +51,7 @@ class CustomerController extends Controller
                             ->orWhere('contact_number', 'like', "%$q%");
                     });
                 })
-                ->paginate(10)
+                ->paginate(15)
         ]);
     }
 
@@ -400,7 +400,7 @@ class CustomerController extends Controller
          $customersExpired = Customer::where('status', 'expired')
                 ->latest()
                 ->orderBy('expire_date', 'desc')
-                ->paginate(10);
+                ->paginate(15);
 
         return view('customers.expired', compact('customersExpired'));
     }
@@ -413,7 +413,7 @@ class CustomerController extends Controller
                 now()->addDays(3)
             ])
             ->orderBy('expire_date', 'asc')
-            ->paginate(10);
+            ->paginate(15);
 
         return view('customers.expiring', compact('customersExpiring'));
     }

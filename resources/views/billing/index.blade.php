@@ -61,7 +61,7 @@
     <div class="card shadow-sm border-0">
         <div class="card-body p-0">
             <div class="table-responsive">
-                <table class="table table-hover align-middle mb-0">
+                <table class="table table-sm table-striped table-hover align-middle mb-0">
                     <thead class="table-light">
                         <tr>
                             <th>#</th>
@@ -114,7 +114,7 @@
                     <tfoot class="table-light fw-bold">
                         <tr>
                             <td colspan="4" class="text-end">Total (current page)</td>
-                            <td>{{ number_format($billings->sum('amount'), 2) }}</td>
+                            <td><strong>{{ number_format($billings->sum('amount'), 2) }}</strong></td>
                             <td colspan="2"></td>
                         </tr>
                     </tfoot>

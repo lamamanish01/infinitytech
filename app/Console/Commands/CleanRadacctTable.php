@@ -28,7 +28,7 @@ class CleanRadacctTable extends Command
 
         try {
             // Configurable retention days (default 30)
-            $retentionDays = config('radius.radacct_retention_days', 30);
+            $retentionDays = config('radius.radacct_retention_days', 15);
             $cutoff = now()->subDays($retentionDays);
 
             $deleted = DB::table('radacct')

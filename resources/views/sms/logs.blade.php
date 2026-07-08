@@ -7,7 +7,7 @@
     <!-- HEADER with back button -->
     <div class="d-flex justify-content-between align-items-center mb-3">
         <h4 class="mb-0">SMS Logs</h4>
-        <a href="{{ route('sms.index') }}" class="btn btn-secondary btn-sm">
+        <a href="{{ route('sms.queues') }}" class="btn btn-secondary btn-sm">
             ← Back to Queue
         </a>
     </div>

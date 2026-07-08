@@ -19,7 +19,9 @@ class SmsGatewayController extends Controller
         $this->middleware('permission:edit smsgateway')->only(['edit', 'update']);
         $this->middleware('permission:delete smsgateway')->only(['destroy']);
         $this->middleware('permission:send smsgateway')->only(['send']);
-        $this->middleware('permission:delete sms queue')->only(['queueDelete']);
+        $this->middleware('permission:view sms queues')->only(['queues']);
+        $this->middleware('permission:view sms logs')->only(['logs']);
+        $this->middleware('permission:delete sms queues')->only(['queueDelete']);
     }
 
     public function index()

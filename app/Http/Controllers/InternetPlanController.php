@@ -23,7 +23,7 @@ class InternetPlanController extends Controller
 
     public function index()
     {
-        $internetplans = InternetPlan::orderBy('name', 'desc')->paginate(10);
+        $internetplans = InternetPlan::orderBy('name', 'desc')->paginate(15);
         return view('internetplan.index', compact('internetplans'));
     }
 
@@ -69,7 +69,7 @@ class InternetPlanController extends Controller
 
     /**
      * Display the specified resource.
-     */ 
+     */
     public function show(string $id)
     {
         //
