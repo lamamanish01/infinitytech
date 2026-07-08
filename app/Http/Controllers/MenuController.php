@@ -22,7 +22,7 @@ class MenuController extends Controller
 
     public function index()
     {
-        $menus = Menu::orderBy('order', 'asc')->paginate(10);
+        $menus = Menu::orderBy('order', 'asc')->paginate(15);
         return view('menus.index', compact('menus'));
     }
 
