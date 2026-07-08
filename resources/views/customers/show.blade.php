@@ -333,18 +333,18 @@
                                         <td>{{ $customer->active->ip_address }}</td>
                                         <td>
                                             {{ \Carbon\Carbon::parse($customer->active->start_time)
-                                                ->format('Y-m-d H:i:s') }}
+                                                ->format('Y-m-d H:i:s A') }}
                                         </td>
                                         <td>
                                             @if($lastSession && $lastSession->acctstoptime)
-                                                {{ \Carbon\Carbon::parse($lastSession->acctstoptime)->format('Y-m-d h:i:s') }}
+                                                {{ \Carbon\Carbon::parse($lastSession->acctstoptime)->format('Y-m-d h:i:s A') }}
                                             @else
                                                 <span class="badge badge-success">
                                                     Never Disconnected
                                                 </span>
                                             @endif
                                         </td>
-                                        <td>{{ $customer->active->start_time }}</td>
+                                        <td>{{ $customer->active->session_time_human }}</td>
                                         <td>{{ $customer->active->mac_address }}</td>
                                         <td>{{ $customer->active->nas_ip }}</td>
                                         <td>{{ $customer->active->upload_mb }}</td>
@@ -392,11 +392,11 @@
                                         <tr>
                                             <td>{{ $session->ip_address ?? '-' }}</td>
                                             <td>
-                                                {{ \Carbon\Carbon::parse($session->start_time)->format('Y-m-d H:i:s') }}
+                                                {{ \Carbon\Carbon::parse($session->start_time)->format('Y-m-d H:i:s A') }}
                                             </td>
                                             <td>
                                                 @if($session->acctstoptime)
-                                                    {{ \Carbon\Carbon::parse($session->acctstoptime)->format('Y-m-d H:i:s') }}
+                                                    {{ \Carbon\Carbon::parse($session->acctstoptime)->format('Y-m-d H:i:s A') }}
                                                 @else
                                                     <span class="badge badge-success">Active</span>
                                                 @endif

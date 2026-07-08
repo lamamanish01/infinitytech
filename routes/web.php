@@ -156,6 +156,11 @@ Route::middleware('auth')->group(function () {
         Route::get('/custom', [CustomSmsController::class, 'create'])->name('custom.create');
         Route::post('/custom', [CustomSmsController::class, 'store'])->name('custom.store');
 
+        Route::delete('/queue/{id}', [SmsGatewayController::class, 'queueDelete'])
+            ->name('queues.delete');
+        // SMS Queue
+        Route::get('/queues', [SmsGatewayController::class, 'queues'])->name('queues');
+
         // SMS logs
         Route::get('/logs', [SmsGatewayController::class, 'logs'])->name('logs');
 

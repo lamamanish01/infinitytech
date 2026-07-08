@@ -107,7 +107,7 @@
             </li>
 
 
-            <li class="nav-item dropdown">
+            {{--  <li class="nav-item dropdown">
                 <a class="nav-link" data-bs-toggle="dropdown" href="#" aria-expanded="false">
                     <i class="nav-icon fas fa-user"></i>
                     {{ Auth::user()->name }}
@@ -124,6 +124,31 @@
                            onclick="event.preventDefault(); this.closest('form').submit();">
                             <i class="mr-2 fas fa-sign-out-alt"></i>
                             {{ __('Log Out') }}
+                        </a>
+                    </form>
+                </div>
+            </li>  --}}
+
+            <li class="nav-item dropdown">
+                <a class="nav-link d-flex align-items-center" data-bs-toggle="dropdown" href="#">
+                    <i class="nav-icon fas fa-user me-1"></i>
+                    <span class="text-truncate d-inline-block" style="max-width:120px;">
+                        {{ Auth::user()->name }}
+                    </span>
+                </a>
+
+                <div class="dropdown-menu dropdown-menu-end">
+                    <a href="{{ route('profile.show') }}" class="dropdown-item">
+                        <i class="fas fa-user me-2"></i> My Profile
+                    </a>
+
+                    <div class="dropdown-divider"></div>
+
+                    <form method="POST" action="{{ route('logout') }}">
+                        @csrf
+                        <a href="{{ route('logout') }}" class="dropdown-item"
+                        onclick="event.preventDefault(); this.closest('form').submit();">
+                            <i class="fas fa-sign-out-alt me-2"></i> Log Out
                         </a>
                     </form>
                 </div>

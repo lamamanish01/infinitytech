@@ -97,11 +97,28 @@ class RadAcct extends Model
     ) . ' MB';
     }
 
+
     public function getSessionTimeHumanAttribute()
     {
-        $seconds = Carbon::parse($this->acctstarttime)
-            ->diffInSeconds(now());
+        if (!$this->acctstarttime) {
+            return '-';
+        }
 
-        return gmdate('H:i:s', $seconds);
+        $start = Carbon::parse($this->acctstarttime);
+
+        $end = $this->acctstoptime
+            ? Carbon::parse($this->acctstoptime)
+            : now();
+
+        $seconds = $start->diffInSeconds($end);
+
+        $days = intdiv($seconds, 86400);
+        $hours = intdiv($seconds % 86400, 3600);
+        $minutes = intdiv($seconds % 3600, 60);
+        $secs = $seconds % 60;
+
+        return $days
+            ? sprintf('%dd %02d:%02d:%02d', $days, $hours, $minutes, $secs)
+            : sprintf('%02d:%02d:%02d', $hours, $minutes, $secs);
     }
 }

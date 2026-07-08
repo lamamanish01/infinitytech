@@ -23,8 +23,8 @@ class SmsGatewayController extends Controller
 
     public function index()
     {
-        $queues = SmsQueue::latest()->paginate(15);
-        return view('sms.index', compact('queues'));
+        $smsGateways = SmsGateway::latest()->paginate(15);
+        return view('sms.index', compact('smsGateways'));
     }
 
     public function create()
@@ -60,19 +60,37 @@ class SmsGatewayController extends Controller
         ]);
 
         $smsGateway->update($validated);
-        return redirect()->route('sms.index')->with('success', 'Gateway updated.');
+        return redirect()->route('sms.index')->with('success', 'SMS Gateway updated.');
     }
 
-    public function destroy(SmsGateway $smsGateway)
+    public function destroy($id)
     {
-        $smsGateway->delete();
-        return redirect()->route('sms.index')->with('success', 'Gateway deleted.');
+        $sms = SmsGateway::findOrFail($id);
+        $sms->delete();
+
+        return redirect()->route('sms.index')->with('success', 'SMS Gateway deleted.');
     }
 
     public function logs()
     {
         $logs = SmsLog::orderBy('created_at', 'desc')->paginate(50);
         return view('sms.logs', compact('logs'));
+    }
+
+    public function queues()
+    {
+        $queues = SmsQueue::latest()->paginate(15);
+        return view('sms.queues', compact('queues'));
+    }
+
+    public function queueDelete($id)
+    {
+        $sms = SmsQueue::find($id);
+        $sms->delete();
+
+        return redirect()
+            ->route('sms.queues')
+            ->with('success', 'SMS queue deleted successfully.');
     }
 
     public function send(Request $request, SmsService $smsService)

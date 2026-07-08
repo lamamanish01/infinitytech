@@ -36,52 +36,37 @@
                 <thead>
                     <tr>
                         <th>#</th>
-                        <th>Username</th>
-                        <th>Mobile</th>
-                        <th>Message</th>
-                        <th>Type</th>
+                        <th>name</th>
+                        <th>API URL</th>
+                        <th>API Token</th>
                         <th>Status</th>
-                        <th>Retry</th>
-                        <th>Send At</th>
-                        <th>Created</th>
                         <th>Action</th>
                     </tr>
                 </thead>
                 <tbody>
-                    @forelse($queues as $key => $sms)
+                    @forelse($smsGateways as $smsGateway)
                         <tr>
-                            <td>{{ $queues->firstItem() + $key }}</td>
-                            <td>{{ $sms->username }}</td>
-                            <td>{{ $sms->mobile }}</td>
-                            <td>{{ \Illuminate\Support\Str::limit($sms->message, 40) }}</td>
-                            <td><span class="badge bg-info">{{ $sms->type }}</span></td>
+                            <td>{{ $loop->iteration }}</td>
+                            <td>{{ $smsGateway->name }}</td>
+                            <td>{{ $smsGateway->api_url }}</td>
+                            <td>{{ $smsGateway->auth_token }}</td>
+                            <td>{{ $smsGateway->is_active }}</td>
                             <td>
-                                @if($sms->status == 'pending')
-                                    <span class="badge bg-warning">Pending</span>
-                                @elseif($sms->status == 'sent')
-                                    <span class="badge bg-success">Sent</span>
-                                @else
-                                    <span class="badge bg-danger">{{ $sms->status }}</span>
-                                @endif
-                            </td>
-                            <td>{{ $sms->retry_count }}</td>
-                            <td>{{ $sms->send_at ?? 'N/A' }}</td>
-                            <td>{{ $sms->created_at->format('Y-m-d H:i') }}</td>
-                            <td>
-                                {{-- Single Send form --}}
-                                @if($sms->status != 'sent')
-                                <form action="{{ route('sms.send') }}" method="POST">
-                                    @csrf
-                                    <input type="hidden" name="sms_id" value="{{ $sms->id }}">  {{-- ✅ essential --}}
-                                    <input type="hidden" name="username" value="{{ $sms->username }}">
-                                    <input type="hidden" name="mobile" value="{{ $sms->mobile }}">
-                                    <input type="hidden" name="message" value="{{ $sms->message }}">
-                                    <button class="btn btn-sm btn-success">Send</button>
-                                </form>
-                                @else
-                                <span class="text-muted">Sent</span>
-                                @endif
-                            </td>
+                            <div class="btn-group" role="group">
+                                @can('delete sms')
+                                    <form action="{{ route('sms.destroy', $smsGateway->id) }}"
+                                        method="POST"
+                                        onsubmit="return confirm('Are you sure you want to delete this SMS?')">
+                                        @csrf
+                                        @method('DELETE')
+
+                                        <button type="submit" class="btn btn-sm btn-danger">
+                                            <i class="fas fa-trash"></i> Delete
+                                        </button>
+                                    </form>
+                                @endcan
+                            </div>
+                        </td>
                         </tr>
                     @empty
                         <tr>
@@ -92,18 +77,5 @@
             </table>
         </div>
     </div>
-
-    {{-- Bulk Send All Unsent --}}
-    <form action="{{ route('sms.send') }}" method="POST" class="mt-3">
-        @csrf
-        <input type="hidden" name="bulk" value="1">
-        <button class="btn btn-primary">Send All Unsent</button>
-    </form>
-
-    {{-- Pagination --}}
-    <div class="mt-3 d-flex justify-content-end">
-        {{ $queues->links() }}
-    </div>
-
 </div>
 @endsection
