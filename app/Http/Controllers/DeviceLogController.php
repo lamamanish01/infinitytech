@@ -14,10 +14,8 @@ class DeviceLogController extends Controller
     {
         $user = $request->user();
 
-        // Get all login logs (latest first)
         $logs = $user->authentications()->latest()->get();
 
-        // Get unique devices (grouped by fingerprint)
         $devices = $user->getDevices();
 
         return view('profile.devices', compact('logs', 'devices'));
@@ -40,10 +38,8 @@ class DeviceLogController extends Controller
      */
     public function revoke(Request $request)
     {
-        // dd($request->all());
         $user = $request->user();
         $deviceId = $request->input('device_id');
-        // dd($deviceId);
 
         if (empty($deviceId)) {
             return back()->with('error', 'Device ID is required.');

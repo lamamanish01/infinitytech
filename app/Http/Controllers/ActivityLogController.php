@@ -12,7 +12,7 @@ class ActivityLogController extends Controller
      */
     public function index()
     {
-        $activities = ActivityLog::latest()->paginate(20);
+        $activities = ActivityLog::latest()->paginate(10);
 
         $unreadCount = ActivityLog::where('is_read', false)->count();
 
