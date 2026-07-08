@@ -18,17 +18,6 @@
         </div>
     </div>
 
-    {{-- Flash messages --}}
-    @if(session('success'))
-        <div class="alert alert-success">{{ session('success') }}</div>
-    @endif
-    @if(session('error'))
-        <div class="alert alert-danger">{{ session('error') }}</div>
-    @endif
-    @if(session('info'))
-        <div class="alert alert-info">{{ session('info') }}</div>
-    @endif
-
     {{-- Table --}}
     <div class="card card-info">
         <div class="card-body table-responsive">
@@ -53,18 +42,27 @@
                             <td>{{ $smsGateway->is_active }}</td>
                             <td>
                             <div class="btn-group" role="group">
-                                @can('delete sms')
-                                    <form action="{{ route('sms.destroy', $smsGateway->id) }}"
-                                        method="POST"
-                                        onsubmit="return confirm('Are you sure you want to delete this SMS?')">
-                                        @csrf
-                                        @method('DELETE')
+                                <div class="btn-group btn-group-sm">
+                                    @can('edit smsgateway')
+                                            <a href="{{ route('sms.edit', $smsGateway->id) }}"
+                                               class="btn btn-warning btn-sm">
+                                                Edit
+                                            </a>
+                                    @endcan
 
-                                        <button type="submit" class="btn btn-sm btn-danger">
-                                            <i class="fas fa-trash"></i> Delete
-                                        </button>
-                                    </form>
-                                @endcan
+                                    @can('delete smsgateway')
+                                        <form action="{{ route('sms.destroy', $smsGateway->id) }}"
+                                            method="POST"
+                                            onsubmit="return confirm('Are you sure you want to delete this SMS?')">
+                                            @csrf
+                                            @method('DELETE')
+
+                                            <button type="submit" class="btn btn-sm btn-danger">
+                                                <i class="fas fa-trash"></i> Delete
+                                            </button>
+                                        </form>
+                                    @endcan
+                                </div>
                             </div>
                         </td>
                         </tr>

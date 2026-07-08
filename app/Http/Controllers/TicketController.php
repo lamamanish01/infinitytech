@@ -76,6 +76,7 @@ class TicketController extends Controller
             'Ticket Created',
             'Ticket #' . $ticket->ticket_no . ' created by ' . $customer->username,
             'fas fa-ticket-alt text-success',
+            $customer->username,
             route('ticket.show', $ticket->id)
         );
 
@@ -119,9 +120,12 @@ class TicketController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(Ticket $ticket)
+    public function destroy($id)
     {
-        //
+        $ticket = Ticket::findOrFail($id);
+        $ticket->delete();
+
+        return redirect()->route('ticket.index')->with('success', 'Ticket Delete sucessfully');
     }
 
     public function assign(Request $request, $id)
@@ -146,6 +150,7 @@ class TicketController extends Controller
             'Ticket Assigned',
             'Ticket #' . $ticket->ticket_no . ' assigned to ' . $user->name . ' (Customer: ' . $customer->username . ')',
             'fas fa-user-check text-primary',
+            $customer->username,
             route('ticket.show', $ticket->id)
         );
 
@@ -175,6 +180,7 @@ class TicketController extends Controller
             'Ticket Reply',
             'Staff replied on Ticket #' . $ticket->ticket_no . ' (Customer: ' . $customer->username . ')',
             'fas fa-reply text-info',
+            $customer->username,
             route('ticket.show', $ticket->id)
         );
 
@@ -205,6 +211,7 @@ class TicketController extends Controller
             'Customer Reply',
             $customer->username . ' replied on Ticket #' . $ticket->ticket_no,
             'fas fa-comment text-warning',
+            $customer->username,
             route('ticket.show', $ticket->id)
         );
 
@@ -235,6 +242,7 @@ class TicketController extends Controller
             'Internal Note Added',
             'Internal note added on Ticket #' . $ticket->ticket_no . ' (Customer: ' . $customer->username . ')',
             'fas fa-sticky-note text-secondary',
+            $customer->username,
             route('ticket.show', $ticket->id)
         );
 

@@ -102,12 +102,12 @@ class PermissionSeeder extends Seeder
             'delete cron jobs',
 
             // ================= SMS =================
-            'view sms',
-            'create sms',
-            'edit sms',
-            'delete sms',
-            'send sms',
-            'queue sms',
+            'view smsgateway',
+            'create smsgateway',
+            'edit smsgateway',
+            'delete smsgateway',
+            'send smsgateway',
+            'delete sms queue',
 
             // ================= MENU =================
             'view menus',
@@ -145,15 +145,8 @@ class PermissionSeeder extends Seeder
             'edit radpostauth',
             'delete radpostauth',
 
-            // ================= RADPOST AUTH =================
+            // ================= Server AUTH =================
             'view serverstats',
-
-            // ================= SMS GATEWAY =================
-            'view smsgateway',
-            'create smsgateway',
-            'edit smsgateway',
-            'delete smsgateway',
-            'send smsgateway',
         ];
 
         foreach ($permissions as $permission) {

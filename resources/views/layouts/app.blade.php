@@ -106,29 +106,6 @@
                 </div>
             </li>
 
-
-            {{--  <li class="nav-item dropdown">
-                <a class="nav-link" data-bs-toggle="dropdown" href="#" aria-expanded="false">
-                    <i class="nav-icon fas fa-user"></i>
-                    {{ Auth::user()->name }}
-                </a>
-                <div class="dropdown-menu dropdown-menu-right" style="left: inherit; right: 0px;">
-                    <a href="{{ route('profile.show') }}" class="dropdown-item">
-                        <i class="mr-2 fas fa-file"></i>
-                        {{ __('My profile') }}
-                    </a>
-                    <div class="dropdown-divider"></div>
-                    <form method="POST" action="{{ route('logout') }}">
-                        @csrf
-                        <a href="{{ route('logout') }}" class="dropdown-item"
-                           onclick="event.preventDefault(); this.closest('form').submit();">
-                            <i class="mr-2 fas fa-sign-out-alt"></i>
-                            {{ __('Log Out') }}
-                        </a>
-                    </form>
-                </div>
-            </li>  --}}
-
             <li class="nav-item dropdown">
                 <a class="nav-link d-flex align-items-center" data-bs-toggle="dropdown" href="#">
                     <i class="nav-icon fas fa-user me-1"></i>

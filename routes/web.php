@@ -144,30 +144,33 @@ Route::middleware('auth')->group(function () {
         ->name('tickets.status');
 
     Route::prefix('sms')->name('sms.')->group(function () {
-        // Gateway management
+
+        // SMS Gateway
         Route::get('/', [SmsGatewayController::class, 'index'])->name('index');
         Route::get('/create', [SmsGatewayController::class, 'create'])->name('create');
         Route::post('/store', [SmsGatewayController::class, 'store'])->name('store');
+
+        // Edit & Update
         Route::get('/{id}/edit', [SmsGatewayController::class, 'edit'])->name('edit');
         Route::put('/{id}', [SmsGatewayController::class, 'update'])->name('update');
+
+        // Delete Gateway
         Route::delete('/{id}', [SmsGatewayController::class, 'destroy'])->name('destroy');
 
-        // Custom SMS (bulk)
+        // Custom SMS
         Route::get('/custom', [CustomSmsController::class, 'create'])->name('custom.create');
         Route::post('/custom', [CustomSmsController::class, 'store'])->name('custom.store');
 
-        Route::delete('/queue/{id}', [SmsGatewayController::class, 'queueDelete'])
-            ->name('queues.delete');
         // SMS Queue
         Route::get('/queues', [SmsGatewayController::class, 'queues'])->name('queues');
+        Route::delete('/queues/{id}', [SmsGatewayController::class, 'queueDelete'])->name('queues.delete');
 
-        // SMS logs
+        // SMS Logs
         Route::get('/logs', [SmsGatewayController::class, 'logs'])->name('logs');
 
-        // Send a single SMS immediately (optional)
+        // Send SMS
         Route::post('/send', [SmsGatewayController::class, 'send'])->name('send');
     });
-
 
     Route::resource('mikrotik', MikrotikController::class);
 

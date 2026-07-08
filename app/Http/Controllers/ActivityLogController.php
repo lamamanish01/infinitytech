@@ -75,7 +75,11 @@ class ActivityLogController extends Controller
             'is_read' => true
         ]);
 
-        return redirect($activity->url ?? back());
+        if ($activity->url) {
+            return redirect()->to(trim($activity->url));
+        }
+
+        return back();
     }
 
     public function markAllRead()

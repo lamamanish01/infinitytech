@@ -87,7 +87,7 @@
                                         </button>
                                     @endif
 
-                                    @can('delete sms')
+                                    @can('delete sms queue')
                                         <form action="{{ route('sms.queues.delete', $sms->id) }}"
                                             method="POST"
                                             onsubmit="return confirm('Are you sure you want to delete this SMS?')">

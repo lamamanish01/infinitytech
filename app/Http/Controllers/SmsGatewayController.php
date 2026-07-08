@@ -19,6 +19,7 @@ class SmsGatewayController extends Controller
         $this->middleware('permission:edit smsgateway')->only(['edit', 'update']);
         $this->middleware('permission:delete smsgateway')->only(['destroy']);
         $this->middleware('permission:send smsgateway')->only(['send']);
+        $this->middleware('permission:delete sms queue')->only(['queueDelete']);
     }
 
     public function index()
@@ -45,8 +46,10 @@ class SmsGatewayController extends Controller
         return redirect()->route('sms.index')->with('success', 'Gateway created.');
     }
 
-    public function edit(SmsGateway $smsGateway)
+    public function edit($id)
     {
+        $smsGateway = SmsGateway::findOrFail($id);
+
         return view('sms.edit', compact('smsGateway'));
     }
 

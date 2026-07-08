@@ -26,7 +26,7 @@
 
                     <div class="card-body">
 
-                        <form action="{{ route('sms.update', $gateway->id) }}" method="POST">
+                        <form action="{{ route('sms.update', $smsGateway->id) }}" method="POST">
                             @csrf
                             @method('PUT')
 
@@ -36,7 +36,7 @@
                                 <input type="text"
                                        name="name"
                                        class="form-control"
-                                       value="{{ old('name', $gateway->name) }}"
+                                       value="{{ old('name', $smsGateway->name) }}"
                                        required>
                             </div>
 
@@ -46,7 +46,7 @@
                                 <input type="text"
                                        name="api_url"
                                        class="form-control"
-                                       value="{{ old('api_url', $gateway->api_url) }}"
+                                       value="{{ old('api_url', $smsGateway->api_url) }}"
                                        required>
                             </div>
 
@@ -56,7 +56,7 @@
                                 <input type="text"
                                        name="auth_token"
                                        class="form-control"
-                                       value="{{ old('auth_token', $gateway->auth_token) }}"
+                                       value="{{ old('auth_token', $smsGateway->auth_token) }}"
                                        required>
                             </div>
 
@@ -64,10 +64,10 @@
                             <div class="form-group mb-3">
                                 <label>Status</label>
                                 <select name="is_active" class="form-control">
-                                    <option value="1" {{ old('is_active', $gateway->is_active) == 1 ? 'selected' : '' }}>
+                                    <option value="1" {{ old('is_active', $smsGateway->is_active) == 1 ? 'selected' : '' }}>
                                         Active
                                     </option>
-                                    <option value="0" {{ old('is_active', $gateway->is_active) == 0 ? 'selected' : '' }}>
+                                    <option value="0" {{ old('is_active', $smsGateway->is_active) == 0 ? 'selected' : '' }}>
                                         Inactive
                                     </option>
                                 </select>
@@ -97,4 +97,3 @@
 </div>
 
 @endsection
-
