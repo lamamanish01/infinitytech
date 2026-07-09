@@ -86,11 +86,11 @@
                 <!-- BUTTONS -->
                 <div class="d-flex gap-2 mt-3">
 
-                    <button type="submit" class="btn btn-primary">
-                        Save Menu
+                    <button type="submit" class="btn btn-sm btn-primary">
+                        Save
                     </button>
 
-                    <a href="{{ route('menus.index') }}" class="btn btn-secondary">
+                    <a href="{{ route('menus.index') }}" class="btn btn-sm btn-secondary">
                         Cancel
                     </a>
 

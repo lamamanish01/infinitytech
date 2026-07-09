@@ -6,20 +6,19 @@
 
     <div class="container-fluid">
 
-        <div class="row mb-2">
+        {{-- HEADER --}}
+        <div class="d-flex flex-wrap justify-content-between align-items-center mb-3">
 
-            <div class="col-sm-6">
-                <h1 class="m-0">List of Users</h1>
+            <div>
+                <h4 class="mb-0">List of Users</h4>
             </div>
 
-            <div class="col-sm-6 text-right">
-
+            <div>
                 @can('create users')
-                    <a class="btn btn-primary" href="{{ route('users.create') }}">
+                    <a class="btn btn-sm btn-primary" href="{{ route('users.create') }}">
                         Create User
                     </a>
                 @endcan
-
             </div>
 
         </div>

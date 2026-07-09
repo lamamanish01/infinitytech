@@ -87,7 +87,7 @@
                             </div>
 
                             <div class="card-footer">
-                                <button type="submit" class="btn btn-primary">{{ __('Submit') }}</button>
+                                <button type="submit" class="btn btn-sm btn-primary">{{ __('Submit') }}</button>
                             </div>
                         </form>
                     </div>
@@ -169,7 +169,7 @@
                                 <form action="{{ route('devices.clear') }}" method="POST" onsubmit="return confirm('Delete all login logs?')">
                                     @csrf
                                     @method('DELETE')
-                                    <button type="submit" class="btn btn-danger">Clear All Logs</button>
+                                    <button type="submit" class="btn btn-sm btn-danger">Clear All Logs</button>
                                 </form>
                             @else
                                 <p>No login history available.</p>

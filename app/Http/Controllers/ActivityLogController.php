@@ -12,11 +12,13 @@ class ActivityLogController extends Controller
      */
     public function index()
     {
-        $activities = ActivityLog::latest()->paginate(15);
-
+        $activitys = ActivityLog::latest()->paginate(15);
         $unreadCount = ActivityLog::where('is_read', false)->count();
 
-        return view('activities.index', compact('activities', 'unreadCount'));
+        return view('activities.index', [
+            'activitys' => $activitys,
+            'unreadCount' => $unreadCount
+        ]);
     }
 
     /**

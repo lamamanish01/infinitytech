@@ -7,21 +7,20 @@
 
     <div class="container-fluid">
 
-        <div class="row mb-2">
+        {{-- HEADER --}}
+        <div class="d-flex flex-wrap justify-content-between align-items-center mb-3">
 
-            <div class="col-sm-6">
-                <h1 class="m-0">List of Tickets</h1>
+            <div>
+                <h4 class="mb-0">List of Tickets</h4>
             </div>
 
-            <div class="col-sm-6 text-right">
-
+            <div>
                 @can('create tickets')
                     <a href="{{ route('ticket.create') }}"
-                       class="btn btn-primary">
+                       class="btn btn-sm btn-primary">
                         Create Ticket
                     </a>
                 @endcan
-
             </div>
 
         </div>

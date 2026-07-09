@@ -13,7 +13,7 @@
         </div>
 
         @can('create mikrotik')
-            <a href="{{ route('mikrotik.create') }}" class="btn btn-primary">
+            <a href="{{ route('mikrotik.create') }}" class="btn btn-sm btn-primary">
                 + Add Mikrotik
             </a>
         @endcan

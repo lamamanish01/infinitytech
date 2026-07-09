@@ -1,3 +1,4 @@
+
 @extends('layouts.app')
 
 @section('content')
@@ -102,11 +103,8 @@
                             <hr>
 
                             {{-- BUTTON --}}
-                            <button type="submit"
-                                    class="btn btn-primary">
-
-                                Save Role
-
+                            <button type="submit" class="btn btn-sm btn-primary">
+                                Save
                             </button>
 
                         </form>

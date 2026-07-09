@@ -129,11 +129,8 @@
                             </div>
 
                             {{-- BUTTON --}}
-                            <button type="submit"
-                                    class="btn btn-primary">
-
-                                Save Branch
-
+                            <button type="submit" class="btn btn-sm btn-primary">
+                                Save
                             </button>
 
                         </form>

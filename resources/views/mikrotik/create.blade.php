@@ -75,11 +75,11 @@
                 <!-- ACTIONS -->
                 <div class="d-flex gap-2 mt-3">
 
-                    <button type="submit" class="btn btn-primary">
-                        Save Mikrotik
+                    <button type="submit" class="btn btn-sm btn-primary">
+                        Save
                     </button>
 
-                    <a href="{{ route('mikrotik.index') }}" class="btn btn-secondary">
+                    <a href="{{ route('mikrotik.index') }}" class="btn btn-sm btn-secondary">
                         Cancel
                     </a>
 

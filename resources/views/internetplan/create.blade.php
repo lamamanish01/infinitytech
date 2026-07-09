@@ -95,12 +95,12 @@
                 {{-- BUTTONS --}}
                 <div class="d-flex gap-2">
 
-                    <button type="submit" class="btn btn-primary">
-                        Save Plan
+                    <button type="submit" class="btn btn-sm btn-primary">
+                        Save
                     </button>
 
                     <a href="{{ route('internetplan.index') }}"
-                       class="btn btn-secondary">
+                       class="btn btn-sm btn-secondary">
                         Cancel
                     </a>
 

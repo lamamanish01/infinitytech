@@ -10,11 +10,6 @@
             <a href="{{ route('sms.logs') }}" class="btn btn-info btn-sm me-2">
                 📋 View Logs
             </a>
-            @can('create sms')
-                <a href="{{ route('sms.create') }}" class="btn btn-primary btn-sm">
-                    Create
-                </a>
-            @endcan
         </div>
     </div>
 

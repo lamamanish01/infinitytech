@@ -2,21 +2,30 @@
 
 @section('content')
 
-<div class="container-fluid">
+<div class="content-header">
+    <div class="container-fluid">
 
-    <!-- HEADER -->
-    <div class="d-flex justify-content-between align-items-center mb-3">
+        {{-- HEADER --}}
+        <div class="d-flex flex-wrap justify-content-between align-items-center mb-3">
 
-        <h4 class="mb-0">List of Roles</h4>
+            <div>
+                <h4 class="mb-0">List of Roles</h4>
+            </div>
 
-        @can('create roles')
-            <a class="btn btn-primary" href="{{ route('roles.create') }}">
-                Create Role
-            </a>
-        @endcan
+            <div>
+                @can('create roles')
+                    <a class="btn btn-sm btn-primary" href="{{ route('roles.create') }}">
+                        Create Role
+                    </a>
+                @endcan
+            </div>
+
+        </div>
 
     </div>
+</div>
 
+<div class="content">
     <!-- TABLE -->
     <div class="card card-info">
 

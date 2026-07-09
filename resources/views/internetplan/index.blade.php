@@ -16,7 +16,7 @@
 
             @can('create internet plans')
                 <a href="{{ route('internetplan.create') }}"
-                   class="btn btn-primary btn-sm">
+                   class="btn btn-sm btn-primary">
                     + New Plan
                 </a>
             @endcan

@@ -93,12 +93,12 @@
                 {{-- BUTTONS --}}
                 <div class="d-flex justify-content-end gap-2 mt-3">
 
-                    <a href="{{ route('customers.index') }}" class="btn btn-light">
+                    <a href="{{ route('customers.index') }}" class="btn btn-sm btn-light">
                         Cancel
                     </a>
 
-                    <button type="submit" class="btn btn-primary">
-                        Save Customer
+                    <button type="submit" class="btn btn-sm btn-primary">
+                        Save
                     </button>
 
                 </div>

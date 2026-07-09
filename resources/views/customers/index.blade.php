@@ -5,22 +5,22 @@
 <div class="content-header">
     <div class="container-fluid">
 
-        <div class="row mb-2">
-            <div class="col-sm-6">
-                <h1 class="m-0">Customers</h1>
+        {{-- HEADER --}}
+        <div class="d-flex flex-wrap justify-content-between align-items-center mb-3">
+
+            <div>
+                <h4 class="mb-0">All Customers</h4>
             </div>
 
-            <div class="col-sm-6 text-right">
-
+            <div>
                 @can('create customers')
-                    <a class="btn btn-primary" href="{{ route('customers.create') }}">
+                    <a class="btn btn-sm btn-primary" href="{{ route('customers.create') }}">
                         Create Customer
                     </a>
                 @endcan
-
             </div>
-        </div>
 
+        </div>
     </div>
 </div>
 

@@ -59,8 +59,8 @@
                                             </select>
                                         </div>
 
-                                        <button class="btn btn-success">
-                                            Create Ticket
+                                        <button class="btn btn-sm btn-primary">
+                                            Save
                                         </button>
 
                                     </form>

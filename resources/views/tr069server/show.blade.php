@@ -15,7 +15,7 @@
         </div>
 
         <a href="{{ route('tr069server.index') }}"
-           class="btn btn-secondary">
+           class="btn btn-sm btn-secondary">
             <i class="fas fa-arrow-left"></i> Back
         </a>
     </div>

@@ -40,8 +40,8 @@
                         </div>
                     </div>
                     <div class="card-footer">
-                        <button type="submit" class="btn btn-primary">Save</button>
-                        <a href="{{ route('tr069server.index') }}" class="btn btn-secondary">Cancel</a>
+                        <button type="submit" class="btn btn-sm btn-primary">Save</button>
+                        <a href="{{ route('tr069server.index') }}" class="btn btn-sm btn-secondary">Cancel</a>
                     </div>
                 </form>
             </div>

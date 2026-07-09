@@ -157,6 +157,7 @@ class SmsGatewayController extends Controller
                 'SMS Sent',
                 $name . ' – SMS sent to ' . $validated['mobile'],
                 'fas fa-envelope text-success',
+                $customer->username,
                 $customer ? route('customers.show', $customer->id) : '#'
             );
 

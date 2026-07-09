@@ -47,7 +47,7 @@
 
                             <tbody>
 
-                                @forelse($activities as $activity)
+                                @forelse($activitys as $activity)
 
                                     <tr>
 
@@ -109,7 +109,7 @@
 
                 {{-- PAGINATION --}}
                 <div class="mt-3">
-                    {{ $activities->links() }}
+                    {{ $activitys->links() }}
                 </div>
 
             </div>

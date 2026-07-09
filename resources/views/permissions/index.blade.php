@@ -6,21 +6,20 @@
 
     <div class="container-fluid">
 
-        <div class="row mb-2">
+        {{-- HEADER --}}
+        <div class="d-flex flex-wrap justify-content-between align-items-center mb-3">
 
-            <div class="col-sm-6">
-                <h1 class="m-0">List of Permissions</h1>
+            <div>
+                <h4 class="mb-0">List of Permissions</h4>
             </div>
 
-            <div class="col-sm-6 text-right">
-
+            <div>
                 @can('create permissions')
-                    <a class="btn btn-primary"
+                    <a class="btn btn-sm btn-primary"
                        href="{{ route('permissions.create') }}">
                         Create Permission
                     </a>
                 @endcan
-
             </div>
 
         </div>
