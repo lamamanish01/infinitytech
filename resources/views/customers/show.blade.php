@@ -173,7 +173,7 @@
 
                                 <li class="list-group-item d-flex justify-content-between">
                                     Expiry
-                                    <strong>{{ optional($customer->expire_date)->format('Y-m-d') }}</strong>
+                                    <strong class="badge bg-danger">{{ optional($customer->expire_date)->format('Y-m-d') }}</strong>
                                 </li>
 
                                 <li class="list-group-item d-flex justify-content-between">
