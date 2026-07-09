@@ -78,7 +78,7 @@ class SmsGatewayController extends Controller
 
     public function logs()
     {
-        $logs = SmsLog::orderBy('created_at', 'desc')->paginate(50);
+        $logs = SmsLog::orderBy('created_at', 'desc')->paginate(15);
         return view('sms.logs', compact('logs'));
     }
 

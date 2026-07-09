@@ -32,7 +32,7 @@
 
                     <div class="card-body table-responsive p-0">
 
-                        <table class="table table-hover text-nowrap">
+                        <table class="table table-sm table-striped table-hover text-nowrap">
 
                             <thead>
                                 <tr>
@@ -108,9 +108,9 @@
                 </div>
 
                 {{-- PAGINATION --}}
-                {{--  <div class="mt-3">
+                <div class="mt-3">
                     {{ $activities->links() }}
-                </div>  --}}
+                </div>
 
             </div>
 

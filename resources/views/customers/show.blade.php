@@ -312,7 +312,7 @@
 
                         <div class="table-responsive">
 
-                            <table class="table table-bordered table-sm">
+                            <table class="table table-sm table-striped">
 
                                 <thead class="table-light">
                                     <tr>
@@ -370,7 +370,7 @@
 
                         <div class="table-responsive">
 
-                            <table class="table table-striped table-sm">
+                            <table class="table table-sm table-striped">
 
                                 <thead class="table-light">
                                     <tr>
@@ -700,7 +700,7 @@
 
                     <div class="table-responsive">
 
-                        <table class="table table-striped table-sm">
+                        <table class="table table-sm table-striped">
 
                             <thead class="table-light">
                                 <tr>
@@ -811,7 +811,7 @@
 
                     <div class="table-responsive">
 
-                        <table class="table table-bordered table-sm">
+                        <table class="table table-sm table-striped">
 
                             <thead>
                                 <tr>
@@ -857,7 +857,7 @@
                 {{-- ================= ACTIVITY LOGS ================= --}}
                 <div class="tab-pane fade" id="activity-logs">
                     <div class="table-responsive">
-                        <table class="table table-hover table-sm">
+                        <table class="table table-sm table-striped">
                             <thead>
                                 <tr>
                                     <th>#</th>

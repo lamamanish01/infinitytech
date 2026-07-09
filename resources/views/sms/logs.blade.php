@@ -15,7 +15,7 @@
     <!-- TABLE CARD -->
     <div class="card shadow-sm">
         <div class="card-body table-responsive">
-            <table class="table table-bordered table-striped">
+            <table class="table table-sm table-striped table-hover">
                 <thead>
                     <tr>
                         <th>#</th>
@@ -33,7 +33,7 @@
                             <td>{{ $logs->firstItem() + $key }}</td>
                             <td>{{ $log->username }}</td>
                             <td>{{ $log->mobile }}</td>
-                            <td>{{ \Illuminate\Support\Str::limit($log->message, 50) }}</td>
+                            <td>{{ \Illuminate\Support\Str::limit($log->message, 15) }}</td>
                             <td>
                                 @if($log->status == 'sent')
                                     <span class="badge bg-success">Sent</span>
