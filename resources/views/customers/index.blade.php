@@ -12,7 +12,26 @@
                 <h4 class="mb-0">All Customers</h4>
             </div>
 
-            <div>
+            <div class="d-flex flex-wrap gap-2 align-items-center">
+
+                {{-- SEARCH FORM --}}
+                <form action="{{ route('customers.index') }}" method="GET" class="d-flex">
+                    <input type="text"
+                           name="q"
+                           class="form-control form-control-sm"
+                           placeholder="Search by username or contact..."
+                           value="{{ request('q') }}"
+                           style="width: 250px; margin-right: 4px;">
+                    <button type="submit" class="btn btn-sm btn-primary">
+                        <i class="fas fa-search"></i> Search
+                    </button>
+                    @if(request('q'))
+                        <a href="{{ route('customers.index') }}" class="btn btn-sm btn-secondary">
+                            <i class="fas fa-times"></i> Clear
+                        </a>
+                    @endif
+                </form>
+
                 @can('create customers')
                     <a class="btn btn-sm btn-primary" href="{{ route('customers.create') }}">
                         Create Customer
@@ -34,7 +53,7 @@
 
                     <div class="card-body table-responsive p-0">
 
-                        <table class="table table-sm table-striped table-hover text-nowrap">
+                        <table class="table table-sm table-striped table-bordered table-hover text-nowrap">
 
                             <thead>
                                 <tr>
@@ -63,10 +82,17 @@
                                     @endphp
 
                                     <tr>
-
                                         <td>{{ $customers->firstItem() + $loop->index }}</td>
-                                        <td>
-                                            <a href="{{route('customers.show', $customer->id)}}">{{ $customer->username }}</a>
+                                        <td
+                                            @if($customer->is_online)
+                                                style="background-color: lightgreen; color: #333;"
+                                            @endif>
+                                                <a href="{{ route('customers.show', $customer->id) }}"
+                                                    @if($customer->is_online)
+                                                        style="color: #333; text-decoration: none;"
+                                                    @endif>
+                                                    {{ $customer->username }}
+                                                </a>
                                         </td>
                                         <td>{{ $customer->internetPlan->bandwidth_name ?? 'N/A' }}</td>
                                         <td>{{ $customer->name }}</td>
@@ -75,20 +101,30 @@
                                         <td>{{ $customer->expire_date->timezone('Asia/Kathmandu')->format('Y-m-d') }}</td>
                                         <td>
                                             @php
-                                                $status = $customer->status;
+                                                $isOnline = $customer->is_online ?? false;
+
+                                                if ($isOnline) {
+                                                    $displayText = 'ONLINE';
+                                                    $badgeClass = 'bg-success';
+                                                } else {
+                                                    $status = $customer->status;
+                                                    $displayText = strtoupper($status);
+
+                                                    if ($status == 'active') {
+                                                        $badgeClass = 'bg-primary';
+                                                    } elseif ($status == 'grace') {
+                                                        $badgeClass = 'bg-warning text-dark';
+                                                    } else {
+                                                        $badgeClass = 'bg-danger';
+                                                    }
+                                                }
                                             @endphp
 
-                                            <span class="badge
-                                                @if($status == 'active') bg-success
-                                                @elseif($status == 'grace') bg-warning text-dark
-                                                @else bg-danger
-                                                @endif">
-                                                {{ strtoupper($status) }}
+                                            <span class="badge {{ $badgeClass }}">
+                                                {{ $displayText }}
                                             </span>
                                         </td>
-
                                         <td>
-
                                             <div class="btn-group">
 
                                                 <a href="{{ route('customers.show', $customer->id) }}"
@@ -138,8 +174,9 @@
 
                         </table>
 
+                        {{-- PAGINATION – preserves search query --}}
                         <div class="mt-3">
-                            {{ $customers->links() }}
+                            {{ $customers->appends(request()->query())->links() }}
                         </div>
 
                     </div>

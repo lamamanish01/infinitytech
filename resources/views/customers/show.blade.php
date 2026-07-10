@@ -17,9 +17,15 @@
                     </h4>
 
                     @if($customer->is_online)
-                        <span class="badge bg-success">● ONLINE</span>
+                        <span class="badge bg-success">
+                            <i class="fas fa-sync-alt fa-spin"></i>
+                            ONLINE
+                        </span>
                     @else
-                        <span class="badge bg-danger">● OFFLINE</span>
+                        <span class="badge bg-danger">
+                            <i class="fas fa-sync-alt"></i>
+                            OFFLINE
+                        </span>
                     @endif
                 </div>
 
@@ -143,12 +149,20 @@
 
                                 <li class="list-group-item d-flex justify-content-between">
                                     Username
-                                    <strong>{{ $customer->username ?? '-' }}</strong>
+                                    <strong>
+                                        <span class="badge badge-success">
+                                            {{ $customer->username ?? '-' }}</>
+                                        </span>
+                                    </strong>
                                 </li>
 
                                 <li class="list-group-item d-flex justify-content-between">
-                                    Plan
-                                    <strong>{{ $customer->internetPlan->bandwidth_name ?? '-' }}</strong>
+                                    Internet Plan
+                                    <strong>
+                                        <span class="badge badge-primary">
+                                            {{ $customer->internetPlan->bandwidth_name ?? '-' }}
+                                        </span>
+                                    </strong>
                                 </li>
 
                                 <li class="list-group-item d-flex justify-content-between">
@@ -156,46 +170,59 @@
                                     @php
                                         $status = $customer->status;
                                     @endphp
-
-                                    <span class="badge
-                                        @if($status == 'active') bg-success
-                                        @elseif($status == 'grace') bg-warning text-dark
-                                        @else bg-danger
-                                        @endif">
-                                        {{ strtoupper($status) }}
-                                    </span>
+                                    <strong>
+                                        <span class="badge
+                                            @if($status == 'active') badge-success
+                                            @elseif($status == 'grace') badge-warning text-dark
+                                            @else badge-danger
+                                            @endif">
+                                            {{ strtoupper($status) }}
+                                        </span>
+                                    </strong>
                                 </li>
 
                                 <li class="list-group-item d-flex justify-content-between">
-                                    Registered On
-                                    <strong>{{ $customer->registered_at->format('Y-m-d')}}</strong>
+                                    Registered Date
+                                    <strong>
+                                        <span class="badge badge-primary">
+                                            {{ $customer->registered_at->format('Y-m-d')}}
+                                        </span>
+                                    </strong>
                                 </li>
 
                                 <li class="list-group-item d-flex justify-content-between">
-                                    Expiry
-                                    <strong class="badge bg-danger">{{ optional($customer->expire_date)->format('Y-m-d') }}</strong>
+                                    Expire Date
+                                    <strong>
+                                        <span class="badge badge-danger">{{ optional($customer->expire_date)->format('Y-m-d') }}</span>
+                                    </strong>
                                 </li>
 
                                 <li class="list-group-item d-flex justify-content-between">
                                     Grace
-                                    @if($grace)
-                                        <span class="badge bg-warning text-dark">
-                                            {{ $grace->grace_days }} Days
-                                        </span>
-                                    @else
-                                        <span class="text-muted">No Grace</span>
-                                    @endif
+                                    <strong>
+                                        @if($grace)
+                                            <span class="badge bg-warning text-dark">
+                                                {{ $grace->grace_days }} Days
+                                            </span>
+                                        @else
+                                            <span class="badge bg-info text-muted">No Grace</span>
+                                        @endif
+                                    </strong>
                                 </li>
 
                                 @if($grace)
                                     <li class="list-group-item d-flex justify-content-between">
                                         Grace Start
-                                        <span>{{ $grace->grace_start->format('Y-m-d') }}</span>
+                                        <span class="badge badge-primary">
+                                            {{ $grace->grace_start->format('Y-m-d') }}
+                                        </span>
                                     </li>
 
                                     <li class="list-group-item d-flex justify-content-between">
                                         Grace End
-                                        <span>{{ $grace->grace_end->format('Y-m-d') }}</span>
+                                        <span class="badge badge-danger">
+                                            {{ $grace->grace_end->format('Y-m-d') }}
+                                        </span>
                                     </li>
                                 @endif
 
@@ -211,7 +238,7 @@
                                 </li>
 
                                 <li class="list-group-item d-flex justify-content-between">
-                                    Last Disconnect Reason
+                                    Termination Cause
                                     <strong>
                                         @if($lastSession && $lastSession->acctterminatecause)
                                             <span class="badge badge-danger">

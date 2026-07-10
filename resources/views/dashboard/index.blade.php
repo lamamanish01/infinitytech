@@ -21,10 +21,10 @@
                     <p>Online Customers</p>
                 </div>
                 <div class="icon">
-                    <i class="bi bi-wifi"></i>
+                    <i class="fas fa-sync-alt fa-spin"></i>
                 </div>
                 <a href="{{ url('/customers/online') }}" class="small-box-footer text-white">
-                    More info <i class="bi bi-arrow-right"></i>
+                    More info <i class="fa fa-arrow-right"></i>
                 </a>
             </div>
         </div>
@@ -37,10 +37,11 @@
                     <p>Total Customers</p>
                 </div>
                 <div class="icon">
-                    <i class="bi bi-people"></i>
+                    {{-- Static rotation 90° --}}
+                    <i class="fas fa fa-users"></i>
                 </div>
                 <a href="{{ route('customers.index') }}" class="small-box-footer text-white">
-                    More info <i class="bi bi-arrow-right"></i>
+                    More info <i class="fa fa-arrow-right"></i>
                 </a>
             </div>
         </div>
@@ -52,13 +53,12 @@
                     <h3>{{ $expiringCustomers ?? 0 }}</h3>
                     <p>Expiring Soon</p>
                 </div>
-
                 <div class="icon">
-                    <i class="bi bi-clock-history"></i>
+                    {{-- Step rotation (pulse) --}}
+                    <i class="fas fa fa-clock"></i>
                 </div>
-
                 <a href="{{ url('/customers/expiring') }}" class="small-box-footer">
-                    More info <i class="bi bi-arrow-right"></i>
+                    More info <i class="fa fa-arrow-right"></i>
                 </a>
             </div>
         </div>
@@ -70,13 +70,12 @@
                     <h3>{{ $expiredCustomers ?? 0 }}</h3>
                     <p>Expired Customers</p>
                 </div>
-
                 <div class="icon">
-                    <i class="bi bi-exclamation-triangle"></i>
+                    {{-- Rotate 180° (flipped) --}}
+                    <i class="fa fa-exclamation-triangle"></i>
                 </div>
-
                 <a href="{{ url('/customers/expired') }}" class="small-box-footer">
-                    More info <i class="bi bi-arrow-right"></i>
+                    More info <i class="fa fa-arrow-right"></i>
                 </a>
             </div>
         </div>
@@ -86,6 +85,7 @@
     {{-- ROW 2 --}}
     <div class="row mt-3">
 
+        {{-- BRANCH BALANCE --}}
         <div class="col-lg-4 col-12">
             <div class="small-box bg-info text-white">
                 <div class="inner">
@@ -93,11 +93,12 @@
                     <p>Branch Balance</p>
                 </div>
                 <div class="icon">
-                    <i class="bi bi-cash-stack"></i>
+                    <i class="fas fa-money-bill"></i>
                 </div>
             </div>
         </div>
 
+        {{-- ACTIVE SESSIONS --}}
         <div class="col-lg-4 col-12">
             <div class="small-box bg-primary text-white">
                 <div class="inner">
@@ -105,11 +106,13 @@
                     <p>Active Sessions</p>
                 </div>
                 <div class="icon">
-                    <i class="bi bi-router"></i>
+                    {{-- Wi‑Fi icon with continuous spin (like a signal) --}}
+                    <i class="fa fa-users"></i>
                 </div>
             </div>
         </div>
 
+        {{-- NAS DEVICES --}}
         <div class="col-lg-4 col-12">
             <div class="small-box bg-secondary text-white">
                 <div class="inner">
@@ -117,7 +120,8 @@
                     <p>NAS Devices</p>
                 </div>
                 <div class="icon">
-                    <i class="bi bi-hdd-network"></i>
+                    {{-- Server icon – pulse rotation for a "working" feel --}}
+                    <i class="fa fa-server"></i>
                 </div>
             </div>
         </div>

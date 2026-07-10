@@ -123,16 +123,14 @@ class CustomerController extends Controller
             'billings.internetPlan',
         ])->findOrFail($id);
 
-        $previousSessions = $customer->previousSession()
-            ->paginate(10);
+        $previousSessions = $customer->previousSession()->paginate(15);
 
         $billings = $customer->billings()
             ->with('internetPlan')
             ->latest()
             ->paginate(25, ['*'], 'billing_page');
 
-        $authLogs = $customer->authLogs()
-            ->latest('authdate')
+        $authLogs = $customer->authLogs()->latest('authdate')
             ->paginate(10, ['*'], 'auth_page');
 
         // $lanHosts = $customer->lanHosts()
