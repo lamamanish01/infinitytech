@@ -46,7 +46,7 @@
 
                     <div class="card-body table-responsive p-0">
 
-                        <table class="table table-sm table-striped table-hover text-nowrap">
+                        <table class="table table-sm table-striped table-hover text-center text-nowrap">
 
                             <thead>
 

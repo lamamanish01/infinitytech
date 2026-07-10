@@ -51,9 +51,9 @@
 
                 <div class="card card-info">
 
-                    <div class="card-body table-responsive p-0">
+                    <div class="card-body table-responsive p-0 ">
 
-                        <table class="table table-sm table-striped table-bordered table-hover text-nowrap">
+                        <table class="table table-sm table-striped text-center table-hover text-nowrap">
 
                             <thead>
                                 <tr>
@@ -96,7 +96,9 @@
                                         </td>
                                         <td>{{ $customer->internetPlan->bandwidth_name ?? 'N/A' }}</td>
                                         <td>{{ $customer->name }}</td>
-                                        <td>{{ $customer->contact_number }}</td>
+                                        <td>
+                                            <a href="tel:{{ $customer->contact_number }}">{{ $customer->contact_number }}</a>
+                                        </td>
                                         <td>{{ $customer->address }}</td>
                                         <td>{{ $customer->expire_date->timezone('Asia/Kathmandu')->format('Y-m-d') }}</td>
                                         <td>

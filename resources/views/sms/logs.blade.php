@@ -15,7 +15,7 @@
     <!-- TABLE CARD -->
     <div class="card shadow-sm">
         <div class="card-body table-responsive">
-            <table class="table table-sm table-striped table-hover">
+            <table class="table table-sm table-striped text-center table-hover text-nowrap">
                 <thead>
                     <tr>
                         <th>#</th>

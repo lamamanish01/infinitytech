@@ -103,6 +103,9 @@ class NasController extends Controller
      */
     public function destroy(string $id)
     {
-        //
+        $na = Nas::findOrFail($id);
+        $na->delete();
+
+        return redirect()->route('nas.index')->with('success', 'NAS deleted successfully.');
     }
 }

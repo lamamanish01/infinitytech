@@ -38,7 +38,7 @@ class SendExpirySms extends Command
                 continue;
             }
 
-            $message = "Dear {$customer->name}, your internet subscription expires on {$customer->expire_date}. Please renew to avoid service interruption.";
+            $message = "Dear {$customer->name}, your internet subscription expires on {$customer->expire_date}. Please renew to avoid service interruption. For more info: +977-9801973212, +977-9801973203 Thank You";
 
             SmsQueue::create([
                 'username' => $customer->username,

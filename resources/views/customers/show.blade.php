@@ -38,12 +38,12 @@
                     </div>
 
                     <div class="mb-0">
-                        {{ $customer->contact_number }}
+                        <a href="tel:{{ $customer->contact_number }}">{{ $customer->contact_number }}</a>
                         <i class="fas fa-phone text-success me-2"></i>
                     </div>
 
                     <div class="mt-0">
-                        {{ $customer->email }}
+                        <a href="mailto:{{ $customer->email }}">{{ $customer->email }}</a>
                         <i class="fas fa-envelope text-primary me-2"></i>
                     </div>
 
@@ -148,7 +148,7 @@
                             <ul class="list-group">
 
                                 <li class="list-group-item d-flex justify-content-between">
-                                    Username
+                                    <strong>Username</strong>
                                     <strong>
                                         <span class="badge badge-success">
                                             {{ $customer->username ?? '-' }}</>
@@ -157,7 +157,7 @@
                                 </li>
 
                                 <li class="list-group-item d-flex justify-content-between">
-                                    Internet Plan
+                                    <Strong>Internet Plan</Strong>
                                     <strong>
                                         <span class="badge badge-primary">
                                             {{ $customer->internetPlan->bandwidth_name ?? '-' }}
@@ -166,7 +166,7 @@
                                 </li>
 
                                 <li class="list-group-item d-flex justify-content-between">
-                                    Status
+                                    <strong>Status</strong>
                                     @php
                                         $status = $customer->status;
                                     @endphp
@@ -182,7 +182,7 @@
                                 </li>
 
                                 <li class="list-group-item d-flex justify-content-between">
-                                    Registered Date
+                                    <strong>Registered Date</strong>
                                     <strong>
                                         <span class="badge badge-primary">
                                             {{ $customer->registered_at->format('Y-m-d')}}
@@ -191,14 +191,14 @@
                                 </li>
 
                                 <li class="list-group-item d-flex justify-content-between">
-                                    Expire Date
+                                    <Strong>Expire Date</Strong>
                                     <strong>
                                         <span class="badge badge-danger">{{ optional($customer->expire_date)->format('Y-m-d') }}</span>
                                     </strong>
                                 </li>
 
                                 <li class="list-group-item d-flex justify-content-between">
-                                    Grace
+                                    <Strong>Grace</Strong>
                                     <strong>
                                         @if($grace)
                                             <span class="badge bg-warning text-dark">
@@ -212,33 +212,37 @@
 
                                 @if($grace)
                                     <li class="list-group-item d-flex justify-content-between">
-                                        Grace Start
-                                        <span class="badge badge-primary">
-                                            {{ $grace->grace_start->format('Y-m-d') }}
-                                        </span>
+                                        <strong>Grace Start</strong>
+                                        <strong>
+                                            <span class="badge badge-primary">
+                                                {{ $grace->grace_start->format('Y-m-d') }}
+                                            </span>
+                                        </strong>
                                     </li>
 
                                     <li class="list-group-item d-flex justify-content-between">
-                                        Grace End
-                                        <span class="badge badge-danger">
-                                            {{ $grace->grace_end->format('Y-m-d') }}
-                                        </span>
+                                        <strong>Grace End</strong>
+                                        <strong>
+                                            <span class="badge badge-danger">
+                                                {{ $grace->grace_end->format('Y-m-d') }}
+                                            </span>
+                                        </strong>
                                     </li>
                                 @endif
 
                                 <li class="list-group-item d-flex justify-content-between">
-                                    MAC
+                                    <strong>MAC Address</strong>
                                     <strong>
                                         @if($customer->mac_address)
-                                            <span class="text-success">{{ $customer->mac_address }}</span>
+                                            <span class="badge badge-primary">{{ $customer->mac_address }}</span>
                                         @else
-                                            <span class="text-danger">Not Bound</span>
+                                            <span class="badge badge-danger">Not Bound</span>
                                         @endif
                                     </strong>
                                 </li>
 
                                 <li class="list-group-item d-flex justify-content-between">
-                                    Termination Cause
+                                    <strong>Termination Cause</strong>
                                     <strong>
                                         @if($lastSession && $lastSession->acctterminatecause)
                                             <span class="badge badge-danger">

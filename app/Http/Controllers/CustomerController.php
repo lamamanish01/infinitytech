@@ -396,7 +396,6 @@ class CustomerController extends Controller
     public function expired()
     {
          $customersExpired = Customer::where('status', 'expired')
-                ->latest()
                 ->orderBy('expire_date', 'desc')
                 ->paginate(15);
 
@@ -420,12 +419,11 @@ class CustomerController extends Controller
     {
         $customers = Customer::whereHas('activeSession')->with(['activeSession', 'internetPlan']);
 
-        // 2. Apply search if the 'search' parameter is present.
         if ($request->filled('search')) {
             $search = $request->search;
             $customers->where(function ($query) use ($search) {
-                $query->where('name', 'LIKE', "%{$search}%")          // customer name
-                      ->orWhere('username', 'LIKE', "%{$search}%")   // login username
+                $query->where('name', 'LIKE', "%{$search}%")
+                      ->orWhere('username', 'LIKE', "%{$search}%")
                       ->orWhereHas('activeSession', function ($q) use ($search) {
                           $q->where('framedipaddress', 'LIKE', "%{$search}%")
                             ->orWhere('callingstationid', 'LIKE', "%{$search}%");

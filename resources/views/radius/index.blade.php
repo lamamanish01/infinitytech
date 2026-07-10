@@ -15,9 +15,8 @@
 
         <div class="card-body table-responsive p-0">
 
-            {{-- Responsive wrapper – scroll on small screens only --}}
             <div class="table-responsive">
-                <table class="table table-sm table-hover align-middle mb-0">
+                <table class="table table-sm table-hover text-center text-nowrap">
 
                     <thead class="table-light">
                         <tr>
@@ -73,12 +72,12 @@
                             {{ $authLogs->links() }}
                         </div>
                     @endif
-            </div> {{-- /table-responsive-sm --}}
+            </div>
 
-        </div> {{-- /card-body --}}
+        </div>
 
-    </div> {{-- /card --}}
+    </div>
 
-</div> {{-- /container-fluid --}}
+</div>
 
 @endsection

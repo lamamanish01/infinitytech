@@ -24,7 +24,7 @@
 
         <div class="card-body table-responsive p-0">
 
-            <table class="table table-sm table-striped table-hover">
+            <table class="table table-sm text-center table-striped table-hover text-nowrap">
 
                 <thead>
                     <tr>
@@ -34,8 +34,6 @@
                         <th>Plan</th>
                         <th>Expire Date</th>
                         <th>Status</th>
-
-                        {{-- VIEW BUTTON --}}
                         <th>Action</th>
                     </tr>
                 </thead>

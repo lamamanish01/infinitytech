@@ -18,11 +18,8 @@
 
             <div class="col-sm-6 text-right">
 
-                <a href="{{ route('branch.index') }}"
-                   class="btn btn-secondary">
-
+                <a href="{{ route('branch.index') }}" class="btn btn-secondary">
                     Back
-
                 </a>
 
             </div>
@@ -116,7 +113,7 @@
 
                                 </div>
 
-                                <button class="btn btn-success">
+                                <button class="btn btn-sm btn-success">
                                     Add Balance
                                 </button>
 
@@ -140,7 +137,7 @@
 
                     <div class="card-body table-responsive p-0">
 
-                        <table class="table table-hover text-nowrap">
+                        <table class="table table-sm table-striped table-hover text-center">
 
                             <thead>
 
@@ -210,7 +207,7 @@
                                                     @csrf
                                                     @method('DELETE')
 
-                                                    <button class="btn btn-danger btn-sm">
+                                                    <button class="btn btn-sm btn-danger">
                                                         Reverse
                                                     </button>
 

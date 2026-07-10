@@ -28,7 +28,7 @@
 
             <div class="table-responsive">
 
-                <table class="table table-sm table-hover align-middle mb-0">
+                <table class="table table-sm table-hover text-center text-nowrap">
 
                     <thead class="table-light">
                         <tr>
@@ -127,7 +127,7 @@
     </div>
 
     {{-- PAGINATION --}}
-    <div class="mt-3 d-flex justify-content-end">
+    <div class="mt-3">
         {{ $nases->links() }}
     </div>
 
