@@ -16,7 +16,7 @@
     {{-- Table --}}
     <div class="card card-info">
         <div class="card-body table-responsive">
-            <table class="table table-sm text-center table-striped table-hover text-nowrap">
+            <table class="table table-sm table-striped table-hover text-nowrap">
                 <thead>
                     <tr>
                         <th>#</th>
@@ -99,7 +99,7 @@
                 <form action="{{ route('sms.send') }}" method="POST">
                     @csrf
                     <input type="hidden" name="bulk" value="1">
-                    <button class="btn btn-primary">Send All Unsent</button>
+                    <button class="btn btn-sm btn-primary">Send All Unsent</button>
                 </form>
             </div>
         </div>

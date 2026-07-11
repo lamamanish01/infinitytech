@@ -343,7 +343,7 @@
 
                         <div class="table-responsive">
 
-                            <table class="table table-sm table-striped">
+                            <table class="table table-sm table-striped table-hover text-nowrap">
 
                                 <thead class="table-light">
                                     <tr>
@@ -401,7 +401,7 @@
 
                         <div class="table-responsive">
 
-                            <table class="table table-sm table-striped">
+                            <table class="table table-sm table-striped table-hover text-nowrap">
 
                                 <thead class="table-light">
                                     <tr>
@@ -618,7 +618,7 @@
                                             <button type="submit"
                                                     name="action"
                                                     value="update_wifi"
-                                                    class="btn btn-primary">
+                                                    class="btn btn-sm btn-primary">
                                                 🚀 Update WiFi
                                             </button>
                                         </div>
@@ -656,7 +656,7 @@
                                             <button type="submit"
                                                     name="action"
                                                     value="update_pppoe"
-                                                    class="btn btn-success">
+                                                    class="btn btn-sm btn-success">
                                                 🚀 Update PPPoE
                                             </button>
                                         </div>
@@ -677,7 +677,7 @@
                                             action="{{ route('tr069.device.reboot', $router->id) }}">
                                             @csrf
                                             <button type="submit"
-                                                    class="btn btn-outline-primary">
+                                                    class="btn btn-sm btn-outline-primary">
                                                 🔄 Reboot
                                             </button>
                                         </form>
@@ -686,7 +686,7 @@
                                             action="{{ route('tr069.device.factory-reset', $router->id) }}">
                                             @csrf
                                             <button type="submit"
-                                                    class="btn btn-outline-danger"
+                                                    class="btn btn-sm btn-outline-danger"
                                                     onclick="return confirm('Factory reset router?')">
                                                 ⚠️ Factory Reset
                                             </button>
@@ -696,13 +696,13 @@
                                             action="{{ route('tr069.device.push-acs', $router->id) }}">
                                             @csrf
                                             <button type="submit"
-                                                    class="btn btn-outline-dark">
+                                                    class="btn btn-sm btn-outline-dark">
                                                 🚀 Push ACS
                                             </button>
                                         </form>
 
                                         <a href="{{ route('tr069.device.logs', $router->id) }}"
-                                        class="btn btn-outline-secondary">
+                                        class="btn btn-sm btn-outline-secondary">
                                             📜 Logs
                                         </a>
 
@@ -731,7 +731,7 @@
 
                     <div class="table-responsive">
 
-                        <table class="table table-sm table-striped">
+                        <table class="table table-sm table-striped table-hover text-nowrap">
 
                             <thead class="table-light">
                                 <tr>
@@ -842,7 +842,7 @@
 
                     <div class="table-responsive">
 
-                        <table class="table table-sm table-striped">
+                        <table class="table table-sm table-striped table-hover text-nowrap">
 
                             <thead>
                                 <tr>
@@ -888,7 +888,7 @@
                 {{-- ================= ACTIVITY LOGS ================= --}}
                 <div class="tab-pane fade" id="activity-logs">
                     <div class="table-responsive">
-                        <table class="table table-sm table-striped">
+                        <table class="table table-sm table-striped table-hover text-nowrap">
                             <thead>
                                 <tr>
                                     <th>#</th>

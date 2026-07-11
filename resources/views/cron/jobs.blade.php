@@ -37,7 +37,7 @@
     <!-- CRON JOBS TABLE -->
     <div class="card">
         <div class="card-body table-responsive">
-            <table class="table table-bordered table-hover">
+            <table class="table table-sm table-striped table-hover text-nowrap">
                 <thead>
                     <tr>
                         <th>Name</th>

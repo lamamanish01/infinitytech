@@ -101,10 +101,9 @@ class NasController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(string $id)
+    public function destroy(Nas $nas)
     {
-        $na = Nas::findOrFail($id);
-        $na->delete();
+        $nas->delete();
 
         return redirect()->route('nas.index')->with('success', 'NAS deleted successfully.');
     }

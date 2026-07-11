@@ -30,7 +30,7 @@
     {{-- Table --}}
     <div class="card card-info">
         <div class="card-body table-responsive">
-            <table class="table table-sm table-striped text-center table-hover text-nowrap">
+            <table class="table table-sm table-striped table-hover text-nowrap">
                 <thead>
                     <tr>
                         <th>#</th>

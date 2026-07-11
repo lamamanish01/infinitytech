@@ -74,7 +74,7 @@
 
                 <div class="card-body">
 
-                    <table class="table table-sm table-striped text-nowrap text-center mb-0">
+                    <table class="table table-sm table-striped text-nowrap mb-0">
 
                         <tr>
                             <th width="35%">Name</th>
@@ -175,7 +175,7 @@
 
                     <div class="table-responsive">
 
-                        <table class="table table-sm table-hover table-striped text-center text-nowrap mb-0" id="deviceTable">
+                        <table class="table table-sm table-hover table-striped text-nowrap mb-0" id="deviceTable">
 
                             <thead class="table-light">
                                 <tr>

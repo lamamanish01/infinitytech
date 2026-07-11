@@ -27,7 +27,7 @@
 
             <div class="table-responsive">
 
-                <table class="table table-sm table-striped text-center text-nowrap table-hover">
+                <table class="table table-sm table-striped text-nowrap table-hover">
 
                     <thead class="table-light">
                         <tr>
