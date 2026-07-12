@@ -211,6 +211,11 @@ class RadiusService
             ->whereIn('attribute', ['Expiration', 'Auth-Type'])
             ->delete();
 
+        RadCheck::where('username', $customer->username)
+            ->where('attribute', 'Auth-Type')
+            ->where('value', 'Reject')
+            ->delete();
+
         // Assign to plan group
         $planGroup = $customer->internetPlan->radius_group ?? 'default';
         RadUserGroup::updateOrCreate(
