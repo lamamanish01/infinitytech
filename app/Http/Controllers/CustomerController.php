@@ -386,20 +386,14 @@ class CustomerController extends Controller
     public function toggleStatus(Customer $customer, RadiusService $radius)
     {
         $current = $customer->status;
+        $newStatus = in_array($current, ['active', 'grace']) ? 'suspended' : 'active';
 
-        // If currently active or grace → suspend (manual disable)
-        if (in_array($current, ['active', 'grace'])) {
-            $newStatus = 'suspended';
-        } else {
-            // If suspended, expired, or any other state → activate
-            $newStatus = 'active';
-        }
+        // Log::info('Toggle requested', ['id' => $customer->id, 'from' => $current, 'to' => $newStatus]);
 
         $customer->update(['status' => $newStatus]);
         $radius->syncCustomer($customer);
 
-        $action = $newStatus === 'active' ? 'enabled' : 'disabled';
-        return redirect()->back()->with('success', "Customer {$action} successfully.");
+        return back()->with('success', "Customer " . ($newStatus === 'active' ? 'enabled' : 'disabled'));
     }
 
     public function online()
