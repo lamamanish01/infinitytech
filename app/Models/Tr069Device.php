@@ -83,7 +83,7 @@ class Tr069Device extends Model
 
     public function reboot(): bool
     {
-        return $this->sendTask('restart', ['name' => 'restart']);
+        return $this->sendTask('reboot', ['name' => 'reboot']);
     }
 
     public function factoryReset(): bool
