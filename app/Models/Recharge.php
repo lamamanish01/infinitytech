@@ -109,8 +109,10 @@ class Recharge extends Model
                 'status' => 'active',
             ]);
 
-            RadiusService::syncCustomer($customer->fresh());
-            RadiusService::disconnect($customer);
+            app(RadiusService::class)->syncCustomer($customer->fresh());
+            app(RadiusService::class)->disconnect($customer);
+            // RadiusService::syncCustomer($customer->fresh());
+            //RadiusService::disconnect($customer);
 
             return $recharge;
         });

@@ -81,6 +81,8 @@ Route::middleware('auth')->group(function () {
     Route::post('/customers/{id}/mac/bind', [CustomerController::class, 'bindMac'])->name('customer.bind-mac');
     Route::post('/customers/{id}/mac/unbind', [CustomerController::class, 'unbindMac'])->name('customer.unbind-mac');
     Route::get('/customers/online', [CustomerController::class, 'searchOnline'])->name('customers.online');
+    Route::patch('/customers/{customer}/toggle-status', [CustomerController::class, 'toggleStatus'])
+        ->name('customers.toggle-status');
 
     Route::prefix('tr069')->middleware('auth')->group(function () {
         Route::post(

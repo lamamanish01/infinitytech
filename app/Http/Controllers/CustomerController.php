@@ -239,7 +239,7 @@ class CustomerController extends Controller
             ]);
 
             app(\App\Services\RadiusService::class)
-                ->removeCustomer($customer);
+                ->disableCustomer($customer);
 
             app(\App\Services\RadiusService::class)
                 ->disconnect($customer);
@@ -261,7 +261,8 @@ class CustomerController extends Controller
             route('customers.show', $customer->id)
         );
 
-        RadiusService::syncCustomer($customer->fresh());
+        app(RadiusService::class)->syncCustomer($customer->fresh());
+        // RadiusService::syncCustomer($customer->fresh());
 
         return redirect()
             ->route('customers.show', $customer->id)
@@ -308,7 +309,8 @@ class CustomerController extends Controller
             route('customers.show', $customer->id)
         );
 
-        RadiusService::syncCustomer($customer->fresh());
+        app(RadiusService::class)->syncCustomer($customer->fresh());
+        //RadiusService::syncCustomer($customer->fresh());
 
         return back()->with('success', 'Grace period activated successfully.');
     }
@@ -349,7 +351,7 @@ class CustomerController extends Controller
         }
 
         MacService::bind($customer, $mac);
-        RadiusService::syncCustomer($customer);
+        app(RadiusService::class)->syncCustomer($customer->fresh());
 
         Activity::add(
             'MAC Address Bind',
@@ -367,7 +369,8 @@ class CustomerController extends Controller
         $customer = Customer::findOrFail($id);
 
         MacService::unbind($customer);
-        RadiusService::syncCustomer($customer);
+
+        app(RadiusService::class)->syncCustomer($customer->fresh());
 
         Activity::add(
             'MAC Address Unbind',
@@ -378,6 +381,25 @@ class CustomerController extends Controller
         );
 
         return back()->with('success', 'MAC Unbound Successfully');
+    }
+
+    public function toggleStatus(Customer $customer, RadiusService $radius)
+    {
+        $current = $customer->status;
+
+        // If currently active or grace → suspend (manual disable)
+        if (in_array($current, ['active', 'grace'])) {
+            $newStatus = 'suspended';
+        } else {
+            // If suspended, expired, or any other state → activate
+            $newStatus = 'active';
+        }
+
+        $customer->update(['status' => $newStatus]);
+        $radius->syncCustomer($customer);
+
+        $action = $newStatus === 'active' ? 'enabled' : 'disabled';
+        return redirect()->back()->with('success', "Customer {$action} successfully.");
     }
 
     public function online()
