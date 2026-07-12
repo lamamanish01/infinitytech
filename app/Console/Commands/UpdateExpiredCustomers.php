@@ -5,7 +5,6 @@ namespace App\Console\Commands;
 use App\Models\Customer;
 use App\Models\CronJob;
 use App\Models\CronLog;
-use App\Services\MikrotikService;
 use App\Services\RadiusService;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
@@ -198,6 +197,7 @@ class UpdateExpiredCustomers extends Command
     // }
 
     protected $signature = 'customers:update-expired';
+
     protected $description = 'Handle ISP customer lifecycle (active, grace, expired)';
 
     public function handle(): int
@@ -212,7 +212,7 @@ class UpdateExpiredCustomers extends Command
 
         $this->info('Customer expiry cron started');
 
-        $radius = app(RadiusService::class);
+        $radius = app(RadiusService::class); // We don't need MikrotikService directly now
 
         $stats = [
             'processed' => 0,
@@ -230,7 +230,7 @@ class UpdateExpiredCustomers extends Command
                         $stats['processed']++;
 
                         $lockKey = "customer_update_{$customer->id}";
-                        if (! cache()->add($lockKey, true, 60)) {
+                        if (! cache()->add($lockKey, true, 60)) { // increased TTL
                             Log::debug("Skipped customer [{$customer->id}] – already locked");
                             continue;
                         }
@@ -243,7 +243,6 @@ class UpdateExpiredCustomers extends Command
                                 'id'          => $customer->id,
                                 'username'    => $customer->username,
                                 'expire_date' => $customer->expire_date?->toDateTimeString(),
-                                'grace_days'  => $customer->grace_days,
                                 'stored_status' => $oldStatus,
                                 'new_status'  => $newStatus,
                             ]);
@@ -253,11 +252,12 @@ class UpdateExpiredCustomers extends Command
                                 continue;
                             }
 
-                            // Update DB status
+                            // Update the stored status in the database
                             DB::transaction(function () use ($customer, $newStatus) {
                                 $customer->update(['status' => $newStatus]);
                             });
 
+                            // Refresh to get the updated model
                             $customer->refresh();
 
                             // Apply external actions based on the new status
@@ -315,6 +315,10 @@ class UpdateExpiredCustomers extends Command
         return self::SUCCESS;
     }
 
+    /**
+     * Apply external RADIUS and MikroTik actions based on the new status.
+     * All logic is now inside RadiusService methods.
+     */
     private function applyExternalActions(
         Customer $customer,
         string $newStatus,
@@ -325,9 +329,11 @@ class UpdateExpiredCustomers extends Command
                 $radius->enableCustomer($customer);
                 break;
             case 'grace':
+                // Ensure the user is unblocked and in the correct group
                 $radius->ensureActiveForGrace($customer);
                 break;
             case 'expired':
+                // Block, close sessions, disconnect
                 $radius->disableCustomer($customer);
                 break;
             default:

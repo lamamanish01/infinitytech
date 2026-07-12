@@ -327,28 +327,6 @@
 
                             @endif
 
-                            @can('manage customers') {{-- or use a dedicated permission like 'toggle customers' --}}
-                                @if(in_array($customer->status, ['active', 'grace']))
-                                    <form action="{{ route('customers.toggle-status', $customer->id) }}" method="POST" class="d-inline">
-                                        @csrf
-                                        @method('PATCH')
-                                        <button type="submit" class="btn btn-danger btn-sm"
-                                                onclick="return confirm('Disable this customer? They will lose internet access.')">
-                                            <i class="fas fa-ban"></i> Disable
-                                        </button>
-                                    </form>
-                                @elseif(in_array($customer->status, ['suspended', 'expired']))
-                                    <form action="{{ route('customers.toggle-status', $customer->id) }}" method="POST" class="d-inline">
-                                        @csrf
-                                        @method('PATCH')
-                                        <button type="submit" class="btn btn-success btn-sm"
-                                                onclick="return confirm('Enable this customer? They will regain internet access.')">
-                                            <i class="fas fa-check-circle"></i> Enable
-                                        </button>
-                                    </form>
-                                @endif
-                            @endcan
-
                         </div>
 
                     </div>

@@ -110,10 +110,6 @@ class Customer extends Model
 
     public function calculateStatus(): string
     {
-
-        if ($this->status === 'suspended') {
-            return 'suspended';
-        }
         $now = now();
 
         if (is_null($this->expire_date)) {
