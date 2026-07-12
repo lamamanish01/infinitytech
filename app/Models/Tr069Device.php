@@ -83,7 +83,7 @@ class Tr069Device extends Model
 
     public function reboot(): bool
     {
-        return $this->sendTask('reboot', ['name' => 'reboot']);
+        return $this->sendTask('restart', ['name' => 'restart']);
     }
 
     public function factoryReset(): bool
@@ -96,7 +96,6 @@ class Tr069Device extends Model
         return $this->sendTask('refresh', ['name' => 'refresh']);
     }
 
-    // ----- WiFi -----
     public function changeWiFiName(string $ssid, int $band = 1): bool
     {
         $path = $band == 1
@@ -122,15 +121,6 @@ class Tr069Device extends Model
         return $this->setParameterValues([[$path, $value, 'xsd:boolean']]);
     }
 
-    // ----- PPPoE -----
-    public function changePPPInfo(string $username, string $password): bool
-    {
-        return $this->setParameterValues([
-            ["InternetGatewayDevice.WANDevice.1.WANConnectionDevice.2.WANPPPConnection.1.Username", $username, 'xsd:string'],
-            ["InternetGatewayDevice.WANDevice.1.WANConnectionDevice.2.WANPPPConnection.1.Password", $password, 'xsd:string'],
-        ]);
-    }
-
     public function changePPPUsername(string $username): bool
     {
         $path = "InternetGatewayDevice.WANDevice.1.WANConnectionDevice.2.WANPPPConnection.1.Username";
@@ -143,14 +133,12 @@ class Tr069Device extends Model
         return $this->setParameterValues([[$path, $password, 'xsd:string']]);
     }
 
-    // ----- VLAN -----
     public function changeVlan(int $vlanId): bool
     {
         $path = "InternetGatewayDevice.WANDevice.1.WANConnectionDevice.1.WANPPPConnection.1.X_HW_VLAN";
         return $this->setParameterValues([[$path, (string)$vlanId, 'xsd:string']]);
     }
 
-    // ----- User / Admin login -----
     public function changeUserLogin(string $username, string $password): bool
     {
         return $this->setParameterValues([
@@ -161,10 +149,9 @@ class Tr069Device extends Model
 
     public function changeAdminLogin(string $username, string $password): bool
     {
-        return $this->setParameterValues([
-            ["InternetGatewayDevice.UserInterface.X_HW_WebUserInfo.2.UserName", $username, 'xsd:string'],
-            ["InternetGatewayDevice.UserInterface.X_HW_WebUserInfo.2.Password", $password, 'xsd:string'],
-        ]);
+        $path1 = "InternetGatewayDevice.UserInterface.X_HW_WebUserInfo.2.UserName";
+        $path2 = "InternetGatewayDevice.UserInterface.X_HW_WebUserInfo.2.Password";
+        return $this->setParameterValues([$path1, $username, $path2, $password, 'xsd:string']);
     }
 
     // ----- File upload (download task) -----

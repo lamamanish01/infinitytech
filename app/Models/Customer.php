@@ -288,17 +288,5 @@ class Customer extends Model
     {
         return $this->hasMany(Tr069Device::class, 'ppp_username', 'username');
     }
-
-    // public function lanHosts()
-    // {
-    //     return $this->hasManyThrough(
-    //         Tr069LanHost::class,
-    //         Tr069Device::class,
-    //         'customer_id',      // foreign key on Tr069Device
-    //         'tr069_device_id',  // foreign key on Tr069LanHost
-    //         'id',               // local key on Customer
-    //         'id'                // local key on Tr069Device
-    //     );
-    // }
 }
 

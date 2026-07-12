@@ -200,13 +200,11 @@ class RadiusService
      */
     public function enableCustomer(Customer $customer): void
     {
-        // Ensure password exists
         RadCheck::updateOrCreate(
             ['username' => $customer->username, 'attribute' => 'Cleartext-Password'],
             ['op' => ':=', 'value' => $customer->password]
         );
 
-        // Remove Expiration and Auth-Type Reject
         RadCheck::where('username', $customer->username)
             ->whereIn('attribute', ['Expiration', 'Auth-Type'])
             ->delete();
@@ -216,7 +214,6 @@ class RadiusService
             ->where('value', 'Reject')
             ->delete();
 
-        // Assign to plan group
         $planGroup = $customer->internetPlan->radius_group ?? 'default';
         RadUserGroup::updateOrCreate(
             ['username' => $customer->username],
@@ -243,7 +240,6 @@ class RadiusService
             ['groupname' => 'suspended', 'priority' => 10]
         );
 
-        // Close accounting sessions
         RadAcct::where('username', $customer->username)
             ->whereNull('acctstoptime')
             ->update([
@@ -251,7 +247,6 @@ class RadiusService
                 'acctterminatecause' => 'Expired',
             ]);
 
-        // Disconnect from MikroTik (if service exists)
         $this->disconnect($customer);
     }
 

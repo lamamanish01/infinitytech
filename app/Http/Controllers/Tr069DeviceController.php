@@ -149,14 +149,23 @@ class Tr069DeviceController extends Controller
             }
 
             if ($action === 'update_pppoe') {
-                if ($device->changePPPInfo($request->pppoe_username, $request->pppoe_password)) {
+                if ($device->changePPPUsername($request->pppoe_username)) {
                     $device->update([
                         'ppp_username' => $request->pppoe_username,
+                    ]);
+                } else {
+                    throw new \Exception('Failed to update PPPoE credentials');
+                }
+
+                if ($device->changePPPPassword($request->pppoe_password)) {
+                    $device->update([
                         'ppp_password' => $request->pppoe_password,
                     ]);
-                    return back()->with('success', 'PPPoE settings updated.');
+                } else {
+                    throw new \Exception('Failed to update PPPoE credentials');
                 }
-                throw new \Exception('Failed to update PPPoE credentials');
+                return back()->with('success', 'PPPoE settings updated.');
+
             }
 
             return back()->with('warning', 'Invalid action.');
@@ -171,7 +180,6 @@ class Tr069DeviceController extends Controller
     public function reboot($id)
     {
         $device = Tr069Device::findOrFail($id);
-
         $success = $device->reboot();
 
         if ($success) {
@@ -260,20 +268,6 @@ class Tr069DeviceController extends Controller
                 return $device->changeVlan((int) $request->vlan_id)
                     ? back()->with('success', 'VLAN ID updated.')
                     : back()->with('error', 'Failed to update VLAN ID.');
-
-            case 'ppp_set':
-                $request->validate([
-                    'ppp_username' => 'required',
-                    'ppp_password' => 'required',
-                ]);
-                if ($device->changePPPInfo($request->ppp_username, $request->ppp_password)) {
-                    $device->update([
-                        'ppp_username' => $request->ppp_username,
-                        'ppp_password' => $request->ppp_password,
-                    ]);
-                    return back()->with('success', 'PPPoE credentials updated.');
-                }
-                return back()->with('error', 'Failed to update PPPoE credentials.');
 
             case 'ppp_username':
                 $request->validate(['ppp_username' => 'required']);

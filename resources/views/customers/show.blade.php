@@ -672,7 +672,6 @@
                                     </div>
 
                                     <div class="card-body d-flex gap-2 flex-wrap">
-
                                         <form method="POST"
                                             action="{{ route('tr069.device.reboot', $router->id) }}">
                                             @csrf
