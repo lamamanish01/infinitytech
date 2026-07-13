@@ -146,7 +146,7 @@ class UpdateExpiredCustomers extends Command
                 $radius->enableCustomer($customer);
                 break;
             case 'grace':
-                // No external action needed
+                $radius->ensureActiveForGrace($customer);
                 break;
             case 'expired':
                 $this->handleExpiredCustomer($customer, $mikrotik, $radius);
