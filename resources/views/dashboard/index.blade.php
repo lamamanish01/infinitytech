@@ -90,9 +90,7 @@
             <div class="small-box bg-info text-white">
                 <div class="inner">
                     <h3>Rs {{ number_format($totalBalance ?? 0, 2) }}</h3>
-                    <p>Remaining Branch Balance</p>
-                    <hr style="border-color: rgba(255,255,255,0.3);">
-                    <h5>Total Alloted: Rs {{ number_format($totalAlloted ?? 0, 2) }}</h5>
+                    <p>Branch Balance</p>
                 </div>
                 <div class="icon">
                     <i class="fas fa-money-bill"></i>

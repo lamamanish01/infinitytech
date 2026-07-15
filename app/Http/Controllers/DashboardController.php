@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\Models\Branch;
-use App\Models\BranchTransaction;
 use App\Models\Customer;
 use App\Models\Dashboard;
 use App\Models\Nas;
@@ -71,35 +70,22 @@ class DashboardController extends Controller
 
         $stats = (new ServerStatsController)->getStats();
 
-        $totalBalance = BranchTransaction::where('is_void', false)
-        ->selectRaw('SUM(IF(type = "credit", amount, -amount)) as balance')
-        ->value('balance') ?? 0;
+        $user = auth()->user();
+        $branch = Branch::find($user->branch_id);
 
-    // Remaining balance = same but also exclude transactions that have been reversed
-    // (i.e., exclude IDs that appear in reversal_of column of another transaction)
-    $reversedIds = BranchTransaction::whereNotNull('reversal_of')
-        ->pluck('reversal_of')
-        ->unique();
-
-    $totalAlloted = BranchTransaction::where('is_void', false)
-        ->whereNotIn('id', $reversedIds)
-        ->selectRaw('SUM(IF(type = "credit", amount, -amount)) as balance')
-        ->value('balance') ?? 0;
-
-        $totalBalance = BranchTransaction::where('is_void', false)
-    ->selectRaw('SUM(IF(type = "credit", amount, -amount)) as balance')
-    ->value('balance') ?? 0;
+        $branchBalance = $branch->balance ?? 0;
+        $totalBalance = Branch::sum('balance');
 
         return view('dashboard.index', [
             'onlineCustomers'   => $onlineCustomers,
             'totalCustomers'    => Customer::count(),
             'expiringCustomers' => $expiringCustomers,
             'expiredCustomers'  => $expiredCustomers,
-            'totalBalance'      => Branch::sum('balance'),
+            'totalBalance'      => $totalBalance,
             'activeSessions'    => $activeSessions,
             'nasCount'          => Nas::count(),
             'stats'             => $stats,
-            'totalAlloted'     => $totalAlloted
+            'branchBalance'     => $branchBalance
         ]);
     }
 
