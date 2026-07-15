@@ -42,6 +42,7 @@ class PermissionSeeder extends Seeder
             'recharge customers',
             'change expiry customers',
             'grace customers',
+            'export customers',
 
             // ================= INTERNET PLAN =================
             'view internet plans',
