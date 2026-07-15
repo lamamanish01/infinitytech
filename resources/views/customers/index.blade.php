@@ -33,6 +33,7 @@
                 </form>
 
                 @can('create customers')
+                <a href="{{ route('customers.export') }}" class="btn btn-sm btn-success">Export Excel</a>
                     <a class="btn btn-sm btn-primary" href="{{ route('customers.create') }}">
                         Create Customer
                     </a>

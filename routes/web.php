@@ -45,6 +45,7 @@ Route::middleware('auth')->group(function () {
         ->name('profile.update');
 
     Route::resource('/roles', RoleController::class);
+    Route::get('/dashboard/{branch?}', [DashboardController::class, 'index']);
     Route::resource('/dashboard', DashboardController::class);
     Route::resource('/permissions', PermissionController::class);
 
@@ -67,6 +68,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/customers/import', [CustomerImportController::class, 'showForm'])->name('customers.import.form');
     Route::post('/customers/import', [CustomerImportController::class, 'import'])->name('customers.import');
     Route::get('/customers/import/template', [CustomerImportController::class, 'downloadTemplate'])->name('customers.import.template');
+    Route::get('/customers/export', [CustomerController::class, 'export'])->name('customers.export');
     Route::resource('/customers', CustomerController::class);
     Route::get('/customers/{customer}/expiry', [CustomerController::class, 'expiryForm'])
         ->name('customers.expiry-form');

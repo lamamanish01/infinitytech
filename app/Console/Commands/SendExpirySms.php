@@ -2,9 +2,10 @@
 
 namespace App\Console\Commands;
 
+use App\Models\CronJob;
 use App\Models\Customer;
 use App\Models\SmsQueue;
-use App\Models\CronJob;
+use Carbon\Carbon;
 use Illuminate\Console\Command;
 
 class SendExpirySms extends Command
@@ -38,7 +39,9 @@ class SendExpirySms extends Command
                 continue;
             }
 
-            $message = "Dear {$customer->name}, your internet subscription expires on {$customer->expire_date}. Please renew to avoid service interruption. For more info: +977-9801973212, +977-9801973203 Thank You";
+            $expiry = Carbon::parse($customer->expire_date);
+
+            $message = "Dear {$customer->name}, your subscription ends on {$expiry->format('Y-m-d')}. Please renew. Call +977-9801973212. Thank you.";
 
             SmsQueue::create([
                 'username' => $customer->username,

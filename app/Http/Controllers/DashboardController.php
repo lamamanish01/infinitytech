@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Branch;
+use App\Models\BranchTransaction;
 use App\Models\Customer;
 use App\Models\Dashboard;
 use App\Models\Nas;
@@ -70,15 +71,35 @@ class DashboardController extends Controller
 
         $stats = (new ServerStatsController)->getStats();
 
+        $totalBalance = BranchTransaction::where('is_void', false)
+        ->selectRaw('SUM(IF(type = "credit", amount, -amount)) as balance')
+        ->value('balance') ?? 0;
+
+    // Remaining balance = same but also exclude transactions that have been reversed
+    // (i.e., exclude IDs that appear in reversal_of column of another transaction)
+    $reversedIds = BranchTransaction::whereNotNull('reversal_of')
+        ->pluck('reversal_of')
+        ->unique();
+
+    $totalAlloted = BranchTransaction::where('is_void', false)
+        ->whereNotIn('id', $reversedIds)
+        ->selectRaw('SUM(IF(type = "credit", amount, -amount)) as balance')
+        ->value('balance') ?? 0;
+
+        $totalBalance = BranchTransaction::where('is_void', false)
+    ->selectRaw('SUM(IF(type = "credit", amount, -amount)) as balance')
+    ->value('balance') ?? 0;
+
         return view('dashboard.index', [
             'onlineCustomers'   => $onlineCustomers,
             'totalCustomers'    => Customer::count(),
             'expiringCustomers' => $expiringCustomers,
             'expiredCustomers'  => $expiredCustomers,
-            'branchBalance'     => Branch::sum('balance'),
+            'totalBalance'      => Branch::sum('balance'),
             'activeSessions'    => $activeSessions,
             'nasCount'          => Nas::count(),
-            'stats'             => $stats
+            'stats'             => $stats,
+            'totalAlloted'     => $totalAlloted
         ]);
     }
 

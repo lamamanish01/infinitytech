@@ -36,6 +36,13 @@
                                     <label>Email:</label>
                                     <input value="{{$customer->email}}" class="form-control" name="email">
                                 </div>
+                                <div class="form-group">
+                                    <label>Registration On:</label>
+                                    <input type="date"
+                                        value="{{ old('registered_at', optional($customer)->registered_at ? \Carbon\Carbon::parse($customer->registered_at)->format('Y-m-d') : '') }}"
+                                        class="form-control"
+                                        name="registered_at">
+                                </div>
                                 <div class="form-select">
                                     <label>Internet Plans:</label>
                                         <select name="internet_plan_id" class="custom-select" required>
@@ -47,6 +54,18 @@
                                                 </option>
                                             @endforeach
                                         </select>
+                                </div>
+                                <div class="form-group">
+                                    <label for="branch_id">Branch:</label>
+                                    <select name="branch_id" id="branch_id" class="form-control">
+                                        <option value="">Select a branch</option>
+                                        @foreach($branches as $branch)
+                                            <option value="{{ $branch->id }}"
+                                                {{ old('branch_id', $customer->branch_id) == $branch->id ? 'selected' : '' }}>
+                                                {{ $branch->name }}
+                                            </option>
+                                        @endforeach
+                                    </select>
                                 </div>
                                 <div class="form-group">
                                     <label>Address:</label>

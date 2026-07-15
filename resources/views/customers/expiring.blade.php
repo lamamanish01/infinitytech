@@ -57,7 +57,7 @@
                         </td>
 
                         <td>
-                            {{ $customer->expire_date }}
+                            {{ \Carbon\Carbon::parse($customer->expire_date)->format('Y-m-d') }}
                         </td>
 
                         <td>

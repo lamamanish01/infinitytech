@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Exports\CustomerExport;
 use App\Helpers\Activity;
 use App\Models\ActivityLog;
 use App\Models\Branch;
@@ -14,6 +15,7 @@ use App\Services\RadiusService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Maatwebsite\Excel\Facades\Excel;
 
 class CustomerController extends Controller
 {
@@ -166,7 +168,8 @@ class CustomerController extends Controller
     public function edit(customer $customer)
     {
         $internet_plans = InternetPlan::all();
-        return view('customers.edit', compact('customer', 'internet_plans'));
+        $branches = Branch::all();
+        return view('customers.edit', compact('customer', 'internet_plans', 'branches'));
     }
 
     /**
@@ -180,6 +183,8 @@ class CustomerController extends Controller
 
         $customer->name = $request->name;
         $customer->email = $request->email;
+        $customer->registered_at = $request->registered_at;
+        $customer->branch_id = $request->branch_id;
         $customer->address = $request->address;
         $customer->contact_number = $request->contact_number;
         $customer->internet_plan_id = $request->internet_plan_id;
@@ -443,5 +448,10 @@ class CustomerController extends Controller
         $packages = InternetPlan::all();
 
         return view('customers.online', compact('customers', 'packages'));
+    }
+
+    public function export()
+    {
+        return Excel::download(new CustomerExport, 'customers_' . date('Y-m-d') . '.xlsx');
     }
 }

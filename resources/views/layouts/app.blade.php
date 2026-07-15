@@ -13,6 +13,9 @@
     <!-- Theme style -->
     <link rel="stylesheet" href="{{ asset('css/adminlte.min.css') }}">
 
+    {{-- SweetAlert2 CDN --}}
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
     @yield('styles')
 </head>
 <body class="hold-transition sidebar-mini">
@@ -28,7 +31,6 @@
         </ul>
 
         {{--  search  --}}
-
         <form class="form-inline ml-3" action="{{ route('customers.index') }}" method="GET">
             <div class="input-group input-group-sm">
                 <input class="form-control form-control-navbar"
@@ -49,7 +51,6 @@
         <ul class="navbar-nav ml-auto">
 
             {{--  notification  --}}
-
             <li class="nav-item dropdown">
                 <a class="nav-link" data-bs-toggle="dropdown" href="#">
                     <i class="far fa-bell"></i>
@@ -150,74 +151,17 @@
     <!-- Content Wrapper. Contains page content -->
     <div class="content-wrapper">
 
-    <div class="container-fluid pt-3">
-
-        {{-- ERRORS --}}
-        @if ($errors->any())
-            <div class="alert alert-warning alert-dismissible fade show shadow-sm" role="alert">
-
-                <strong class="d-block mb-2">Please fix the following errors:</strong>
-
-                <ul class="mb-0 ps-3">
-                    @foreach ($errors->all() as $error)
-                        <li>{{ $error }}</li>
-                    @endforeach
-                </ul>
-
-                <button type="button"
-                        class="btn-close"
-                        data-bs-dismiss="alert"
-                        aria-label="Close">x</button>
-
-            </div>
-        @endif
-
-
-        {{-- SUCCESS --}}
-        @if (session('success'))
-            <div class="alert alert-success alert-dismissible fade show shadow-sm d-flex justify-content-between align-items-start" role="alert">
-
-                <div>
-                    <i class="bi bi-check-circle me-1"></i>
-                    {{ session('success') }}
-                </div>
-
-                <button type="button"
-                        class="btn-close ms-3"
-                        data-bs-dismiss="alert"
-                        aria-label="Close">x</button>
-
-            </div>
-        @endif
-
-
-        {{-- ERROR --}}
-        @if (session('error'))
-            <div class="alert alert-danger alert-dismissible fade show shadow-sm d-flex justify-content-between align-items-start" role="alert">
-
-                <div>
-                    <i class="bi bi-exclamation-triangle me-1"></i>
-                    {{ session('error') }}
-                </div>
-
-                <button type="button"
-                        class="btn-close ms-3"
-                        data-bs-dismiss="alert"
-                        aria-label="Close">x</button>
-
-            </div>
-        @endif
+        {{-- 🟢 REMOVED the old Bootstrap alerts – replaced by SweetAlert2 --}}
+        {{-- Page content starts here --}}
+        <div class="container-fluid pt-3">
+            @yield('content')
+        </div>
 
     </div>
-
-    @yield('content')
-
-</div>
     <!-- /.content-wrapper -->
 
     <!-- Control Sidebar -->
     <aside class="control-sidebar control-sidebar-dark">
-        <!-- Control sidebar content goes here -->
         <div class="p-3">
             <h5>Title</h5>
             <p>Sidebar content</p>
@@ -227,23 +171,64 @@
 
     <!-- Main Footer -->
     <footer class="main-footer">
-        <!-- To the right -->
         <div class="float-right d-none d-sm-inline">
             {{--  Anything you want  --}}
         </div>
-        <!-- Default to the left -->
         <strong>Copyright &copy; 2026 <a href="#">InfintyTech Communication Pvt Ltd</a>.
     </footer>
 </div>
 <!-- ./wrapper -->
 
 <!-- REQUIRED SCRIPTS -->
-
 @vite('resources/js/app.js')
 <!-- AdminLTE App -->
 <script src="{{ asset('js/adminlte.min.js') }}" defer></script>
 
+{{-- SweetAlert2 initialisation for flash messages and validation errors --}}
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+
+        // ---- Success flash ----
+        @if (session('success'))
+            Swal.fire({
+                icon: 'success',
+                title: 'Success!',
+                text: "{{ session('success') }}",
+                confirmButtonColor: '#28a745',
+                timer: 5000,
+                timerProgressBar: true,
+            });
+        @endif
+
+        // ---- Error flash ----
+        @if (session('error'))
+            Swal.fire({
+                icon: 'error',
+                title: 'Error!',
+                text: "{{ session('error') }}",
+                confirmButtonColor: '#dc3545',
+            });
+        @endif
+
+        // ---- Validation errors (multiple) ----
+        @if ($errors->any())
+            let errorHtml = '<ul style="text-align: left;">';
+            @foreach ($errors->all() as $error)
+                errorHtml += '<li>{{ $error }}</li>';
+            @endforeach
+            errorHtml += '</ul>';
+
+            Swal.fire({
+                icon: 'warning',
+                title: 'Please fix the following errors:',
+                html: errorHtml,
+                confirmButtonColor: '#ffc107',
+            });
+        @endif
+
+    });
+</script>
+
 @yield('scripts')
 </body>
 </html>
-

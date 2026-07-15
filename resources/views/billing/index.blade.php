@@ -170,9 +170,9 @@
                 scales: {
                     y: {
                         beginAtZero: true,
-                        max: 100000,
+                        max: 500000,
                         ticks: {
-                            stepSize: 5000, // ← increments by 5000
+                            stepSize: 0, // ← increments by 5000
                             callback: function(value) {
                                 return value.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
                             }
