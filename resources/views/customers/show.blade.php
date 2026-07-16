@@ -420,7 +420,7 @@
         const updateTimeEl = document.getElementById('traffic-update-time');
 
         // ---- Set to false for real API, true for mock ----
-        const USE_MOCK = false;
+        const USE_MOCK = true;
 
         // Helper: add a data point and keep last 60
         function addData(timeLabel, rx, tx, source = 'API') {
