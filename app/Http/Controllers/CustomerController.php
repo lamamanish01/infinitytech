@@ -11,6 +11,7 @@ use App\Models\GracePeriod;
 use App\Models\InternetPlan;
 use App\Models\Recharge;
 use App\Services\MacService;
+use App\Services\MikrotikService;
 use App\Services\RadiusService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -453,5 +454,17 @@ class CustomerController extends Controller
     public function export()
     {
         return Excel::download(new CustomerExport, 'customers_' . date('Y-m-d') . '.xlsx');
+    }
+
+    public function getPppTraffic($username)
+    {
+        $traffic = MikrotikService::getPPPUserTraffic($username);
+
+        return response()->json([
+            'success' => true,
+            'rx_bps'  => $traffic['rx_bps'],
+            'tx_bps'  => $traffic['tx_bps'],
+            'sessions'=> $traffic['sessions'],
+        ]);
     }
 }

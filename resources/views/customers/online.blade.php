@@ -247,11 +247,8 @@
     </div>
 
     {{-- PAGINATION --}}
-    <div class="mt-3 d-flex justify-content-end">
-
-        {{-- Append current query string to keep search/filter when navigating pages --}}
+    <div class="mt-3">
         {{ $customers->appends(request()->query())->links() }}
-
     </div>
 
 </div>

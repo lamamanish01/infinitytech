@@ -3,9 +3,10 @@
 namespace App\Services;
 
 use App\Models\Mikrotik;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Log;
 use RouterOS\Client;
 use RouterOS\Query;
-use Illuminate\Support\Facades\Log;
 
 class MikrotikService
 {
@@ -115,5 +116,87 @@ class MikrotikService
                 'message' => $e->getMessage(),
             ];
         }
+    }
+
+    public static function getPPPUserTraffic($username)
+    {
+        $routers = Mikrotik::where('is_active', 1)->get();
+        $totalRx = 0;
+        $totalTx = 0;
+        $sessionDetails = [];
+
+        foreach ($routers as $mk) {
+            try {
+                $client = self::client($mk);
+                $sessions = $client->query(
+                    (new Query('/ppp/active/print'))
+                        ->where('name', $username)
+                )->read();
+
+                if (empty($sessions)) {
+                    continue;
+                }
+
+                foreach ($sessions as $session) {
+                    $id = $session['.id'] ?? null;
+                    if (!$id) {
+                        continue;
+                    }
+
+                    // Current cumulative byte counters
+                    $currentRx = (int) ($session['rx-byte'] ?? 0);
+                    $currentTx = (int) ($session['tx-byte'] ?? 0);
+                    $now = microtime(true);
+
+                    $cacheKey = 'ppp_traffic_' . $id;
+                    $prev = Cache::get($cacheKey);
+
+                    $rateRx = 0;
+                    $rateTx = 0;
+
+                    if ($prev) {
+                        $timeDiff = $now - $prev['time'];
+                        if ($timeDiff >= 0.5) {  // avoid division by zero
+                            // bytes → bits per second
+                            $rateRx = (($currentRx - $prev['rx']) / $timeDiff) * 8;
+                            $rateTx = (($currentTx - $prev['tx']) / $timeDiff) * 8;
+                            $rateRx = max(0, $rateRx);
+                            $rateTx = max(0, $rateTx);
+                        }
+                    }
+
+                    // Store for next poll
+                    Cache::put($cacheKey, [
+                        'rx'   => $currentRx,
+                        'tx'   => $currentTx,
+                        'time' => $now,
+                    ], 60);
+
+                    $totalRx += $rateRx;
+                    $totalTx += $rateTx;
+
+                    $sessionDetails[] = [
+                        'router'      => $mk->host,
+                        'session_id'  => $id,
+                        'rx_rate_bps' => round($rateRx, 2),
+                        'tx_rate_bps' => round($rateTx, 2),
+                        'address'     => $session['address'] ?? null,
+                        'uptime'      => $session['uptime'] ?? null,
+                    ];
+                }
+            } catch (\Throwable $e) {
+                Log::error('PPP traffic fetch failed', [
+                    'router'   => $mk->host,
+                    'username' => $username,
+                    'error'    => $e->getMessage(),
+                ]);
+            }
+        }
+
+        return [
+            'rx_bps'   => round($totalRx, 2),
+            'tx_bps'   => round($totalTx, 2),
+            'sessions' => $sessionDetails,
+        ];
     }
 }

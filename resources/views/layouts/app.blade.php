@@ -151,7 +151,6 @@
     <!-- Content Wrapper. Contains page content -->
     <div class="content-wrapper">
 
-        {{-- 🟢 REMOVED the old Bootstrap alerts – replaced by SweetAlert2 --}}
         {{-- Page content starts here --}}
         <div class="container-fluid pt-3">
             @yield('content')
