@@ -85,6 +85,8 @@ Route::middleware('auth')->group(function () {
     Route::post('/customers/{id}/mac/unbind', [CustomerController::class, 'unbindMac'])->name('customer.unbind-mac');
     Route::get('/customers/online', [CustomerController::class, 'searchOnline'])->name('customers.online');
     Route::get('/customer/{username}/ppp-traffic', [CustomerController::class, 'getPppTraffic']);
+    Route::get('/customer/{customer}/daily-traffic', [CustomerController::class, 'getDailyTraffic'])
+        ->name('customer.daily-traffic');
 
     Route::prefix('tr069')->middleware('auth')->group(function () {
         Route::post(

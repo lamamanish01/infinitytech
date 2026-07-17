@@ -53,10 +53,7 @@
                             <ul class="list-group">
                                 <li class="list-group-item d-flex justify-content-between"><strong>Username</strong><strong><span class="badge badge-success">{{ $customer->username ?? '-' }}</span></strong></li>
                                 <li class="list-group-item d-flex justify-content-between"><strong>Internet Plan</strong><strong><span class="badge badge-primary">{{ $customer->internetPlan->bandwidth_name ?? '-' }}</span></strong></li>
-                                <li class="list-group-item d-flex justify-content-between">
-                                    <strong>Status</strong>
-                                    <strong><span class="badge @if($customer->status == 'active') badge-success @elseif($customer->status == 'grace') badge-warning text-dark @else badge-danger @endif">{{ strtoupper($customer->status) }}</span></strong>
-                                </li>
+                                <li class="list-group-item d-flex justify-content-between"><strong>Status</strong><strong><span class="badge @if($customer->status == 'active') badge-success @elseif($customer->status == 'grace') badge-warning text-dark @else badge-danger @endif">{{ strtoupper($customer->status) }}</span></strong></li>
                                 <li class="list-group-item d-flex justify-content-between"><strong>Registered Date</strong><strong><span class="badge badge-primary">{{ $customer->registered_at->format('Y-m-d') }}</span></strong></li>
                                 <li class="list-group-item d-flex justify-content-between"><strong>Expire Date</strong><strong><span class="badge badge-danger">{{ optional($customer->expire_date)->format('Y-m-d') }}</span></strong></li>
                                 <li class="list-group-item d-flex justify-content-between"><strong>Grace</strong><strong>@if($grace)<span class="badge bg-warning text-dark">{{ $grace->grace_days }} Days</span>@else<span class="badge bg-info text-muted">No Grace</span>@endif</strong></li>
@@ -115,13 +112,29 @@
 
                     {{-- ================= LIVE PPPoE TRAFFIC CHART ================= --}}
                     <div class="card mt-3 shadow-sm">
-                        <div class="card-header bg-white">
+                        <div class="card-header bg-white d-flex justify-content-between align-items-center">
                             <strong>📊 Live PPP User Traffic</strong>
-                            <span class="float-end text-muted small" id="traffic-update-time">Updating...</span>
+                            <div class="text-muted small text-end">
+                                <span id="traffic-download" class="me-3" style="color: #0d6efd;">⬇️ 0 bps</span>
+                                <span id="traffic-upload" class="me-3" style="color: #20c997;">⬆️ 0 bps</span>
+                                <span id="traffic-update-time">Updating...</span>
+                            </div>
                         </div>
                         <div class="card-body">
                             <div style="position: relative; height: 280px; min-height: 280px; width: 100%;">
                                 <canvas id="trafficChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+
+                    {{-- ================= DAILY TRAFFIC VOLUME (STACKED BAR) ================= --}}
+                    <div class="card mt-3 shadow-sm">
+                        <div class="card-header bg-white">
+                            <strong>📊 Daily Traffic Volume (Last 30 Days)</strong>
+                        </div>
+                        <div class="card-body">
+                            <div style="position: relative; height: 300px; min-height: 300px; width: 100%;">
+                                <canvas id="dailyTrafficChart"></canvas>
                             </div>
                         </div>
                     </div>
@@ -323,11 +336,27 @@
     </div>
 </div>
 
-{{-- ================= CHART SCRIPT – FINAL ================= --}}
+{{-- ================= CHART SCRIPTS ================= --}}
 <script>
     document.addEventListener('DOMContentLoaded', function() {
+
         // -------------------------------------------------------------
-        // 1. Check Chart.js
+        // Helper: Format speed with adaptive units
+        // -------------------------------------------------------------
+        function formatSpeed(mbps) {
+            if (mbps >= 1000) {
+                return (mbps / 1000).toFixed(2) + ' Gbps';
+            } else if (mbps >= 1) {
+                return mbps.toFixed(2) + ' Mbps';
+            } else if (mbps >= 0.001) {
+                return (mbps * 1000).toFixed(0) + ' Kbps';
+            } else {
+                return (mbps * 1000000).toFixed(0) + ' bps';
+            }
+        }
+
+        // -------------------------------------------------------------
+        // 1. LIVE TRAFFIC CHART
         // -------------------------------------------------------------
         if (typeof Chart === 'undefined') {
             console.error('Chart.js not loaded');
@@ -341,9 +370,6 @@
             return;
         }
 
-        // -------------------------------------------------------------
-        // 2. Create the chart (aggregated total)
-        // -------------------------------------------------------------
         const ctx = canvas.getContext('2d');
         let chart = new Chart(ctx, {
             type: 'line',
@@ -351,7 +377,7 @@
                 labels: [],
                 datasets: [
                     {
-                        label: 'Download (RX)',
+                        label: 'Upload (TX)',
                         borderColor: '#0d6efd',
                         backgroundColor: 'rgba(13, 110, 253, 0.1)',
                         data: [],
@@ -361,7 +387,7 @@
                         pointRadius: 1,
                     },
                     {
-                        label: 'Upload (TX)',
+                        label: 'Download (RX)',
                         borderColor: '#20c997',
                         backgroundColor: 'rgba(32, 201, 151, 0.1)',
                         data: [],
@@ -394,7 +420,7 @@
                     },
                     y: {
                         beginAtZero: true,
-                        title: { display: true, text: 'Traffic' },
+                        title: { display: true, text: 'Traffic (Mbps)' },
                         ticks: {
                             callback: function(value) {
                                 if (value >= 1000) return (value / 1000).toFixed(1) + ' Gbps';
@@ -408,15 +434,10 @@
             }
         });
 
-        // -------------------------------------------------------------
-        // 3. Variables & helpers
-        // -------------------------------------------------------------
         const username = '{{ $customer->username }}';
-        const updateTimeEl = document.getElementById('traffic-update-time');
         const MAX_POINTS = 60;
         let failCount = 0;
 
-        // Helper to add a point to both datasets
         function addData(timeLabel, rx, tx, source = 'API') {
             rx = (typeof rx === 'number' && !isNaN(rx)) ? rx : 0;
             tx = (typeof tx === 'number' && !isNaN(tx)) ? tx : 0;
@@ -434,75 +455,165 @@
             console.log(`📊 ${source}: ${timeLabel} RX=${rx.toFixed(3)} TX=${tx.toFixed(3)}`);
         }
 
-        // -------------------------------------------------------------
-        // 4. Polling function
-        // -------------------------------------------------------------
         function fetchTraffic() {
             const url = `/customer/${username}/ppp-traffic`;
-            console.log('🔍 Fetching from:', url);
-
             fetch(url)
                 .then(response => {
-                    console.log('📄 Status:', response.status);
-                    return response.text();
+                    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+                    return response.json();
                 })
-                .then(text => {
-                    console.log('📝 Raw response:', text);
-                    let data;
-                    try { data = JSON.parse(text); } catch (e) { data = null; }
-                    let rxMbps = 0, txMbps = 0;
-                    if (data && data.success === true) {
-                        rxMbps = (typeof data.rx_bps === 'number') ? data.rx_bps / 1_000_000 : 0;
-                        txMbps = (typeof data.tx_bps === 'number') ? data.tx_bps / 1_000_000 : 0;
-                    } else {
-                        console.warn('⚠️ Invalid response – using zeros');
-                    }
-                    rxMbps = Math.max(0, rxMbps);
-                    txMbps = Math.max(0, txMbps);
+                .then(data => {
+                    if (!data.success) throw new Error('Invalid response');
+                    let rxMbps = (data.rx_bps || 0) / 1_000_000;
+                    let txMbps = (data.tx_bps || 0) / 1_000_000;
                     const now = new Date().toLocaleTimeString();
+
                     addData(now, rxMbps, txMbps, 'API');
-                    updateTimeEl.textContent = 'Last update: ' + now;
+
+                    // Update speed indicators – fixed colours
+                    const downloadEl = document.getElementById('traffic-download');
+                    const uploadEl = document.getElementById('traffic-upload');
+                    const updateTimeEl = document.getElementById('traffic-update-time');
+
+                    if (downloadEl) {
+                        downloadEl.textContent = `⬇️ ${formatSpeed(rxMbps)}`;
+                        downloadEl.style.color = '#0d6efd';   // fixed blue
+                    }
+                    if (uploadEl) {
+                        uploadEl.textContent = `⬆️ ${formatSpeed(txMbps)}`;
+                        uploadEl.style.color = '#20c997';    // fixed green
+                    }
+                    if (updateTimeEl) updateTimeEl.textContent = `Last update: ${now}`;
+
                     failCount = 0;
                 })
                 .catch(err => {
                     console.error('❌ Fetch error:', err);
                     failCount++;
-                    // After 3 failures, switch to mock data to keep chart alive
                     if (failCount > 3) {
-                        updateTimeEl.textContent = '⚠️ API unreachable – using mock';
+                        const now = new Date().toLocaleTimeString();
                         const rx = Math.random() * 10;
                         const tx = Math.random() * 8;
-                        const now = new Date().toLocaleTimeString();
                         addData(now, rx, tx, 'Mock (fallback)');
+                        const downloadEl = document.getElementById('traffic-download');
+                        const uploadEl = document.getElementById('traffic-upload');
+                        const updateTimeEl = document.getElementById('traffic-update-time');
+                        if (downloadEl) {
+                            downloadEl.textContent = `⬇️ ${formatSpeed(rx)} (mock)`;
+                            downloadEl.style.color = '#0d6efd';
+                        }
+                        if (uploadEl) {
+                            uploadEl.textContent = `⬆️ ${formatSpeed(tx)} (mock)`;
+                            uploadEl.style.color = '#20c997';
+                        }
+                        if (updateTimeEl) updateTimeEl.textContent = `⚠️ API unreachable – using mock`;
                     } else {
                         const now = new Date().toLocaleTimeString();
-                        addData(now, 0, 0, 'Fallback (zero)');
-                        updateTimeEl.textContent = '⚠️ Error – using 0';
+                        addData(now, 0, 0, 'Fallback');
+                        const downloadEl = document.getElementById('traffic-download');
+                        const uploadEl = document.getElementById('traffic-upload');
+                        const updateTimeEl = document.getElementById('traffic-update-time');
+                        if (downloadEl) {
+                            downloadEl.textContent = `⬇️ 0 bps`;
+                            downloadEl.style.color = '#0d6efd';
+                        }
+                        if (uploadEl) {
+                            uploadEl.textContent = `⬆️ 0 bps`;
+                            uploadEl.style.color = '#20c997';
+                        }
+                        if (updateTimeEl) updateTimeEl.textContent = `⚠️ Error – using 0`;
                     }
                 });
         }
 
-        // -------------------------------------------------------------
-        // 5. Seed and start polling
-        // -------------------------------------------------------------
         addData(new Date().toLocaleTimeString(), 0, 0, 'Seed');
-
-        // Poll every 1 second
         setInterval(fetchTraffic, 1000);
         fetchTraffic();
 
-        // -------------------------------------------------------------
-        // 6. Resize on tab show
-        // -------------------------------------------------------------
         const sessionTab = document.querySelector('button[data-bs-target="#session"]');
         if (sessionTab) {
             sessionTab.addEventListener('shown.bs.tab', function() {
-                console.log('📐 Resizing chart');
                 chart.resize();
                 chart.update();
             });
         }
-        setTimeout(() => { chart.resize(); chart.update(); }, 500);
+        setTimeout(() => { chart.resize(); chart.update(); }, 300);
+
+
+        // -------------------------------------------------------------
+        // 2. DAILY TRAFFIC CHART (Stacked Bar)
+        // -------------------------------------------------------------
+        const dailyCanvas = document.getElementById('dailyTrafficChart');
+        if (dailyCanvas) {
+            const url = `/customer/{{ $customer->id }}/daily-traffic`;
+            fetch(url)
+                .then(response => {
+                    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+                    return response.json();
+                })
+                .then(data => {
+                    if (!data.dates || data.dates.length === 0) {
+                        dailyCanvas.parentElement.innerHTML = `
+                            <p class="text-muted text-center my-4">No daily data available.</p>`;
+                        return;
+                    }
+                    const ctx = dailyCanvas.getContext('2d');
+                    new Chart(ctx, {
+                        type: 'bar',
+                        data: {
+                            labels: data.dates.map(d => {
+                                const parts = d.split('-');
+                                return parts[2] + '/' + parts[1];
+                            }),
+                            datasets: [
+                                {
+                                    label: 'Upload (TX)',
+                                    data: data.download.map(v => v / 1024),
+                                    backgroundColor: 'rgba(13, 110, 253, 0.7)',
+                                    borderColor: '#0d6efd',
+                                    borderWidth: 1,
+                                },
+                                {
+                                    label: 'Download (RX)',
+                                    data: data.upload.map(v => v / 1024),
+                                    backgroundColor: 'rgba(32, 201, 151, 0.7)',
+                                    borderColor: '#20c997',
+                                    borderWidth: 1,
+                                }
+                            ]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            scales: {
+                                x: {
+                                    stacked: true,
+                                    title: { display: true, text: 'Date' }
+                                },
+                                y: {
+                                    stacked: true,
+                                    beginAtZero: true,
+                                    title: { display: true, text: 'Volume (GB)' }
+                                }
+                            },
+                            plugins: {
+                                tooltip: {
+                                    callbacks: {
+                                        label: function(context) {
+                                            return context.dataset.label + ': ' + context.parsed.y.toFixed(2) + ' GB';
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    });
+                })
+                .catch(err => {
+                    console.error('❌ Daily traffic error:', err);
+                    dailyCanvas.parentElement.innerHTML = `
+                        <p class="text-danger text-center my-4">⚠️ Could not load daily data</p>`;
+                });
+        }
     });
 </script>
 

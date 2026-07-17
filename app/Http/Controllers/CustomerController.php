@@ -9,6 +9,7 @@ use App\Models\Branch;
 use App\Models\Customer;
 use App\Models\GracePeriod;
 use App\Models\InternetPlan;
+use App\Models\RadAcct;
 use App\Models\Recharge;
 use App\Services\MacService;
 use App\Services\MikrotikService;
@@ -466,6 +467,39 @@ class CustomerController extends Controller
             'rx_bps'  => $traffic['rx_bps'],
             'tx_bps'  => $traffic['tx_bps'],
             'sessions'=> $traffic['sessions'],
+        ]);
+    }
+
+    public function getDailyTraffic(Customer $customer)
+    {
+        $end = now();
+        $start = $end->copy()->subDays(30);
+
+        // Direct query on the sessions table
+        $dailyData = RadAcct::where('username', $customer->username)
+            ->whereNotNull('acctstoptime')
+            ->whereBetween('acctstoptime', [$start, $end])
+            ->selectRaw('DATE(acctstoptime) as date, SUM(acctinputoctets / 1024 / 1024) as total_download, SUM(acctoutputoctets / 1024 / 1024) as total_upload')
+            ->groupBy('date')
+            ->orderBy('date', 'asc')
+            ->get()
+            ->keyBy('date');
+
+        // Fill missing days with zeros
+        $dates = collect();
+        for ($date = $start->copy(); $date <= $end; $date->addDay()) {
+            $key = $date->toDateString();
+            $dates->put($key, [
+                'date' => $key,
+                'download' => $dailyData->has($key) ? (float) $dailyData[$key]->total_download : 0,
+                'upload'   => $dailyData->has($key) ? (float) $dailyData[$key]->total_upload : 0,
+            ]);
+        }
+
+        return response()->json([
+            'dates'    => $dates->keys(),
+            'download' => $dates->pluck('download'),
+            'upload'   => $dates->pluck('upload'),
         ]);
     }
 }
