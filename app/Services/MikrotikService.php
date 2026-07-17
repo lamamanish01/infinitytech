@@ -128,49 +128,85 @@ class MikrotikService
         foreach ($routers as $mk) {
             try {
                 $client = self::client($mk);
+
+                // 1. Get active sessions
                 $sessions = $client->query(
                     (new Query('/ppp/active/print'))
                         ->where('name', $username)
                 )->read();
 
                 if (empty($sessions)) {
+                    // No active session – try to construct interface from username
+                    // but if the user isn't connected, we can't monitor.
                     continue;
                 }
 
                 foreach ($sessions as $session) {
                     $id = $session['.id'] ?? null;
+                    $interface = trim($session['interface'] ?? '');
+
+                    // If interface is missing, build it from username (common convention)
+                    if (empty($interface)) {
+                        $interface = "<pppoe-{$username}>";
+                        Log::info("Interface missing from session, using constructed: {$interface}");
+                    }
+
                     if (!$id) {
                         continue;
                     }
 
-                    // Current cumulative byte counters
-                    $currentRx = (int) ($session['rx-byte'] ?? 0);
-                    $currentTx = (int) ($session['tx-byte'] ?? 0);
-                    $now = microtime(true);
+                    Log::info("Session: ID={$id}, interface='{$interface}'");
 
-                    $cacheKey = 'ppp_traffic_' . $id;
-                    $prev = Cache::get($cacheKey);
-
+                    // 2. Try /interface monitor-traffic once
                     $rateRx = 0;
                     $rateTx = 0;
+                    try {
+                        $monitorQuery = (new Query('/interface/monitor-traffic'))
+                            ->equal('interface', $interface)   // send as-is
+                            ->equal('once', 'yes');
 
-                    if ($prev) {
-                        $timeDiff = $now - $prev['time'];
-                        if ($timeDiff >= 0.5) {  // avoid division by zero
-                            // bytes → bits per second
-                            $rateRx = (($currentRx - $prev['rx']) / $timeDiff) * 8;
-                            $rateTx = (($currentTx - $prev['tx']) / $timeDiff) * 8;
-                            $rateRx = max(0, $rateRx);
-                            $rateTx = max(0, $rateTx);
+                        $monitorResult = $client->query($monitorQuery)->read();
+
+                        Log::info("Monitor result for {$interface}: " . json_encode($monitorResult));
+
+                        if (!empty($monitorResult) && isset($monitorResult[0]['rx-bits-per-second'])) {
+                            $rateRx = (int) $monitorResult[0]['rx-bits-per-second'];
+                            $rateTx = (int) $monitorResult[0]['tx-bits-per-second'];
+                            Log::info("Monitor success: RX={$rateRx}, TX={$rateTx}");
+                        } else {
+                            Log::warning("Monitor returned empty for {$interface}");
                         }
+                    } catch (\Exception $e) {
+                        Log::warning("Monitor exception for {$interface}: " . $e->getMessage());
                     }
 
-                    // Store for next poll
-                    Cache::put($cacheKey, [
-                        'rx'   => $currentRx,
-                        'tx'   => $currentTx,
-                        'time' => $now,
-                    ], 60);
+                    // 3. If monitor gives 0, fallback to byte-counter (only with previous data)
+                    if ($rateRx === 0 && $rateTx === 0) {
+                        $currentRx = (int) ($session['rx-byte'] ?? 0);
+                        $currentTx = (int) ($session['tx-byte'] ?? 0);
+                        $now = microtime(true);
+
+                        $cacheKey = 'ppp_traffic_' . $id;
+                        $prev = Cache::get($cacheKey);
+
+                        if ($prev) {
+                            $timeDiff = $now - $prev['time'];
+                            if ($timeDiff >= 0.5) {
+                                $rateRx = (($currentRx - $prev['rx']) / $timeDiff) * 8;
+                                $rateTx = (($currentTx - $prev['tx']) / $timeDiff) * 8;
+                                $rateRx = max(0, $rateRx);
+                                $rateTx = max(0, $rateTx);
+                                Log::info("Fallback byte-counter: RX={$rateRx}, TX={$rateTx}");
+                            }
+                        }
+
+                        // Store for next poll
+                        Cache::put($cacheKey, [
+                            'rx'   => $currentRx,
+                            'tx'   => $currentTx,
+                            'time' => $now,
+                        ], 60);
+                    }
 
                     $totalRx += $rateRx;
                     $totalTx += $rateTx;
@@ -178,8 +214,9 @@ class MikrotikService
                     $sessionDetails[] = [
                         'router'      => $mk->host,
                         'session_id'  => $id,
-                        'rx_rate_bps' => round($rateRx, 2),
-                        'tx_rate_bps' => round($rateTx, 2),
+                        'interface'   => $interface,
+                        'rx_rate_bps' => (int) round($rateRx),
+                        'tx_rate_bps' => (int) round($rateTx),
                         'address'     => $session['address'] ?? null,
                         'uptime'      => $session['uptime'] ?? null,
                     ];
@@ -194,8 +231,8 @@ class MikrotikService
         }
 
         return [
-            'rx_bps'   => round($totalRx, 2),
-            'tx_bps'   => round($totalTx, 2),
+            'rx_bps'   => (int) round($totalRx),
+            'tx_bps'   => (int) round($totalTx),
             'sessions' => $sessionDetails,
         ];
     }
