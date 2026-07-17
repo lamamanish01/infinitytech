@@ -21,6 +21,7 @@ use App\Http\Controllers\RoleController;
 use App\Http\Controllers\SearchController;
 use App\Http\Controllers\ServerStatsController;
 use App\Http\Controllers\SmsGatewayController;
+use App\Http\Controllers\TestController;
 use App\Http\Controllers\TicketController;
 use App\Http\Controllers\Tr069DeviceController;
 use App\Http\Controllers\Tr069ServerController;
@@ -205,4 +206,12 @@ Route::middleware('auth')->group(function () {
 
     Route::get('/admin/stats', [ServerStatsController::class, 'index'])->name('stats.index');
     Route::get('/api/stats', [ServerStatsController::class, 'json'])->name('stats.json');
+
+    Route::prefix('test')->group(function () {
+        Route::get('/monitor/{routerId}/{interface?}', [TestController::class, 'monitor']);
+        Route::get('/monitor-all/{username?}', [TestController::class, 'monitorAllPpp']);
+        Route::get('/ppp/{username?}', [TestController::class, 'pppActive']);
+        Route::get('/traffic/{username}', [TestController::class, 'traffic']);
+        Route::get('/debug-monitor/{routerId}/{interface}', [TestController::class, 'debugMonitor']);
+    });
 });

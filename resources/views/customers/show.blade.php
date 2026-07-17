@@ -337,12 +337,12 @@
 
         const canvas = document.getElementById('trafficChart');
         if (!canvas) {
-            console.error('Canvas element not found');
+            console.error('Canvas not found');
             return;
         }
 
         // -------------------------------------------------------------
-        // 2. Create the chart
+        // 2. Create the chart (aggregated total)
         // -------------------------------------------------------------
         const ctx = canvas.getContext('2d');
         let chart = new Chart(ctx, {
@@ -375,7 +375,7 @@
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
-                animation: { duration: 500 },
+                animation: { duration: 300 },
                 plugins: {
                     legend: { position: 'top' },
                     tooltip: {
@@ -397,15 +397,10 @@
                         title: { display: true, text: 'Traffic' },
                         ticks: {
                             callback: function(value) {
-                                if (value >= 1000) {
-                                    return (value / 1000).toFixed(1) + ' Gbps';
-                                } else if (value >= 1) {
-                                    return value.toFixed(1) + ' Mbps';
-                                } else if (value >= 0.001) {
-                                    return (value * 1000).toFixed(0) + ' Kbps';
-                                } else {
-                                    return (value * 1000000).toFixed(0) + ' bps';
-                                }
+                                if (value >= 1000) return (value / 1000).toFixed(1) + ' Gbps';
+                                if (value >= 1) return value.toFixed(1) + ' Mbps';
+                                if (value >= 0.001) return (value * 1000).toFixed(0) + ' Kbps';
+                                return (value * 1000000).toFixed(0) + ' bps';
                             }
                         }
                     }
@@ -414,103 +409,95 @@
         });
 
         // -------------------------------------------------------------
-        // 3. Variables
+        // 3. Variables & helpers
         // -------------------------------------------------------------
         const username = '{{ $customer->username }}';
         const updateTimeEl = document.getElementById('traffic-update-time');
+        const MAX_POINTS = 60;
+        let failCount = 0;
 
-        // ---- Set to false for real API, true for mock ----
-        const USE_MOCK = true;
-
-        // Helper: add a data point and keep last 60
+        // Helper to add a point to both datasets
         function addData(timeLabel, rx, tx, source = 'API') {
             rx = (typeof rx === 'number' && !isNaN(rx)) ? rx : 0;
             tx = (typeof tx === 'number' && !isNaN(tx)) ? tx : 0;
 
-            const maxPoints = 60;
             chart.data.labels.push(timeLabel);
             chart.data.datasets[0].data.push(rx);
             chart.data.datasets[1].data.push(tx);
 
-            if (chart.data.labels.length > maxPoints) {
+            if (chart.data.labels.length > MAX_POINTS) {
                 chart.data.labels.shift();
                 chart.data.datasets[0].data.shift();
                 chart.data.datasets[1].data.shift();
             }
             chart.update();
-            console.log(`📊 Added point (${source}): ${timeLabel} RX=${rx.toFixed(3)} TX=${tx.toFixed(3)}`);
+            console.log(`📊 ${source}: ${timeLabel} RX=${rx.toFixed(3)} TX=${tx.toFixed(3)}`);
         }
 
         // -------------------------------------------------------------
         // 4. Polling function
         // -------------------------------------------------------------
         function fetchTraffic() {
-            if (USE_MOCK) {
-                const rx = Math.random() * 10;
-                const tx = Math.random() * 8;
-                const now = new Date().toLocaleTimeString();
-                addData(now, rx, tx, 'Mock');
-                updateTimeEl.textContent = 'Mock data: ' + now;
-                return;
-            }
-
-            // ---------- REAL API ----------
             const url = `/customer/${username}/ppp-traffic`;
             console.log('🔍 Fetching from:', url);
 
             fetch(url)
                 .then(response => {
-                    console.log('📄 Response status:', response.status);
-                    return response.text().then(text => {
-                        console.log('📝 Raw response:', text);
-                        try {
-                            return JSON.parse(text);
-                        } catch (e) {
-                            console.error('❌ Invalid JSON:', e);
-                            return null;
-                        }
-                    });
+                    console.log('📄 Status:', response.status);
+                    return response.text();
                 })
-                .then(data => {
-                    console.log('✅ Parsed data:', data);
+                .then(text => {
+                    console.log('📝 Raw response:', text);
+                    let data;
+                    try { data = JSON.parse(text); } catch (e) { data = null; }
                     let rxMbps = 0, txMbps = 0;
                     if (data && data.success === true) {
                         rxMbps = (typeof data.rx_bps === 'number') ? data.rx_bps / 1_000_000 : 0;
                         txMbps = (typeof data.tx_bps === 'number') ? data.tx_bps / 1_000_000 : 0;
                     } else {
-                        console.warn('⚠️ API returned success=false or missing data – using zeros');
+                        console.warn('⚠️ Invalid response – using zeros');
                     }
                     rxMbps = Math.max(0, rxMbps);
                     txMbps = Math.max(0, txMbps);
                     const now = new Date().toLocaleTimeString();
                     addData(now, rxMbps, txMbps, 'API');
                     updateTimeEl.textContent = 'Last update: ' + now;
+                    failCount = 0;
                 })
                 .catch(err => {
                     console.error('❌ Fetch error:', err);
-                    // Always add a zero point so the chart keeps moving
-                    const now = new Date().toLocaleTimeString();
-                    addData(now, 0, 0, 'Fallback (error)');
-                    updateTimeEl.textContent = '⚠️ Error – using 0';
+                    failCount++;
+                    // After 3 failures, switch to mock data to keep chart alive
+                    if (failCount > 3) {
+                        updateTimeEl.textContent = '⚠️ API unreachable – using mock';
+                        const rx = Math.random() * 10;
+                        const tx = Math.random() * 8;
+                        const now = new Date().toLocaleTimeString();
+                        addData(now, rx, tx, 'Mock (fallback)');
+                    } else {
+                        const now = new Date().toLocaleTimeString();
+                        addData(now, 0, 0, 'Fallback (zero)');
+                        updateTimeEl.textContent = '⚠️ Error – using 0';
+                    }
                 });
         }
 
         // -------------------------------------------------------------
-        // 5. Start polling – seed with a zero point
+        // 5. Seed and start polling
         // -------------------------------------------------------------
         addData(new Date().toLocaleTimeString(), 0, 0, 'Seed');
 
-        // Poll every 2 seconds
-        setInterval(fetchTraffic, 2000);
+        // Poll every 1 second
+        setInterval(fetchTraffic, 1000);
         fetchTraffic();
 
         // -------------------------------------------------------------
-        // 6. Re‑size on tab show
+        // 6. Resize on tab show
         // -------------------------------------------------------------
         const sessionTab = document.querySelector('button[data-bs-target="#session"]');
         if (sessionTab) {
             sessionTab.addEventListener('shown.bs.tab', function() {
-                console.log('📐 Session tab shown – resizing and redrawing');
+                console.log('📐 Resizing chart');
                 chart.resize();
                 chart.update();
             });

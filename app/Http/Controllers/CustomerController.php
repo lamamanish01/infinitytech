@@ -458,6 +458,7 @@ class CustomerController extends Controller
 
     public function getPppTraffic($username)
     {
+
         $traffic = MikrotikService::getPPPUserTraffic($username);
 
         return response()->json([
