@@ -115,8 +115,8 @@
                         <div class="card-header bg-white d-flex justify-content-between align-items-center">
                             <strong>📊 Live PPP User Traffic</strong>
                             <div class="text-muted small text-end">
-                                <span id="traffic-download" class="me-3" style="color: #0d6efd;">⬇️ 0 bps</span>
-                                <span id="traffic-upload" class="me-3" style="color: #20c997;">⬆️ 0 bps</span>
+                                <span id="traffic-download" class="me-3" style="color: #0d6efd;">⬆️ 0 bps</span>
+                                <span id="traffic-upload" class="me-3" style="color: #20c997;">⬇️ 0 bps</span>
                                 <span id="traffic-update-time">Updating...</span>
                             </div>
                         </div>
