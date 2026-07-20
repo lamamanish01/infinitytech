@@ -114,6 +114,7 @@ Route::middleware('auth')->group(function () {
             [Tr069DeviceController::class, 'logs']
         )->name('tr069.device.logs');
     });
+    Route::delete('tr069/device/{id}', [Tr069DeviceController::class, 'destroy'])->name('tr069.device.destroy');
 
     Route::get('/recharges/create/{customerId}', [RechargeController::class, 'create'])
         ->name('recharges.create');

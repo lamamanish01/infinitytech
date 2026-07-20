@@ -45,4 +45,22 @@ class Ticket extends Model
     {
         return $this->belongsTo(User::class, 'user_id');
     }
+
+    public function scopeActive($query)
+    {
+        return $query->where('status', '!=', 'closed'); // adjust
+    }
+
+    public function scopePriorityOrdered($query)
+    {
+        return $query->orderByRaw("
+            CASE priority
+                WHEN 'urgent' THEN 1
+                WHEN 'high'   THEN 2
+                WHEN 'medium' THEN 3
+                WHEN 'low'    THEN 4
+                ELSE 5
+            END DESC
+        ");
+    }
 }

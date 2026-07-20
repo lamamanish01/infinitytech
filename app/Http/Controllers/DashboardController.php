@@ -70,10 +70,8 @@ class DashboardController extends Controller
 
         $stats = (new ServerStatsController)->getStats();
 
-        $user = auth()->user();
-        $branch = Branch::find($user->branch_id);
+        $branches = Branch::all();
 
-        $branchBalance = $branch->balance ?? 0;
         $totalBalance = Branch::sum('balance');
 
         return view('dashboard.index', [
@@ -81,11 +79,11 @@ class DashboardController extends Controller
             'totalCustomers'    => Customer::count(),
             'expiringCustomers' => $expiringCustomers,
             'expiredCustomers'  => $expiredCustomers,
-            'totalBalance'      => $totalBalance,
             'activeSessions'    => $activeSessions,
             'nasCount'          => Nas::count(),
             'stats'             => $stats,
-            'branchBalance'     => $branchBalance
+            'branches'          => $branches,
+            'totalBalance'      => $totalBalance,
         ]);
     }
 

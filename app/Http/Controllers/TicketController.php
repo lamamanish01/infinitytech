@@ -32,11 +32,24 @@ class TicketController extends Controller
         $this->middleware('permission:status tickets')->only(['updateStatus']);
     }
 
-    public function index()
+    public function index(Request $request)
     {
-        $tickets = Ticket::with(['customer','assignedUser'])
-            ->latest()
-            ->paginate(20);
+        $query = Ticket::with(['customer', 'assignedUser']);
+
+        // Apply active scope (exclude closed) unless we want to show them
+        if (!$request->has('show_closed')) {
+            $query->active(); // uses your scope
+        }
+
+        // Apply priority ordering
+        $query->priorityOrdered();
+
+        // Secondary sort: newest first within same priority
+        $query->latest('created_at');
+
+        $tickets = $query->paginate(20)
+                        ->appends(['show_closed' => $request->show_closed]);
+
         return view('ticket.index', compact('tickets'));
     }
 

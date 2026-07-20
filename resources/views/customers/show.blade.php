@@ -115,8 +115,8 @@
                         <div class="card-header bg-white d-flex justify-content-between align-items-center">
                             <strong>📊 Live PPP User Traffic</strong>
                             <div class="text-muted small text-end">
-                                <span id="traffic-download" class="me-3" style="color: #0d6efd;">⬆️ 0 bps</span>
-                                <span id="traffic-upload" class="me-3" style="color: #20c997;">⬇️ 0 bps</span>
+                                <span id="traffic-download" class="me-3" style="color: #0d6efd;">0 bps</span>/
+                                <span id="traffic-upload" class="me-3" style="color: #20c997;">0 bps</span>
                                 <span id="traffic-update-time">Updating...</span>
                             </div>
                         </div>
@@ -233,6 +233,11 @@
                                             <form method="POST" action="{{ route('tr069.device.factory-reset', $router->id) }}">@csrf<button type="submit" class="btn btn-sm btn-outline-danger" onclick="return confirm('Factory reset router?')">⚠️ Factory Reset</button></form>
                                             <form method="POST" action="{{ route('tr069.device.push-acs', $router->id) }}">@csrf<button type="submit" class="btn btn-sm btn-outline-dark">🚀 Push ACS</button></form>
                                             <a href="{{ route('tr069.device.logs', $router->id) }}" class="btn btn-sm btn-outline-secondary">📜 Logs</a>
+                                            <form method="POST" action="{{ route('tr069.device.destroy', $router->id) }}" onsubmit="return confirm('Are you sure you want to delete this router? This action cannot be undone.')">
+                                                @csrf
+                                                @method('DELETE')
+                                                <button type="submit" class="btn btn-sm btn-outline-danger">🗑️ Delete</button>
+                                            </form>
                                         </div>
                                     </div>
                                 </div>
@@ -499,11 +504,11 @@
                         const uploadEl = document.getElementById('traffic-upload');
                         const updateTimeEl = document.getElementById('traffic-update-time');
                         if (downloadEl) {
-                            downloadEl.textContent = `⬇️ ${formatSpeed(rx)} (mock)`;
+                            downloadEl.textContent = `${formatSpeed(rx)} (mock)`;
                             downloadEl.style.color = '#0d6efd';
                         }
                         if (uploadEl) {
-                            uploadEl.textContent = `⬆️ ${formatSpeed(tx)} (mock)`;
+                            uploadEl.textContent = `${formatSpeed(tx)} (mock)`;
                             uploadEl.style.color = '#20c997';
                         }
                         if (updateTimeEl) updateTimeEl.textContent = `⚠️ API unreachable – using mock`;
@@ -514,11 +519,11 @@
                         const uploadEl = document.getElementById('traffic-upload');
                         const updateTimeEl = document.getElementById('traffic-update-time');
                         if (downloadEl) {
-                            downloadEl.textContent = `⬇️ 0 bps`;
+                            downloadEl.textContent = `0 bps`;
                             downloadEl.style.color = '#0d6efd';
                         }
                         if (uploadEl) {
-                            uploadEl.textContent = `⬆️ 0 bps`;
+                            uploadEl.textContent = `0 bps`;
                             uploadEl.style.color = '#20c997';
                         }
                         if (updateTimeEl) updateTimeEl.textContent = `⚠️ Error – using 0`;

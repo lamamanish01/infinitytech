@@ -62,7 +62,8 @@ class UserController extends Controller
     {
         $roles = Role::orderBy('name', 'asc')->get();
         $hasRoles = $user->roles->pluck('name');
-        return view('users.edit', compact('user', 'roles', 'hasRoles'));
+        $branches = Branch::pluck('name', 'id');
+        return view('users.edit', compact('user', 'roles', 'hasRoles', 'branches'));
     }
 
     public function update(Request $request, User $user)
@@ -70,6 +71,7 @@ class UserController extends Controller
         $user->name = $request->name;
         $user->email = $request->email;
         $user->password = Hash::make($request->password);
+        $user->branch_id = $request->branch_id;
         $user->save();
 
         $user->syncRoles($request->role);

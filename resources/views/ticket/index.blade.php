@@ -21,6 +21,18 @@
                         Create Ticket
                     </a>
                 @endcan
+
+                @can('show close tickets')
+                    @php
+                        $showClosed = request()->has('show_closed');
+                    @endphp
+
+                    <a href="{{ request()->fullUrlWithQuery(['show_closed' => $showClosed ? null : 1]) }}"
+                    class="btn btn-sm {{ $showClosed ? 'btn-warning' : 'btn-secondary' }}">
+                        {{ $showClosed ? 'Hide Closed Tickets' : 'Show Closed Tickets' }}
+                    </a>
+                @endcan
+
             </div>
 
         </div>
@@ -147,7 +159,7 @@
 
                                                 @can('edit tickets')
                                                     <a href="{{ route('ticket.edit', $ticket->id) }}"
-                                                       class="btn btn-sm btn-secondary">
+                                                       class="btn btn-sm btn-warning">
                                                         Edit
                                                     </a>
                                                 @endcan

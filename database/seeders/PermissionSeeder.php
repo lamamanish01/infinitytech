@@ -68,6 +68,7 @@ class PermissionSeeder extends Seeder
             'note tickets',
             'close tickets',
             'status tickets',
+            'show close tickets',
 
             // ================= BRANCH =================
             'view branch',

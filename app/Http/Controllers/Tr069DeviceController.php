@@ -80,10 +80,11 @@ class Tr069DeviceController extends Controller
         return redirect()->route('tr069.devices.index')->with('success', 'Device updated successfully.');
     }
 
-    public function destroy(Tr069Device $tr069Device)
+    public function destroy($id)
     {
-        $tr069Device->delete();
-        return redirect()->route('tr069.devices.index')->with('success', 'Device deleted successfully.');
+        $router = Tr069Device::findOrFail($id);
+        $router->delete();
+        return redirect()->back()->with('success', 'Device deleted successfully.');
     }
 
     // ==================== DEVICE MANAGEMENT ACTIONS ====================

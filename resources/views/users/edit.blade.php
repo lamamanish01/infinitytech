@@ -41,6 +41,19 @@
                                required>
                     </div>
 
+                    <div class="form-group">
+                        <label>Branch</label>
+                        <select name="branch_id" class="form-control" required>
+                            <option value="">Select Branch</option>
+                            @foreach ($branches as $id => $name)
+                                <option value="{{ $id }}"
+                                    {{ old('branch_id', $user->branch_id ?? '') == $id ? 'selected' : '' }}>
+                                    {{ $name }}
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>
+
                     {{-- ROLES --}}
                     <div class="form-group">
 

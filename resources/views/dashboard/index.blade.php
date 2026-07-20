@@ -86,17 +86,19 @@
     <div class="row mt-3">
 
         {{-- BRANCH BALANCE --}}
-        <div class="col-lg-4 col-12">
-            <div class="small-box bg-info text-white">
-                <div class="inner">
-                    <h3>Rs {{ number_format($totalBalance ?? 0, 2) }}</h3>
-                    <p>Branch Balance</p>
-                </div>
-                <div class="icon">
-                    <i class="fas fa-money-bill"></i>
+        @foreach ($branches as $branch)
+            <div class="col-lg-4 col-md-6 col-12">
+                <div class="small-box bg-{{ $loop->iteration % 2 == 0 ? 'success' : 'info' }} text-white">
+                    <div class="inner">
+                        <h3>Rs {{ number_format($branch->balance ?? 0, 2) }}</h3>
+                        <p>{{ $branch->name }} Balance</p>
+                    </div>
+                    <div class="icon">
+                        <i class="fas fa-store"></i>
+                    </div>
                 </div>
             </div>
-        </div>
+        @endforeach
 
         {{-- ACTIVE SESSIONS --}}
         <div class="col-lg-4 col-12">
