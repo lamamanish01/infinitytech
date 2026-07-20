@@ -93,7 +93,14 @@
                                 <thead class="table-light"><tr><th>IP</th><th>Start Time</th><th>End Time</th><th>Time</th><th>Mac Address</th><th>NAS IP</th><th>Upload</th><th>Download</th><th>Server</th></tr></thead>
                                 <tbody>
                                     <tr>
-                                        <td>{{ $customer->active->ip_address }}</td>
+                                        <td>
+                                            @php $ip = optional($customer->active)->ip_address; @endphp
+                                            @if($ip)
+                                                <a href="http://{{ $ip }}" target="_blank" rel="noopener noreferrer">{{ $ip }}</a>
+                                            @else
+                                                <span>N/A</span>
+                                            @endif
+                                        </td>
                                         <td>{{ \Carbon\Carbon::parse($customer->active->start_time)->format('Y-m-d H:i:s A') }}</td>
                                         <td>@if($lastSession && $lastSession->acctstoptime){{ \Carbon\Carbon::parse($lastSession->acctstoptime)->format('Y-m-d h:i:s A') }}@else<span class="badge badge-success">Never Disconnected</span>@endif</td>
                                         <td>{{ $customer->active->session_time_human }}</td>
