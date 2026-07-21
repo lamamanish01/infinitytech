@@ -130,6 +130,7 @@ class PermissionSeeder extends Seeder
             // ================= SYSTEM =================
             'view system logs',
             'view system activity',
+            'delete activities',
             'change password',
 
             // ================= CUSTOMER IMPORT =================
