@@ -19,7 +19,7 @@ class CronLogController extends Controller
 
     public function index()
     {
-        $cronLogs = CronLog::latest()->paginate(10);
+        $cronLogs = CronLog::latest()->paginate(15);
         return view('cron.index', compact('cronLogs'));
     }
 
