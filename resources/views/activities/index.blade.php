@@ -4,36 +4,25 @@
 
 <!-- Content Header -->
 <div class="content-header">
-
     <div class="container-fluid">
-
         <div class="row mb-2">
-
             <div class="col-sm-6">
                 <h1 class="m-0">Activity Logs</h1>
             </div>
-
         </div>
-
     </div>
-
 </div>
 
 <!-- Main Content -->
 <div class="content">
-
     <div class="container-fluid">
-
         <div class="row">
-
             <div class="col-lg-12">
 
                 <div class="card card-info">
-
                     <div class="card-body table-responsive p-0">
 
                         <table class="table table-sm table-striped table-hover text-nowrap">
-
                             <thead>
                                 <tr>
                                     <th>#</th>
@@ -42,15 +31,12 @@
                                     <th>User</th>
                                     <th>Date</th>
                                     <th>Status</th>
+                                    <th>Action</th> {{-- NEW --}}
                                 </tr>
                             </thead>
-
                             <tbody>
-
                                 @forelse($activitys as $activity)
-
                                     <tr>
-
                                         <td>{{ $loop->iteration }}</td>
 
                                         {{-- TITLE --}}
@@ -60,14 +46,10 @@
                                         </td>
 
                                         {{-- MESSAGE --}}
-                                        <td>
-                                            {{ $activity->message ?? '-' }}
-                                        </td>
+                                        <td>{{ $activity->message ?? '-' }}</td>
 
                                         {{-- USER --}}
-                                        <td>
-                                            {{ $activity->user->name ?? 'System' }}
-                                        </td>
+                                        <td>{{ $activity->user->name ?? 'System' }}</td>
 
                                         {{-- DATE --}}
                                         <td>
@@ -87,24 +69,31 @@
                                             @endif
                                         </td>
 
+                                        {{-- ACTION: DELETE BUTTON --}}
+                                        @can('delete activities')
+                                            <td>
+                                                <form action="{{ route('activity.destroy', $activity->id) }}" method="POST"
+                                                    onsubmit="return confirm('Are you sure you want to delete this activity?');">
+                                                    @csrf
+                                                    @method('DELETE')
+                                                    <button type="submit" class="btn btn-sm btn-danger">
+                                                        <i class="fas fa-trash"></i> Delete
+                                                    </button>
+                                                </form>
+                                            </td>
+                                        @endcan
                                     </tr>
-
                                 @empty
-
                                     <tr>
-                                        <td colspan="6" class="text-center text-muted">
+                                        <td colspan="7" class="text-center text-muted"> <!-- Increase colspan to 7 -->
                                             No Activities Found
                                         </td>
                                     </tr>
-
                                 @endforelse
-
                             </tbody>
-
                         </table>
 
                     </div>
-
                 </div>
 
                 {{-- PAGINATION --}}
@@ -113,11 +102,8 @@
                 </div>
 
             </div>
-
         </div>
-
     </div>
-
 </div>
 
 @endsection

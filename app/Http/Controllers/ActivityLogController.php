@@ -64,9 +64,12 @@ class ActivityLogController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(ActivityLog $activityLog)
+    public function destroy($id)
     {
-        //
+        $activity = ActivityLog::findOrFail($id);
+        $activity->delete();
+
+        return redirect()->route('activities.index')->with('success', 'Activity deleted Successfully');
     }
 
     public function read($id)

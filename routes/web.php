@@ -199,6 +199,8 @@ Route::middleware('auth')->group(function () {
         ->name('activity.read');
     Route::get('/activities/mark-all-read', [ActivityLogController::class, 'markAllRead'])
         ->name('activities.markAllRead');
+    Route::delete('/activity/{id}', [ActivityLogController::class, 'destroy'])
+        ->name('activity.destroy');
 
     Route::resource('radius', RadiusController::class);
 
