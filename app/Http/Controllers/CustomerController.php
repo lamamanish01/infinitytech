@@ -284,9 +284,10 @@ class CustomerController extends Controller
             return back()->with('error', 'Customer is still active. Grace period is only allowed after expiration.');
         }
 
-        $activeGrace = GracePeriod::where('customer_id', $customerId)
-            ->where('grace_end', '>=', now())
-            ->exists();
+        $hasEverHadGrace = GracePeriod::where('customer_id', $customerId)->exists();
+        if ($hasEverHadGrace) {
+            return back()->with('error', 'This customer has already been granted a grace period. Only one is allowed.');
+        }
 
         if ($activeGrace) {
             return back()->with('error', 'An active grace period already exists for this customer.');
