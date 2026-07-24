@@ -28,6 +28,42 @@
         </div>
     </div>
 
+    {{-- Unpaid alert --}}
+    @if($unpaidCount > 0)
+        <div class="alert alert-danger py-1 px-3 small shadow-sm mb-1"
+            role="alert" style="font-size: 0.85rem; border-left: 4px solid #dc3545;">
+            <div class="d-flex align-items-center flex-wrap">
+                <i class="fas fa-times-circle me-1 text-danger"></i>
+                <span class="fw-semibold me-1">Unpaid Billing :</span>
+                <span class="badge bg-danger text-white me-1">{{ $unpaidCount }}</span>
+                <span class="me-1">bill{{ $unpaidCount > 1 ? 's' : '' }}</span>
+                <span class="mx-1 text-muted">·</span>
+                <a href="{{ route('billing.index', ['customer_id' => $customer->id, 'status' => 'unpaid']) }}"
+                class="alert-link text-decoration-none fw-semibold">
+                    Click to View
+                </a>
+            </div>
+        </div>
+    @endif
+
+    {{-- Partial alert --}}
+    @if($partialCount > 0)
+        <div class="alert alert-warning py-1 px-3 small shadow-sm mb-1"
+            role="alert" style="font-size: 0.85rem; border-left: 4px solid #ffc107;">
+            <div class="d-flex align-items-center flex-wrap">
+                <i class="fas fa-exclamation-triangle me-1 text-warning"></i>
+                <span class="fw-semibold me-1">Partial Billing :</span>
+                <span class="badge bg-warning text-dark me-1">{{ $partialCount }}</span>
+                <span class="me-1">payment{{ $partialCount > 1 ? 's' : '' }}</span>
+                <span class="mx-1 text-muted">·</span>
+                <a href="{{ route('billing.index', ['customer_id' => $customer->id, 'status' => 'partial']) }}"
+                class="alert-link text-decoration-none fw-semibold">
+                    Click to View
+                </a>
+            </div>
+        </div>
+    @endif
+
     {{-- ================= MAIN CARD ================= --}}
     <div class="card shadow-sm">
         <div class="card-header bg-white">

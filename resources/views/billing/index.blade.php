@@ -32,7 +32,6 @@
                         <option value="paid" {{ request('status') == 'paid' ? 'selected' : '' }}>Paid</option>
                         <option value="unpaid" {{ request('status') == 'unpaid' ? 'selected' : '' }}>Unpaid</option>
                         <option value="partial" {{ request('status') == 'partial' ? 'selected' : '' }}>Partial</option>
-                        <option value="cancelled" {{ request('status') == 'cancelled' ? 'selected' : '' }}>Cancelled</option>
                     </select>
                 </div>
                 <div class="col-md-2 d-flex align-items-end">
@@ -70,7 +69,7 @@
                             <th>Date</th>
                             <th>Amount</th>
                             <th>Status</th>
-                            <th class="text-end">Actions</th>
+                            <th class="text-end" style="min-width: 280px;">Actions</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -81,26 +80,72 @@
                                 <td>{{ $billing->customer->name ?? 'N/A' }}</td>
                                 <td>{{ $billing->billing_date ? \Carbon\Carbon::parse($billing->billing_date)->format('Y-m-d') : '-' }}</td>
                                 <td><span class="fw-bold">{{ number_format($billing->amount, 2) }}</span></td>
+
+                                {{-- STATUS BADGE --}}
                                 <td>
                                     @php
                                         $statusColors = [
                                             'paid'      => 'success',
                                             'unpaid'    => 'danger',
                                             'partial'   => 'warning',
-                                            'cancelled' => 'secondary',
                                         ];
                                         $color = $statusColors[$billing->status] ?? 'secondary';
                                     @endphp
                                     <span class="badge bg-{{ $color }}">{{ ucfirst($billing->status) }}</span>
                                 </td>
+
+                                {{-- ACTIONS COLUMN – ALL SMALL BUTTONS IN ONE btn-group --}}
                                 <td class="text-end">
-                                    <div class="btn-group btn-group-sm">
-                                        <a href="{{ route('billing.show', $billing) }}" class="btn btn-sm btn-primary">View</a>
-                                        <a href="{{ route('billing.edit', $billing) }}" class="btn btn-sm btn-warning">Edit</a>
-                                        <form action="{{ route('billing.destroy', $billing) }}" method="POST"
-                                              onsubmit="return confirm('Are you sure you want to delete this billing record?')">
+                                    <div class="btn-group btn-group-sm" role="group" aria-label="Actions">
+
+                                        {{-- Status toggle buttons (alternatives only) --}}
+                                        @php
+                                            $allStatuses = ['unpaid', 'paid', 'partial'];
+                                            $current = $billing->status;
+                                            $alternatives = array_diff($allStatuses, [$current]);
+                                        @endphp
+
+                                        @foreach($alternatives as $alt)
+                                            @php
+                                                $icon = match($alt) {
+                                                    'paid'    => 'bi-check-circle',
+                                                    'unpaid'  => 'bi-x-circle',
+                                                    'partial' => 'bi-exclamation-triangle',
+                                                    default   => 'bi-circle'
+                                                };
+                                                $btnClass = match($alt) {
+                                                    'paid'    => 'btn-outline-success',
+                                                    'unpaid'  => 'btn-outline-danger',
+                                                    'partial' => 'btn-outline-warning',
+                                                    default   => 'btn-outline-secondary'
+                                                };
+                                            @endphp
+                                            <form action="{{ route('billing.update', $billing) }}" method="POST" class="d-inline">
+                                                @csrf
+                                                @method('PATCH')
+                                                <input type="hidden" name="status" value="{{ $alt }}">
+                                                <button type="submit"
+                                                        class="btn btn-sm {{ $btnClass }}"
+                                                        onclick="return confirm('Set status to {{ ucfirst($alt) }}?')"
+                                                        title="Set to {{ ucfirst($alt) }}">
+                                                    <i class="bi {{ $icon }}"></i> {{ ucfirst($alt) }}
+                                                </button>
+                                            </form>
+                                        @endforeach
+
+                                        {{-- View / Edit / Delete (also small) --}}
+                                        <a href="{{ route('billing.show', $billing) }}" class="btn btn-sm btn-primary" title="View">
+                                            <i class="bi bi-eye"></i> View
+                                        </a>
+                                        <a href="{{ route('billing.edit', $billing) }}" class="btn btn-sm btn-warning" title="Edit">
+                                            <i class="bi bi-pencil"></i> Edit
+                                        </a>
+                                        <form action="{{ route('billing.destroy', $billing) }}" method="POST" class="d-inline-block">
                                             @csrf @method('DELETE')
-                                            <button type="submit" class="btn btn-sm btn-danger">Delete</button>
+                                            <button type="submit" class="btn btn-sm btn-danger" title="Delete"
+                                                    onclick="return confirm('Delete this billing record?')">
+                                                <i class="bi bi-trash"></i> Delete
+                                            </button>
                                         </form>
                                     </div>
                                 </td>
@@ -172,7 +217,7 @@
                         beginAtZero: true,
                         max: 500000,
                         ticks: {
-                            stepSize: 0, // ← increments by 5000
+                            stepSize: 0,
                             callback: function(value) {
                                 return value.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
                             }

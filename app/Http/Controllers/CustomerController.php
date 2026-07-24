@@ -152,6 +152,8 @@ class CustomerController extends Controller
         $activityLogs = ActivityLog::where('username', $customer->username)
                                    ->orderBy('created_at', 'desc')
                                    ->paginate(15);
+        $unpaidCount = $customer->billings()->where('status', 'unpaid')->count();
+        $partialCount = $customer->billings()->where('status', 'partial')->count();
 
         return view('customers.show', compact(
             'customer',
@@ -161,6 +163,8 @@ class CustomerController extends Controller
             'billings',
             'authLogs',
             'activityLogs',
+            'unpaidCount',
+            'partialCount',
         ));
     }
 

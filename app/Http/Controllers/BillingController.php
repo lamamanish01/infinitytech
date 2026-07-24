@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Helpers\Activity;
 use App\Models\Billing;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -119,9 +120,31 @@ class BillingController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, string $id)
+    public function update(Request $request, Billing $billing)
     {
-        //
+        $request->validate([
+            'status' => 'required|in:unpaid,paid,partial',
+        ]);
+
+        // Capture old status for logging
+        $oldStatus = $billing->status;
+        $newStatus = $request->status;
+
+        // Update the status
+        $billing->status = $newStatus;
+        $billing->save();
+
+
+        Activity::add(
+            'Billing Status Updated',
+            'Billing #' . $billing->billing_no . ' status changed from ' . ucfirst($oldStatus) . ' to ' . ucfirst($newStatus),
+            'fas fa-file-invoice text-warning',
+            $billing->billing_no, // or $billing->customer->name ?? 'System'
+            route('billing.show', $billing->id)
+        );
+
+        return redirect()->route('billing.index')
+                        ->with('success', 'Status updated to ' . ucfirst($request->status));
     }
 
     /**
