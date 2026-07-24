@@ -10,7 +10,7 @@ use App\Models\CronJob;
 class CleanRadiusLogs extends Command
 {
     protected $signature = 'radius:clean-logs';
-    protected $description = 'Clean old radpostauth logs';
+    protected $description = 'Clean all radpostauth logs';
 
     public function handle()
     {
@@ -27,22 +27,15 @@ class CleanRadiusLogs extends Command
         }
 
         try {
-            // Configurable retention days (default 15)
-            $retentionDays = config('radius.log_retention_days', 15);
-            $cutoff = now()->subDays($retentionDays);
-
-            $deleted = DB::table('radpostauth')
-                ->whereNotNull('authdate')
-                ->where('authdate', '<', $cutoff)
-                ->delete();
+            $deleted = DB::table('radpostauth')->delete();
 
             CronLog::create([
                 'command' => $this->signature,
                 'status'  => 'success',
-                'message' => "radpostauth cleaned: {$deleted} records (retention: {$retentionDays} days)",
+                'message' => "radpostauth cleaned: all {$deleted} records deleted",
             ]);
 
-            $this->info("✔ Deleted {$deleted} records");
+            $this->info("✔ Deleted {$deleted} records (all)");
             return self::SUCCESS;
 
         } catch (\Throwable $e) {
