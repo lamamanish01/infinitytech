@@ -226,6 +226,8 @@ class CustomerController extends Controller
             'expire_date' => 'required|date'
         ]);
 
+        $oldExpiry = $customer->expire_date;
+
         $newExpiry = Carbon::parse($request->expire_date)->endOfDay();
         $now = now();
 
@@ -264,9 +266,13 @@ class CustomerController extends Controller
             'status' => 'active'
         ]);
 
+        $oldDate = $oldExpiry ? $oldExpiry->format('Y-m-d') : 'N/A';
+        $newDate = $customer->expire_date->format('Y-m-d');
+        $activityMessage = "{$customer->name} expiry changed from {$oldDate} to {$newDate}";
+
         Activity::add(
             'Expiry Date Updated',
-            $customer->name . ' expiry changed to ' . $customer->expire_date,
+            $activityMessage,
             'fas fa-calendar-alt text-info',
             $customer->username,
             route('customers.show', $customer->id)
