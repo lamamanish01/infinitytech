@@ -6,6 +6,7 @@ use App\Helpers\Activity;
 use App\Models\Billing;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class BillingController extends Controller
 {
@@ -153,5 +154,38 @@ class BillingController extends Controller
     public function destroy(string $id)
     {
         //
+    }
+
+    public function downloadInvoice(Billing $billing)
+    {
+        $invoice = $billing->invoice;
+        if (!$invoice) {
+            return back()->with('error', 'No invoice found.');
+        }
+
+        $recharge = $billing->recharge;
+        $customer = $billing->customer;
+
+        // 1. Get the branch (from billing or recharge)
+        $branch = $billing->branch ?? $recharge?->branch;
+
+        // 2. If no branch exists, use fallback hardcoded values
+        if (!$branch) {
+            $branch = (object) [
+                'address'        => 'Gokarneshwor -09',
+                'contact_number' => '+977-9801973212, +977-9801973203',
+            ];
+        }
+
+        // 3. Build settings – company name from .env, address/phone from branch
+        $settings = [
+            'company_name'    => env('APP_NAME', 'Your Company'), // from .env
+            'company_address' => $branch->address ?? '',
+            'company_phone'   => $branch->contact_number ?? '',
+        ];
+
+        // 4. Generate PDF (use the correct view)
+        $pdf = Pdf::loadView('invoice.index', compact('invoice', 'billing', 'recharge', 'customer', 'settings'));
+        return $pdf->stream('invoice-' . $invoice->invoice_no . '.pdf');
     }
 }

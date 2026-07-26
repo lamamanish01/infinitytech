@@ -7,6 +7,7 @@ use App\Http\Controllers\CronJobController;
 use App\Http\Controllers\CronLogController;
 use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\CustomerImportController;
+use App\Http\Controllers\CustomerPowerController;
 use App\Http\Controllers\CustomSmsController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\DeviceLogController;
@@ -14,6 +15,8 @@ use App\Http\Controllers\InternetPlanController;
 use App\Http\Controllers\MenuController;
 use App\Http\Controllers\MikrotikController;
 use App\Http\Controllers\NasController;
+use App\Http\Controllers\OltController;
+use App\Http\Controllers\OnuController;
 use App\Http\Controllers\PermissionController;
 use App\Http\Controllers\RadiusController;
 use App\Http\Controllers\RechargeController;
@@ -126,6 +129,8 @@ Route::middleware('auth')->group(function () {
         ->name('recharges.update');
 
     Route::resource('/billing', BillingController::class);
+    Route::get('/billing/{billing}/invoice', [App\Http\Controllers\BillingController::class, 'downloadInvoice'])
+        ->name('billing.invoice');
 
     Route::resource('/tr069server', Tr069ServerController::class);
     Route::resource('/tr069device', Tr069DeviceController::class);
@@ -219,4 +224,16 @@ Route::middleware('auth')->group(function () {
         Route::get('/traffic/{username}', [TestController::class, 'traffic']);
         Route::get('/debug-monitor/{routerId}/{interface}', [TestController::class, 'debugMonitor']);
     });
+
+    Route::resource('olt', OltController::class);
+    Route::post('olt/{olt}/poll', [OltController::class, 'poll'])->name('olt.poll');
+    Route::post('olt/poll-all', [OltController::class, 'pollAll'])->name('olt.poll-all');
+
+    // ONU monitoring
+    Route::get('onus', [OnuController::class, 'index'])->name('onus.index');
+    Route::get('onus/{onu}', [OnuController::class, 'show'])->name('onus.show');
+
+    // Customer power by username or MAC
+    Route::get('customer/{identifier}/power', [CustomerPowerController::class, 'show']);
+    Route::get('customer/{identifier}/power/live', [CustomerPowerController::class, 'live']);
 });
