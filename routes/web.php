@@ -14,6 +14,7 @@ use App\Http\Controllers\DeviceLogController;
 use App\Http\Controllers\InternetPlanController;
 use App\Http\Controllers\MenuController;
 use App\Http\Controllers\MikrotikController;
+use App\Http\Controllers\MonitorController;
 use App\Http\Controllers\NasController;
 use App\Http\Controllers\OltController;
 use App\Http\Controllers\OnuController;
@@ -216,6 +217,8 @@ Route::middleware('auth')->group(function () {
 
     Route::get('/admin/stats', [ServerStatsController::class, 'index'])->name('stats.index');
     Route::get('/api/stats', [ServerStatsController::class, 'json'])->name('stats.json');
+
+    Route::resource('monitors', MonitorController::class);
 
     Route::prefix('test')->group(function () {
         Route::get('/monitor/{routerId}/{interface?}', [TestController::class, 'monitor']);
