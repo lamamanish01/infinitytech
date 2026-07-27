@@ -120,6 +120,7 @@
         .terms p {
             margin: 4px 0;
         }
+        /* Status badges */
         .status-badge-paid {
             background: #d4edda;
             padding: 2px 10px;
@@ -134,14 +135,19 @@
             font-weight: bold;
             color: #721c24;
         }
+        .status-badge-partial {
+            background: #fff3cd;
+            padding: 2px 10px;
+            border-radius: 4px;
+            font-weight: bold;
+            color: #856404;
+        }
     </style>
 </head>
 <body>
 <div class="invoice-box">
 
-    {{-- ============================================================ --}}
-    {{-- COMPANY HEADER (from branch / head office)                    --}}
-    {{-- ============================================================ --}}
+    {{-- COMPANY HEADER --}}
     <div class="company-name">{{ $settings['company_name'] }}</div>
     <div class="company-address">
         {{ $settings['company_address'] }}
@@ -150,25 +156,20 @@
         @endif
     </div>
 
-    {{-- ============================================================ --}}
-    {{-- BILL TO (left)  /  SHIP TO (right)  – same line              --}}
-    {{-- ============================================================ --}}
+    {{-- BILL TO (only left) --}}
     <div class="address-row">
-        {{-- Bill To (left) --}}
         <div class="address-col address-col-left">
             <div class="label">Bill To</div>
             <div class="value">
                 {{ $customer->name }}<br>
                 {{ $customer->address ?? 'No address provided' }}<br>
-                Phone: {{ $customer->contact_number ?? 'N/A' }}<br>
-                Email: {{ $customer->email ?? 'N/A' }}
+                {{ $customer->contact_number ?? 'N/A' }}<br>
+                {{ $customer->email ?? 'N/A' }}
             </div>
         </div>
     </div>
 
-    {{-- ============================================================ --}}
-    {{-- INVOICE METADATA                                              --}}
-    {{-- ============================================================ --}}
+    {{-- INVOICE METADATA --}}
     <table class="meta-table">
         <tr>
             <td>Invoice #</td>
@@ -193,16 +194,22 @@
         <tr>
             <td>Status</td>
             <td>
-                <span class="{{ $invoice->status == 'paid' ? 'status-badge-paid' : 'status-badge-unpaid' }}">
-                    {{ ucfirst($invoice->status) }}
+                @php
+                    $statusColors = [
+                        'paid'    => 'status-badge-paid',
+                        'unpaid'  => 'status-badge-unpaid',
+                        'partial' => 'status-badge-partial',
+                    ];
+                    $badgeClass = $statusColors[$billing->status] ?? 'status-badge-unpaid';
+                @endphp
+                <span class="{{ $badgeClass }}">
+                    {{ ucfirst($billing->status) }}
                 </span>
             </td>
         </tr>
     </table>
 
-    {{-- ============================================================ --}}
-    {{-- LINE ITEMS                                                   --}}
-    {{-- ============================================================ --}}
+    {{-- LINE ITEMS --}}
     <table class="items-table">
         <thead>
             <tr>
@@ -231,9 +238,7 @@
         </tbody>
     </table>
 
-    {{-- ============================================================ --}}
-    {{-- TOTALS (no tax)                                              --}}
-    {{-- ============================================================ --}}
+    {{-- TOTALS --}}
     @php
         $subtotal = $invoice->amount;
         $total = $subtotal;
@@ -251,9 +256,7 @@
         </tr>
     </table>
 
-    {{-- ============================================================ --}}
-    {{-- PAYMENT DETAILS (from recharge)                              --}}
-    {{-- ============================================================ --}}
+    {{-- PAYMENT DETAILS --}}
     @if($recharge && ($recharge->payment_method || $recharge->transaction_id))
     <div class="payment-details">
         <strong>Payment Details:</strong>
@@ -266,9 +269,7 @@
     </div>
     @endif
 
-    {{-- ============================================================ --}}
-    {{-- TERMS & CONDITIONS                                           --}}
-    {{-- ============================================================ --}}
+    {{-- TERMS --}}
     <div class="terms">
         <p><strong>Terms &amp; Conditions</strong></p>
         <p>Payment is due within 15 days</p>

@@ -134,7 +134,7 @@
                                         @endforeach
 
                                         {{-- View / Edit / Delete (also small) --}}
-                                        <a href="{{ route('billing.invoice', $billing) }}" class="btn btn-sm btn-primary" title="View">
+                                        <a href="{{ route('billing.invoice', $billing) }}" class="btn btn-sm btn-primary" title="View" target="_blank">
                                             <i class="bi bi-eye"></i> View
                                         </a>
                                         <a href="{{ route('billing.edit', $billing) }}" class="btn btn-sm btn-warning" title="Edit">

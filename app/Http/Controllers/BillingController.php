@@ -172,6 +172,7 @@ class BillingController extends Controller
         // 2. If no branch exists, use fallback hardcoded values
         if (!$branch) {
             $branch = (object) [
+                'company_name'   => 'SmartLink Network Pvt. Ltd',
                 'address'        => 'Gokarneshwor -09',
                 'contact_number' => '+977-9801973212, +977-9801973203',
             ];
@@ -179,7 +180,7 @@ class BillingController extends Controller
 
         // 3. Build settings – company name from .env, address/phone from branch
         $settings = [
-            'company_name'    => env('APP_NAME', 'Your Company'), // from .env
+            'company_name'    => env('APP_NAME', 'SmartLink Network Pvt. Ltd'), // from .env
             'company_address' => $branch->address ?? '',
             'company_phone'   => $branch->contact_number ?? '',
         ];
