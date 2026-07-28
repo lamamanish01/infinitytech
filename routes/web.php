@@ -91,6 +91,8 @@ Route::middleware('auth')->group(function () {
     Route::get('/customer/{username}/ppp-traffic', [CustomerController::class, 'getPppTraffic']);
     Route::get('/customer/{customer}/daily-traffic', [CustomerController::class, 'getDailyTraffic'])
         ->name('customer.daily-traffic');
+    Route::post('/customer/{customer}/enable', [CustomerController::class, 'enable'])->name('customer.enable');
+    Route::post('/customer/{customer}/disable', [CustomerController::class, 'disable'])->name('customer.disable');
 
     Route::prefix('tr069')->middleware('auth')->group(function () {
         Route::post(

@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Models\GracePeriod;
 use App\Models\InternetPlan;
+use App\Models\Onu;
 use App\Models\RadCheck;
 use App\Models\RadPostAuth;
 use App\Models\RadReply;
@@ -112,6 +113,10 @@ class Customer extends Model
     {
         $now = now();
 
+        if (in_array($this->status, ['suspended', 'discontinued'])) {
+            return $this->status;
+        }
+
         if (is_null($this->expire_date)) {
             return 'active';
         }
@@ -215,6 +220,11 @@ class Customer extends Model
 
     public function getStatusAttribute($value)
     {
+
+        if (in_array($value, ['suspended', 'discontinued'])) {
+            return $value;
+        }
+
         if (!$this->expire_date) {
             return 'unknown';
         }
@@ -288,5 +298,10 @@ class Customer extends Model
     {
         return $this->hasMany(Tr069Device::class, 'ppp_username', 'username');
     }
+
+    // public function onu()
+    // {
+    //     return $this->hasOne(Onu::class);
+    // }
 }
 

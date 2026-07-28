@@ -60,7 +60,7 @@ class Ticket extends Model
                 WHEN 'medium' THEN 3
                 WHEN 'low'    THEN 4
                 ELSE 5
-            END DESC
+            END ASC
         ");
     }
 }

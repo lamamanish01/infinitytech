@@ -513,4 +513,39 @@ class CustomerController extends Controller
             'upload'   => $dates->pluck('upload'),
         ]);
     }
+
+    public function enable(Customer $customer)
+    {
+        try {
+            // 1. Update status in the database
+            $customer->update(['status' => 'active']);
+
+            // 2. Sync with RADIUS – remove blocks, assign plan group, etc.
+            app(RadiusService::class)->enableCustomer($customer);
+
+            return back()->with('success', 'Customer enabled successfully.');
+        } catch (\Exception $e) {
+            Log::error('Enable failed: ' . $e->getMessage());
+            return back()->with('error', 'Failed to enable customer.');
+        }
+    }
+
+    /**
+     * Disable a customer (set status to 'suspended' and sync with RADIUS).
+     */
+    public function disable(Customer $customer)
+    {
+        try {
+            // 1. Update status in the database
+            $customer->update(['status' => 'suspended']);
+
+            // 2. Sync with RADIUS – add expiration block, move to suspended group, close sessions
+            app(RadiusService::class)->suspendCustomer($customer);
+
+            return back()->with('success', 'Customer disabled successfully.');
+        } catch (\Exception $e) {
+            Log::error('Disable failed: ' . $e->getMessage());
+            return back()->with('error', 'Failed to disable customer.');
+        }
+    }
 }

@@ -163,7 +163,7 @@ class RadiusService
 
     //new
 
-        public function syncCustomer(Customer $customer): void
+    public function syncCustomer(Customer $customer): void
     {
         $status = $customer->calculateStatus();
 
@@ -181,9 +181,8 @@ class RadiusService
                     $this->ensureActiveForGrace($customer);
                     break;
                 case 'expired':
-                    $this->disableCustomer($customer);
-                    break;
                 case 'suspended':
+                case 'discontinued':
                     $this->disableCustomer($customer);
                     break;
             }
@@ -322,5 +321,52 @@ class RadiusService
             ]);
             return ['status' => false, 'message' => $e->getMessage()];
         }
+    }
+
+    public function suspendCustomer(Customer $customer): void
+    {
+        $customer->update(['status' => 'suspended']);
+
+        // // Remove any Expiration block
+        // RadCheck::where('username', $customer->username)
+        //     ->where('attribute', 'Expiration')
+        //     ->delete();
+
+        // Ensure password exists
+        RadCheck::updateOrCreate(
+            ['username' => $customer->username, 'attribute' => 'Cleartext-Password'],
+            ['op' => ':=', 'value' => $customer->password]
+        );
+
+        RadReply::where('username', $customer->username)
+            ->where('attribute', 'Framed-Pool')
+            ->delete();
+
+        // Move to suspended group (for grouping, no reject rule)
+        RadUserGroup::updateOrCreate(
+            ['username' => $customer->username],
+            ['groupname' => 'suspended', 'priority' => 10]
+        );
+
+        // Assign suspended pool and low bandwidth
+        RadReply::updateOrCreate(
+            ['username' => $customer->username, 'attribute' => 'Framed-Pool'],
+            ['op' => ':=', 'value' => 'suspended-pool']
+        );
+
+        RadReply::updateOrCreate(
+            ['username' => $customer->username, 'attribute' => 'Reply-Message'],
+            ['op' => ':=', 'value' => 'Your account is suspended. Please contact support.']
+        );
+
+        // Kick them off immediately
+        RadAcct::where('username', $customer->username)
+            ->whereNull('acctstoptime')
+            ->update([
+                'acctstoptime'       => now(),
+                'acctterminatecause' => 'Admin-Disconnect',
+            ]);
+
+        $this->disconnect($customer);
     }
 }

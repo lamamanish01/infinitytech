@@ -107,15 +107,73 @@
                     <div class="card mt-3 shadow-sm">
                         <div class="card-header bg-white"><strong>Quick Actions</strong></div>
                         <div class="card-body d-flex flex-wrap gap-2">
-                            @can('recharge customers')<a href="{{ route('recharges.create', $customer->id) }}" class="btn btn-warning btn-sm">Recharge</a>@endcan
-                            @can('change expiry customers')<a href="{{ route('customers.expiry-form', $customer->id) }}" class="btn btn-danger btn-sm">Change Expiry</a>@endcan
-                            @can('grace customers')<form action="{{ route('provide-grace', $customer->id) }}" method="POST">@csrf<button class="btn btn-info btn-sm">+3 Days Grace</button></form>@endcan
-                            @can('disconnect customers')<form action="{{ route('customer.disconnect', $customer->id) }}" method="POST">@csrf<button class="btn btn-dark btn-sm">Disconnect</button></form>@endcan
+
+                            {{-- Recharge --}}
+                            @can('recharge customers')
+                                <a href="{{ route('recharges.create', $customer->id) }}" class="btn btn-warning btn-sm">Recharge</a>
+                            @endcan
+
+                            {{-- Change Expiry --}}
+                            @can('change expiry customers')
+                                <a href="{{ route('customers.expiry-form', $customer->id) }}" class="btn btn-danger btn-sm">Change Expiry</a>
+                            @endcan
+
+                            {{-- Grace (3 days) --}}
+                            @can('grace customers')
+                                <form action="{{ route('provide-grace', $customer->id) }}" method="POST">
+                                    @csrf
+                                    <button class="btn btn-info btn-sm">+3 Days Grace</button>
+                                </form>
+                            @endcan
+
+                            {{-- Disconnect --}}
+                            @can('disconnect customers')
+                                <form action="{{ route('customer.disconnect', $customer->id) }}" method="POST">
+                                    @csrf
+                                    <button class="btn btn-dark btn-sm">Disconnect</button>
+                                </form>
+                            @endcan
+
+                            {{-- Bind / Unbind MAC --}}
                             @if($customer->mac_address)
-                                @can('unbind mac customers')<form action="{{ route('customer.unbind-mac', $customer->id) }}" method="POST">@csrf<button type="submit" class="btn btn-danger btn-sm">Unbind MAC</button></form>@endcan
+                                @can('unbind mac customers')
+                                    <form action="{{ route('customer.unbind-mac', $customer->id) }}" method="POST">
+                                        @csrf
+                                        <button type="submit" class="btn btn-danger btn-sm">Unbind MAC</button>
+                                    </form>
+                                @endcan
                             @else
-                                @can('bind mac customers')<form action="{{ route('customer.bind-mac', $customer->id) }}" method="POST">@csrf<button type="submit" class="btn btn-primary btn-sm">Bind MAC</button></form>@endcan
+                                @can('bind mac customers')
+                                    <form action="{{ route('customer.bind-mac', $customer->id) }}" method="POST">
+                                        @csrf
+                                        <button type="submit" class="btn btn-primary btn-sm">Bind MAC</button>
+                                    </form>
+                                @endcan
                             @endif
+
+                            {{-- ========== ENABLE / DISABLE TOGGLE ========== --}}
+                            @if($customer->status === 'active')
+                                @can('disable customers')
+                                    <form action="{{ route('customer.disable', $customer->id) }}" method="POST"
+                                        onsubmit="return confirm('Are you sure you want to disable this customer?')">
+                                        @csrf
+                                        <button type="submit" class="btn btn-secondary btn-sm">
+                                            <i class="bi bi-x-circle"></i> Disable
+                                        </button>
+                                    </form>
+                                @endcan
+                            @else
+                                @can('enable customers')
+                                    <form action="{{ route('customer.enable', $customer->id) }}" method="POST"
+                                        onsubmit="return confirm('Are you sure you want to enable this customer?')">
+                                        @csrf
+                                        <button type="submit" class="btn btn-success btn-sm">
+                                            <i class="bi bi-check-circle"></i> Enable
+                                        </button>
+                                    </form>
+                                @endcan
+                            @endif
+
                         </div>
                     </div>
                 </div>

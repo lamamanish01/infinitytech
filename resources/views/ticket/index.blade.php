@@ -115,8 +115,11 @@
                                         {{-- PRIORITY --}}
                                         <td>
 
-                                            @if($ticket->priority == 'high')
+                                            @if($ticket->priority == 'urgent')
                                                 <span class="badge badge-danger">High</span>
+
+                                            @elseif($ticket->priority == 'high')
+                                                <span class="badge badge-warning">Medium</span>
 
                                             @elseif($ticket->priority == 'medium')
                                                 <span class="badge badge-warning">Medium</span>
