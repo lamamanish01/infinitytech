@@ -13,156 +13,6 @@ use Illuminate\Support\Facades\Log;
 
 class RadiusService
 {
-    /**
-     * Create or update Radius user.
-     */
-    // public static function syncCustomer($customer)
-    // {
-    //     $plan = $customer->internetPlan;
-
-    //     if (!$plan) {
-    //         return;
-    //     }
-
-    //     // Remove Reject flag if customer is active again
-    //     DB::table('radcheck')
-    //         ->where('username', $customer->username)
-    //         ->where('attribute', 'Auth-Type')
-    //         ->where('value', 'Reject')
-    //         ->delete();
-
-    //     DB::table('radcheck')->updateOrInsert(
-    //         [
-    //             'username'  => $customer->username,
-    //             'attribute' => 'Cleartext-Password',
-    //         ],
-    //         [
-    //             'op'    => ':=',
-    //             'value' => $customer->password,
-    //         ]
-    //     );
-
-    //     DB::table('radreply')->updateOrInsert(
-    //         [
-    //             'username'  => $customer->username,
-    //             'attribute' => 'Mikrotik-Rate-Limit',
-    //         ],
-    //         [
-    //             'op'    => ':=',
-    //             'value' => $plan->rate_limit,
-    //         ]
-    //     );
-
-    //     DB::table('radreply')->updateOrInsert(
-    //         [
-    //             'username'  => $customer->username,
-    //             'attribute' => 'Framed-Pool',
-    //         ],
-    //         [
-    //             'op'    => ':=',
-    //             'value' => 'PPPoE-Pool',
-    //         ]
-    //     );
-
-    //     if (!empty($customer->mac_address)) {
-
-    //         DB::table('radreply')->updateOrInsert(
-    //             [
-    //                 'username'  => $customer->username,
-    //                 'attribute' => 'Calling-Station-Id',
-    //             ],
-    //             [
-    //                 'op'    => '==',
-    //                 'value' => strtolower($customer->mac_address),
-    //             ]
-    //         );
-    //     }
-    // }
-
-    // /**
-    //  * Disable customer instead of deleting Radius records.
-    //  */
-    // public static function removeCustomer($customer)
-    // {
-    //     DB::table('radcheck')->updateOrInsert(
-    //         [
-    //             'username'  => $customer->username,
-    //             'attribute' => 'Auth-Type',
-    //         ],
-    //         [
-    //             'op'    => ':=',
-    //             'value' => 'Reject',
-    //         ]
-    //     );
-
-    //     DB::table('radacct')
-    //         ->where('username', $customer->username)
-    //         ->whereNull('acctstoptime')
-    //         ->update([
-    //             'acctstoptime'       => now(),
-    //             'acctterminatecause' => 'Expired',
-    //         ]);
-    // }
-
-    // /**
-    //  * Enable customer after renewal.
-    //  */
-    // public static function enableCustomer($customer)
-    // {
-    //     DB::table('radcheck')
-    //         ->where('username', $customer->username)
-    //         ->where('attribute', 'Auth-Type')
-    //         ->where('value', 'Reject')
-    //         ->delete();
-    // }
-
-    // /**
-    //  * Disconnect active session.
-    //  */
-    // public static function disconnect($customer)
-    // {
-    //     try {
-
-    //         $updated = DB::table('radacct')
-    //             ->where('username', $customer->username)
-    //             ->whereNull('acctstoptime')
-    //             ->update([
-    //                 'acctstoptime'       => now(),
-    //                 'acctterminatecause' => 'Admin-Disconnect',
-    //             ]);
-
-    //         if ($customer->mikrotik) {
-    //             app(MikrotikService::class)
-    //                 ->disconnectPPPoE(
-    //                     $customer->mikrotik,
-    //                     $customer->username
-    //                 );
-    //         }
-
-    //         if ($updated === 0) {
-    //             return [
-    //                 'status'  => false,
-    //                 'message' => 'User is not currently online',
-    //             ];
-    //         }
-
-    //         return [
-    //             'status'  => true,
-    //             'message' => 'User disconnected successfully',
-    //         ];
-
-    //     } catch (\Exception $e) {
-
-    //         return [
-    //             'status'  => false,
-    //             'message' => $e->getMessage(),
-    //         ];
-    //     }
-    // }
-
-
-    //new
-
     public function syncCustomer(Customer $customer): void
     {
         $status = $customer->calculateStatus();
@@ -206,6 +56,14 @@ class RadiusService
 
         RadCheck::where('username', $customer->username)
             ->whereIn('attribute', ['Expiration', 'Auth-Type'])
+            ->delete();
+
+        RadReply::where('username', $customer->username)
+            ->whereIn('attribute', [
+                'Framed-Pool',          // ← THIS REMOVES THE SUSPENDED POOL
+                'Mikrotik-Rate-Limit',  // ← low bandwidth override
+                'Reply-Message',        // ← custom message
+            ])
             ->delete();
 
         RadCheck::where('username', $customer->username)
@@ -296,28 +154,38 @@ class RadiusService
     }
 
     /**
-     * Disconnect from MikroTik and close radacct.
+     * Disconnect a customer – close RADIUS sessions and disconnect from MikroTik.
      */
     public function disconnect(Customer $customer): array
     {
         try {
+            // 1️⃣ Close any active RADIUS accounting session
             RadAcct::where('username', $customer->username)
                 ->whereNull('acctstoptime')
                 ->update([
-                    'acctstoptime' => now(),
+                    'acctstoptime'       => now(),
                     'acctterminatecause' => 'Admin-Disconnect',
                 ]);
 
-            if ($customer->mikrotik) {
-                app(MikrotikService::class)
-                    ->disconnectPPPoE($customer->mikrotik, $customer->username);
+            // 2️⃣ Disconnect from MikroTik using the username (not mikrotik object)
+            if ($customer->username) {
+                $mk = app(MikrotikService::class);
+                $result = $mk->disconnectPPPoE($customer->username);
+
+                // If the result indicates a failure, we still log it but the RADIUS session is closed.
+                if (!empty($result['status']) && $result['status'] === false) {
+                    Log::warning('MikroTik disconnect failed', [
+                        'username' => $customer->username,
+                        'message'  => $result['message'] ?? 'Unknown error',
+                    ]);
+                }
             }
 
             return ['status' => true, 'message' => 'Disconnect attempted'];
         } catch (\Exception $e) {
             Log::error('Disconnect failed', [
                 'username' => $customer->username,
-                'error' => $e->getMessage(),
+                'error'    => $e->getMessage(),
             ]);
             return ['status' => false, 'message' => $e->getMessage()];
         }
@@ -356,7 +224,7 @@ class RadiusService
 
         RadReply::updateOrCreate(
             ['username' => $customer->username, 'attribute' => 'Reply-Message'],
-            ['op' => ':=', 'value' => 'Your account is suspended. Please contact support.']
+            ['op' => ':=', 'value' => 'Your account is suspended']
         );
 
         // Kick them off immediately
