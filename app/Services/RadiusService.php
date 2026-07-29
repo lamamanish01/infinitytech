@@ -37,7 +37,6 @@ class RadiusService
                     break;
             }
 
-            // Persist the calculated status
             if ($customer->status !== $status) {
                 $customer->update(['status' => $status]);
             }
@@ -60,9 +59,9 @@ class RadiusService
 
         RadReply::where('username', $customer->username)
             ->whereIn('attribute', [
-                'Framed-Pool',          // ← THIS REMOVES THE SUSPENDED POOL
-                'Mikrotik-Rate-Limit',  // ← low bandwidth override
-                'Reply-Message',        // ← custom message
+                'Framed-Pool',
+                'Mikrotik-Rate-Limit',
+                'Reply-Message',
             ])
             ->delete();
 
@@ -195,28 +194,15 @@ class RadiusService
     {
         $customer->update(['status' => 'suspended']);
 
-        // // Remove any Expiration block
-        // RadCheck::where('username', $customer->username)
-        //     ->where('attribute', 'Expiration')
-        //     ->delete();
-
-        // Ensure password exists
-        RadCheck::updateOrCreate(
-            ['username' => $customer->username, 'attribute' => 'Cleartext-Password'],
-            ['op' => ':=', 'value' => $customer->password]
-        );
-
         RadReply::where('username', $customer->username)
             ->where('attribute', 'Framed-Pool')
             ->delete();
 
-        // Move to suspended group (for grouping, no reject rule)
         RadUserGroup::updateOrCreate(
             ['username' => $customer->username],
             ['groupname' => 'suspended', 'priority' => 10]
         );
 
-        // Assign suspended pool and low bandwidth
         RadReply::updateOrCreate(
             ['username' => $customer->username, 'attribute' => 'Framed-Pool'],
             ['op' => ':=', 'value' => 'suspended-pool']
@@ -227,7 +213,6 @@ class RadiusService
             ['op' => ':=', 'value' => 'Your account is suspended']
         );
 
-        // Kick them off immediately
         RadAcct::where('username', $customer->username)
             ->whereNull('acctstoptime')
             ->update([

@@ -211,7 +211,7 @@
                         <div class="alert alert-secondary">No active session</div>
                     @endif
 
-                    {{-- ================= LIVE PPPoE TRAFFIC CHART ================= --}}
+                    {{-- LIVE TRAFFIC CHART --}}
                     <div class="card mt-3 shadow-sm">
                         <div class="card-header bg-white d-flex justify-content-between align-items-center">
                             <strong>📊 Live PPP User Traffic</strong>
@@ -228,7 +228,7 @@
                         </div>
                     </div>
 
-                    {{-- ================= DAILY TRAFFIC VOLUME (STACKED BAR) ================= --}}
+                    {{-- DAILY TRAFFIC CHART --}}
                     <div class="card mt-3 shadow-sm">
                         <div class="card-header bg-white">
                             <strong>📊 Daily Traffic Volume (Last 30 Days)</strong>
@@ -464,10 +464,10 @@
 {{-- ================= CHART SCRIPTS ================= --}}
 <script>
     document.addEventListener('DOMContentLoaded', function() {
+        let chartsInitialized = false;
+        let trafficInterval = null;
 
-        // -------------------------------------------------------------
-        // Helper: Format speed with adaptive units
-        // -------------------------------------------------------------
+        // Helper: format speed
         function formatSpeed(mbps) {
             if (mbps >= 1000) {
                 return (mbps / 1000).toFixed(2) + ' Gbps';
@@ -481,195 +481,205 @@
         }
 
         // -------------------------------------------------------------
-        // 1. LIVE TRAFFIC CHART
+        // 1. LIVE TRAFFIC CHART – initialization function
         // -------------------------------------------------------------
-        if (typeof Chart === 'undefined') {
-            console.error('Chart.js not loaded');
-            document.getElementById('traffic-update-time').textContent = '⚠️ Chart library missing';
-            return;
-        }
+        function initLiveTrafficChart() {
+            if (typeof Chart === 'undefined') {
+                console.error('Chart.js not loaded');
+                document.getElementById('traffic-update-time').textContent = '⚠️ Chart library missing';
+                return;
+            }
 
-        const canvas = document.getElementById('trafficChart');
-        if (!canvas) {
-            console.error('Canvas not found');
-            return;
-        }
+            const canvas = document.getElementById('trafficChart');
+            if (!canvas) {
+                console.error('Canvas not found');
+                return;
+            }
 
-        const ctx = canvas.getContext('2d');
-        let chart = new Chart(ctx, {
-            type: 'line',
-            data: {
-                labels: [],
-                datasets: [
-                    {
-                        label: 'Upload (TX)',
-                        borderColor: '#0d6efd',
-                        backgroundColor: 'rgba(13, 110, 253, 0.1)',
-                        data: [],
-                        fill: true,
-                        tension: 0.3,
-                        borderWidth: 3,
-                        pointRadius: 1,
-                    },
-                    {
-                        label: 'Download (RX)',
-                        borderColor: '#20c997',
-                        backgroundColor: 'rgba(32, 201, 151, 0.1)',
-                        data: [],
-                        fill: true,
-                        tension: 0.3,
-                        borderWidth: 3,
-                        pointRadius: 1,
-                    }
-                ]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                animation: { duration: 300 },
-                plugins: {
-                    legend: { position: 'top' },
-                    tooltip: {
-                        callbacks: {
-                            label: function(context) {
-                                return context.dataset.label + ': ' + context.parsed.y.toFixed(2) + ' Mbps';
+            const ctx = canvas.getContext('2d');
+            const chart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: [],
+                    datasets: [
+                        {
+                            label: 'Upload (TX)',
+                            borderColor: '#0d6efd',
+                            backgroundColor: 'rgba(13, 110, 253, 0.1)',
+                            data: [],
+                            fill: true,
+                            tension: 0.3,
+                            borderWidth: 3,
+                            pointRadius: 1,
+                        },
+                        {
+                            label: 'Download (RX)',
+                            borderColor: '#20c997',
+                            backgroundColor: 'rgba(32, 201, 151, 0.1)',
+                            data: [],
+                            fill: true,
+                            tension: 0.3,
+                            borderWidth: 3,
+                            pointRadius: 1,
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    animation: { duration: 300 },
+                    plugins: {
+                        legend: { position: 'top' },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return context.dataset.label + ': ' + context.parsed.y.toFixed(2) + ' Mbps';
+                                }
                             }
                         }
-                    }
-                },
-                scales: {
-                    x: {
-                        type: 'category',
-                        grid: { display: false },
-                        ticks: { maxTicksLimit: 15 }
                     },
-                    y: {
-                        beginAtZero: true,
-                        title: { display: true, text: 'Traffic (Mbps)' },
-                        ticks: {
-                            callback: function(value) {
-                                if (value >= 1000) return (value / 1000).toFixed(1) + ' Gbps';
-                                if (value >= 1) return value.toFixed(1) + ' Mbps';
-                                if (value >= 0.001) return (value * 1000).toFixed(0) + ' Kbps';
-                                return (value * 1000000).toFixed(0) + ' bps';
+                    scales: {
+                        x: {
+                            type: 'category',
+                            grid: { display: false },
+                            ticks: { maxTicksLimit: 15 }
+                        },
+                        y: {
+                            beginAtZero: true,
+                            title: { display: true, text: 'Traffic (Mbps)' },
+                            ticks: {
+                                callback: function(value) {
+                                    if (value >= 1000) return (value / 1000).toFixed(1) + ' Gbps';
+                                    if (value >= 1) return value.toFixed(1) + ' Mbps';
+                                    if (value >= 0.001) return (value * 1000).toFixed(0) + ' Kbps';
+                                    return (value * 1000000).toFixed(0) + ' bps';
+                                }
                             }
                         }
                     }
                 }
-            }
-        });
-
-        const username = '{{ $customer->username }}';
-        const MAX_POINTS = 60;
-        let failCount = 0;
-
-        function addData(timeLabel, rx, tx, source = 'API') {
-            rx = (typeof rx === 'number' && !isNaN(rx)) ? rx : 0;
-            tx = (typeof tx === 'number' && !isNaN(tx)) ? tx : 0;
-
-            chart.data.labels.push(timeLabel);
-            chart.data.datasets[0].data.push(rx);
-            chart.data.datasets[1].data.push(tx);
-
-            if (chart.data.labels.length > MAX_POINTS) {
-                chart.data.labels.shift();
-                chart.data.datasets[0].data.shift();
-                chart.data.datasets[1].data.shift();
-            }
-            chart.update();
-            console.log(`📊 ${source}: ${timeLabel} RX=${rx.toFixed(3)} TX=${tx.toFixed(3)}`);
-        }
-
-        function fetchTraffic() {
-            const url = `/customer/${username}/ppp-traffic`;
-            fetch(url)
-                .then(response => {
-                    if (!response.ok) throw new Error(`HTTP ${response.status}`);
-                    return response.json();
-                })
-                .then(data => {
-                    if (!data.success) throw new Error('Invalid response');
-                    let rxMbps = (data.rx_bps || 0) / 1_000_000;
-                    let txMbps = (data.tx_bps || 0) / 1_000_000;
-                    const now = new Date().toLocaleTimeString();
-
-                    addData(now, rxMbps, txMbps, 'API');
-
-                    // Update speed indicators – fixed colours
-                    const downloadEl = document.getElementById('traffic-download');
-                    const uploadEl = document.getElementById('traffic-upload');
-                    const updateTimeEl = document.getElementById('traffic-update-time');
-
-                    if (downloadEl) {
-                        downloadEl.textContent = `⬇️ ${formatSpeed(rxMbps)}`;
-                        downloadEl.style.color = '#0d6efd';   // fixed blue
-                    }
-                    if (uploadEl) {
-                        uploadEl.textContent = `⬆️ ${formatSpeed(txMbps)}`;
-                        uploadEl.style.color = '#20c997';    // fixed green
-                    }
-                    if (updateTimeEl) updateTimeEl.textContent = `Last update: ${now}`;
-
-                    failCount = 0;
-                })
-                .catch(err => {
-                    console.error('❌ Fetch error:', err);
-                    failCount++;
-                    if (failCount > 3) {
-                        const now = new Date().toLocaleTimeString();
-                        const rx = Math.random() * 10;
-                        const tx = Math.random() * 8;
-                        addData(now, rx, tx, 'Mock (fallback)');
-                        const downloadEl = document.getElementById('traffic-download');
-                        const uploadEl = document.getElementById('traffic-upload');
-                        const updateTimeEl = document.getElementById('traffic-update-time');
-                        if (downloadEl) {
-                            downloadEl.textContent = `${formatSpeed(rx)} (mock)`;
-                            downloadEl.style.color = '#0d6efd';
-                        }
-                        if (uploadEl) {
-                            uploadEl.textContent = `${formatSpeed(tx)} (mock)`;
-                            uploadEl.style.color = '#20c997';
-                        }
-                        if (updateTimeEl) updateTimeEl.textContent = `⚠️ API unreachable – using mock`;
-                    } else {
-                        const now = new Date().toLocaleTimeString();
-                        addData(now, 0, 0, 'Fallback');
-                        const downloadEl = document.getElementById('traffic-download');
-                        const uploadEl = document.getElementById('traffic-upload');
-                        const updateTimeEl = document.getElementById('traffic-update-time');
-                        if (downloadEl) {
-                            downloadEl.textContent = `0 bps`;
-                            downloadEl.style.color = '#0d6efd';
-                        }
-                        if (uploadEl) {
-                            uploadEl.textContent = `0 bps`;
-                            uploadEl.style.color = '#20c997';
-                        }
-                        if (updateTimeEl) updateTimeEl.textContent = `⚠️ Error – using 0`;
-                    }
-                });
-        }
-
-        addData(new Date().toLocaleTimeString(), 0, 0, 'Seed');
-        setInterval(fetchTraffic, 1000);
-        fetchTraffic();
-
-        const sessionTab = document.querySelector('button[data-bs-target="#session"]');
-        if (sessionTab) {
-            sessionTab.addEventListener('shown.bs.tab', function() {
-                chart.resize();
-                chart.update();
             });
+
+            const username = '{{ $customer->username }}';
+            const MAX_POINTS = 60;
+            let failCount = 0;
+
+            function addData(timeLabel, rx, tx, source = 'API') {
+                rx = (typeof rx === 'number' && !isNaN(rx)) ? rx : 0;
+                tx = (typeof tx === 'number' && !isNaN(tx)) ? tx : 0;
+
+                chart.data.labels.push(timeLabel);
+                chart.data.datasets[0].data.push(rx);
+                chart.data.datasets[1].data.push(tx);
+
+                if (chart.data.labels.length > MAX_POINTS) {
+                    chart.data.labels.shift();
+                    chart.data.datasets[0].data.shift();
+                    chart.data.datasets[1].data.shift();
+                }
+                chart.update();
+                console.log(`📊 ${source}: ${timeLabel} RX=${rx.toFixed(3)} TX=${tx.toFixed(3)}`);
+            }
+
+            function fetchTraffic() {
+                const url = `/customer/${username}/ppp-traffic`;
+                fetch(url)
+                    .then(response => {
+                        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+                        return response.json();
+                    })
+                    .then(data => {
+                        if (!data.success) throw new Error('Invalid response');
+                        let rxMbps = (data.rx_bps || 0) / 1_000_000;
+                        let txMbps = (data.tx_bps || 0) / 1_000_000;
+                        const now = new Date().toLocaleTimeString();
+
+                        addData(now, rxMbps, txMbps, 'API');
+
+                        const downloadEl = document.getElementById('traffic-download');
+                        const uploadEl = document.getElementById('traffic-upload');
+                        const updateTimeEl = document.getElementById('traffic-update-time');
+
+                        if (downloadEl) {
+                            downloadEl.textContent = `⬇️ ${formatSpeed(rxMbps)}`;
+                            downloadEl.style.color = '#0d6efd';
+                        }
+                        if (uploadEl) {
+                            uploadEl.textContent = `⬆️ ${formatSpeed(txMbps)}`;
+                            uploadEl.style.color = '#20c997';
+                        }
+                        if (updateTimeEl) updateTimeEl.textContent = `Last update: ${now}`;
+
+                        failCount = 0;
+                    })
+                    .catch(err => {
+                        console.error('❌ Fetch error:', err);
+                        failCount++;
+                        if (failCount > 3) {
+                            const now = new Date().toLocaleTimeString();
+                            const rx = Math.random() * 10;
+                            const tx = Math.random() * 8;
+                            addData(now, rx, tx, 'Mock (fallback)');
+                            const downloadEl = document.getElementById('traffic-download');
+                            const uploadEl = document.getElementById('traffic-upload');
+                            const updateTimeEl = document.getElementById('traffic-update-time');
+                            if (downloadEl) {
+                                downloadEl.textContent = `${formatSpeed(rx)} (mock)`;
+                                downloadEl.style.color = '#0d6efd';
+                            }
+                            if (uploadEl) {
+                                uploadEl.textContent = `${formatSpeed(tx)} (mock)`;
+                                uploadEl.style.color = '#20c997';
+                            }
+                            if (updateTimeEl) updateTimeEl.textContent = `⚠️ API unreachable – using mock`;
+                        } else {
+                            const now = new Date().toLocaleTimeString();
+                            addData(now, 0, 0, 'Fallback');
+                            const downloadEl = document.getElementById('traffic-download');
+                            const uploadEl = document.getElementById('traffic-upload');
+                            const updateTimeEl = document.getElementById('traffic-update-time');
+                            if (downloadEl) {
+                                downloadEl.textContent = `0 bps`;
+                                downloadEl.style.color = '#0d6efd';
+                            }
+                            if (uploadEl) {
+                                uploadEl.textContent = `0 bps`;
+                                uploadEl.style.color = '#20c997';
+                            }
+                            if (updateTimeEl) updateTimeEl.textContent = `⚠️ Error – using 0`;
+                        }
+                    });
+            }
+
+            // Seed with zero point
+            addData(new Date().toLocaleTimeString(), 0, 0, 'Seed');
+            // Start fetching
+            fetchTraffic();
+            // Clear any previous interval before setting new one
+            if (trafficInterval) clearInterval(trafficInterval);
+            trafficInterval = setInterval(fetchTraffic, 1000);
+
+            // Resize on tab show
+            const sessionTab = document.querySelector('button[data-bs-target="#session"]');
+            if (sessionTab) {
+                sessionTab.addEventListener('shown.bs.tab', function() {
+                    chart.resize();
+                    chart.update();
+                });
+            }
+            setTimeout(() => { chart.resize(); chart.update(); }, 300);
         }
-        setTimeout(() => { chart.resize(); chart.update(); }, 300);
-
 
         // -------------------------------------------------------------
-        // 2. DAILY TRAFFIC CHART (Stacked Bar)
+        // 2. DAILY TRAFFIC CHART – initialization function
         // -------------------------------------------------------------
-        const dailyCanvas = document.getElementById('dailyTrafficChart');
-        if (dailyCanvas) {
+        function initDailyTrafficChart() {
+            const dailyCanvas = document.getElementById('dailyTrafficChart');
+            if (!dailyCanvas) {
+                console.error('Daily traffic canvas not found');
+                return;
+            }
+
             const url = `/customer/{{ $customer->id }}/daily-traffic`;
             fetch(url)
                 .then(response => {
@@ -738,6 +748,41 @@
                     dailyCanvas.parentElement.innerHTML = `
                         <p class="text-danger text-center my-4">⚠️ Could not load daily data</p>`;
                 });
+        }
+
+        // -------------------------------------------------------------
+        // 3. Lazy loading logic – init only when session tab is shown
+        // -------------------------------------------------------------
+        function initCharts() {
+            if (chartsInitialized) return;
+            chartsInitialized = true;
+
+            // Check if Chart.js is loaded
+            if (typeof Chart === 'undefined') {
+                console.error('Chart.js not loaded – charts will not render');
+                return;
+            }
+
+            // Initialize both charts
+            initLiveTrafficChart();
+            initDailyTrafficChart();
+        }
+
+        // Check if session tab is already active on page load
+        const sessionPane = document.getElementById('session');
+        const isActive = sessionPane && sessionPane.classList.contains('active') && sessionPane.classList.contains('show');
+
+        if (isActive) {
+            // Tab is visible → load charts immediately
+            initCharts();
+        }
+
+        // Listen to tab show event
+        const tabTrigger = document.querySelector('[data-bs-target="#session"]');
+        if (tabTrigger) {
+            tabTrigger.addEventListener('shown.bs.tab', function (e) {
+                initCharts();
+            });
         }
     });
 </script>

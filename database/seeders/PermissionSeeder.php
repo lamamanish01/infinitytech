@@ -43,6 +43,8 @@ class PermissionSeeder extends Seeder
             'change expiry customers',
             'grace customers',
             'export customers',
+            'disable customers',
+            'enable customers',
 
             // ================= INTERNET PLAN =================
             'view internet plans',

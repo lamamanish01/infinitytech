@@ -24,7 +24,7 @@
 
         <div class="card">
             <div class="card-body table-responsive p-0">
-                <table class="table table-hover table-striped">
+                <table class="table table-sm table-hover table-striped text-nowrap">
                     <thead>
                         <tr>
                             <th>ID</th>
