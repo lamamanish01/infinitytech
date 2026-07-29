@@ -299,10 +299,6 @@ class CustomerController extends Controller
             return back()->with('error', 'This customer has already been granted a grace period. Only one is allowed.');
         }
 
-        if ($activeGrace) {
-            return back()->with('error', 'An active grace period already exists for this customer.');
-        }
-
         $start = now();
         $end = $start->copy()->addDays(3);
 
@@ -328,7 +324,6 @@ class CustomerController extends Controller
         );
 
         app(RadiusService::class)->syncCustomer($customer->fresh());
-        //RadiusService::syncCustomer($customer->fresh());
 
         return back()->with('success', 'Grace period activated successfully.');
     }
@@ -520,12 +515,19 @@ class CustomerController extends Controller
             // 1. Update status in the database
             $customer->update(['status' => 'active']);
 
+            Activity::add(
+                'Customer Enabled',
+                $customer->name . ' has been activated.',
+                'fas fa-check-circle text-success',
+                $customer->username,
+                route('customers.show', $customer->id)
+            );
+
             // 2. Sync with RADIUS – remove blocks, assign plan group, etc.
             app(RadiusService::class)->enableCustomer($customer);
 
             return back()->with('success', 'Customer enabled successfully.');
         } catch (\Exception $e) {
-            Log::error('Enable failed: ' . $e->getMessage());
             return back()->with('error', 'Failed to enable customer.');
         }
     }
@@ -539,12 +541,19 @@ class CustomerController extends Controller
             // 1. Update status in the database
             $customer->update(['status' => 'suspended']);
 
+            Activity::add(
+                'Customer Disabled',
+                $customer->name . ' has been suspended.',
+                'fas fa-ban text-danger',
+                $customer->username,
+                route('customers.show', $customer->id)
+            );
+
             // 2. Sync with RADIUS – add expiration block, move to suspended group, close sessions
             app(RadiusService::class)->suspendCustomer($customer);
 
             return back()->with('success', 'Customer disabled successfully.');
         } catch (\Exception $e) {
-            Log::error('Disable failed: ' . $e->getMessage());
             return back()->with('error', 'Failed to disable customer.');
         }
     }
