@@ -95,18 +95,7 @@ class RechargeController extends Controller
      */
     public function update(Request $request, Recharge $recharge)
     {
-        // $request->validate([
-        //     'expire_date' => 'required|date',
-        // ]);
-
-        // $recharge->expire_date = $request->expire_date;
-
-        // $customer = Customer::findOrFail($recharge->customer_id);
-        // $customer->update([
-        //     'expire_date' => Carbon::parse($request->expire_date),
-        // ]);
-
-        // return redirect()->route('customers.show', $customer->id)->with('success', 'Expiry Date changed successfully.');
+        //
     }
 
     /**

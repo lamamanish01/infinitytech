@@ -279,7 +279,6 @@ class CustomerController extends Controller
         );
 
         app(RadiusService::class)->syncCustomer($customer->fresh());
-        // RadiusService::syncCustomer($customer->fresh());
 
         return redirect()
             ->route('customers.show', $customer->id)
@@ -315,6 +314,8 @@ class CustomerController extends Controller
             ]);
         });
 
+        app(RadiusService::class)->syncCustomer($customer->fresh());
+
         Activity::add(
             'Customer in Grace Period',
             $customer->name . ' is now in grace period until ' . $end->toDateString(),
@@ -322,8 +323,6 @@ class CustomerController extends Controller
             $customer->username,
             route('customers.show', $customer->id)
         );
-
-        app(RadiusService::class)->syncCustomer($customer->fresh());
 
         return back()->with('success', 'Grace period activated successfully.');
     }
@@ -512,7 +511,6 @@ class CustomerController extends Controller
     public function enable(Customer $customer)
     {
         try {
-            // 1. Update status in the database
             $customer->update(['status' => 'active']);
 
             Activity::add(
@@ -523,7 +521,6 @@ class CustomerController extends Controller
                 route('customers.show', $customer->id)
             );
 
-            // 2. Sync with RADIUS – remove blocks, assign plan group, etc.
             app(RadiusService::class)->enableCustomer($customer);
 
             return back()->with('success', 'Customer enabled successfully.');
@@ -538,7 +535,6 @@ class CustomerController extends Controller
     public function disable(Customer $customer)
     {
         try {
-            // 1. Update status in the database
             $customer->update(['status' => 'suspended']);
 
             Activity::add(
@@ -549,7 +545,6 @@ class CustomerController extends Controller
                 route('customers.show', $customer->id)
             );
 
-            // 2. Sync with RADIUS – add expiration block, move to suspended group, close sessions
             app(RadiusService::class)->suspendCustomer($customer);
 
             return back()->with('success', 'Customer disabled successfully.');
