@@ -13,8 +13,106 @@
     <!-- Theme style -->
     <link rel="stylesheet" href="{{ asset('css/adminlte.min.css') }}">
 
-    {{-- SweetAlert2 CDN --}}
+    {{-- SweetAlert2 CDN (latest v11) --}}
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    {{-- Custom styles for SweetAlert2 toasts --}}
+    <style>
+        /* Base toast styling */
+        .swal2-toast {
+            border-radius: 8px !important;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.12), 0 5px 12px rgba(0,0,0,0.08) !important;
+            padding: 12px 16px !important;
+            border-left: 5px solid #ccc;
+            font-family: 'Source Sans Pro', sans-serif;
+        }
+
+        /* Success toast border */
+        .swal2-toast.swal2-success {
+            border-left-color: #28a745;
+        }
+
+        /* Error toast border */
+        .swal2-toast.swal2-error {
+            border-left-color: #dc3545;
+        }
+
+        /* Warning toast border */
+        .swal2-toast.swal2-warning {
+            border-left-color: #ffc107;
+        }
+
+        /* Title and content inside toast */
+        .swal2-toast .swal2-title {
+            font-size: 0.95rem !important;
+            font-weight: 600;
+            margin: 0 !important;
+            padding: 0 !important;
+            color: #1a1a2e;
+        }
+
+        .swal2-toast .swal2-html-container {
+            font-size: 0.85rem !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            color: #4a4a6a;
+        }
+
+        /* Progress bar color matches the accent */
+        .swal2-timer-progress-bar {
+            background: rgba(0,0,0,0.08) !important;
+        }
+
+        /* Custom animation: slide in from right */
+        .swal2-show {
+            animation: swal2-slide-in 0.3s ease-out forwards !important;
+        }
+
+        .swal2-hide {
+            animation: swal2-slide-out 0.2s ease-in forwards !important;
+        }
+
+        @keyframes swal2-slide-in {
+            0% {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            100% {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        @keyframes swal2-slide-out {
+            0% {
+                transform: translateX(0);
+                opacity: 1;
+            }
+            100% {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+        }
+
+        /* Adjust icon inside toast */
+        .swal2-toast .swal2-icon {
+            width: 2em !important;
+            height: 2em !important;
+            margin: 0 10px 0 0 !important;
+        }
+        .swal2-toast .swal2-icon-content {
+            font-size: 1.4em !important;
+        }
+
+        /* Validation error list styling */
+        .swal2-toast .swal2-html-container ul {
+            margin: 0.25rem 0 0 0 !important;
+            padding-left: 1.2rem !important;
+        }
+        .swal2-toast .swal2-html-container li {
+            margin-bottom: 0.1rem;
+        }
+    </style>
 
     @yield('styles')
 </head>
@@ -173,7 +271,7 @@
         <div class="float-right d-none d-sm-inline">
             {{--  Anything you want  --}}
         </div>
-        <strong>Copyright &copy; 2026 <a href="#">InfintyTech Communication Pvt Ltd</a>.
+        <strong>Copyright &copy; {{ date('Y') }} <a href="#">InfinityTech Communication Pvt Ltd</a>.</strong>
     </footer>
 </div>
 <!-- ./wrapper -->
@@ -183,45 +281,60 @@
 <!-- AdminLTE App -->
 <script src="{{ asset('js/adminlte.min.js') }}" defer></script>
 
-{{-- SweetAlert2 initialisation for flash messages and validation errors --}}
+{{-- SweetAlert2 toasts with custom UI --}}
 <script>
     document.addEventListener('DOMContentLoaded', function () {
+
+        // Base config for all toasts
+        const toastConfig = {
+            toast: true,
+            position: 'top-end',
+            showConfirmButton: false,
+            timer: 4000,
+            timerProgressBar: true,
+            customClass: {
+                popup: 'swal2-toast',
+            },
+            showClass: {
+                popup: 'swal2-show',
+            },
+            hideClass: {
+                popup: 'swal2-hide',
+            },
+        };
 
         // ---- Success flash ----
         @if (session('success'))
             Swal.fire({
+                ...toastConfig,
                 icon: 'success',
-                title: 'Success!',
-                text: "{{ session('success') }}",
-                confirmButtonColor: '#28a745',
-                timer: 5000,
-                timerProgressBar: true,
+                title: "{{ session('success') }}",
             });
         @endif
 
         // ---- Error flash ----
         @if (session('error'))
             Swal.fire({
+                ...toastConfig,
                 icon: 'error',
-                title: 'Error!',
-                text: "{{ session('error') }}",
-                confirmButtonColor: '#dc3545',
+                title: "{{ session('error') }}",
             });
         @endif
 
-        // ---- Validation errors (multiple) ----
+        // ---- Validation errors ----
         @if ($errors->any())
-            let errorHtml = '<ul style="text-align: left;">';
+            let errorHtml = '<ul style="text-align: left; margin: 0; padding-left: 1.2rem;">';
             @foreach ($errors->all() as $error)
                 errorHtml += '<li>{{ $error }}</li>';
             @endforeach
             errorHtml += '</ul>';
 
             Swal.fire({
+                ...toastConfig,
                 icon: 'warning',
-                title: 'Please fix the following errors:',
+                title: 'Please fix the following:',
                 html: errorHtml,
-                confirmButtonColor: '#ffc107',
+                timer: 5000,
             });
         @endif
 
