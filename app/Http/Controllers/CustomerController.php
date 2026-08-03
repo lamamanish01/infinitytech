@@ -17,6 +17,7 @@ use App\Services\RadiusService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 use Maatwebsite\Excel\Facades\Excel;
 
 class CustomerController extends Controller
@@ -550,6 +551,53 @@ class CustomerController extends Controller
             return back()->with('success', 'Customer disabled successfully.');
         } catch (\Exception $e) {
             return back()->with('error', 'Failed to disable customer.');
+        }
+    }
+
+    public function search(Request $request)
+    {
+        $query = $request->input('q', '');
+        if (strlen($query) < 2) {
+            return response()->json(['data' => []]);
+        }
+
+        try {
+            // Get the table name and columns
+            $table = (new Customer)->getTable();
+            $columns = Schema::getColumnListing($table);
+
+            // Define the columns we want to search (name and username)
+            $searchable = ['name', 'username'];
+            $available = array_intersect($searchable, $columns);
+
+            if (empty($available)) {
+                throw new \Exception('No searchable columns (name, username) found in the table.');
+            }
+
+            // Build the search query
+            $customers = Customer::where(function ($q) use ($query, $available) {
+                foreach ($available as $col) {
+                    $q->orWhere($col, 'LIKE', "%{$query}%");
+                }
+            })->limit(10)->get();
+
+            // Map results
+            $mapped = $customers->map(function ($customer) {
+                return [
+                    'id'       => $customer->id,
+                    'name'     => $customer->name ?? 'Unknown',
+                    'username' => $customer->username ?? '',
+                    'url'      => route('customers.show', $customer->id) ?? '#',
+                ];
+            });
+
+            return response()->json(['data' => $mapped]);
+
+        } catch (\Exception $e) {
+            // Log the error (optional)
+            \Log::error('Customer search error: ' . $e->getMessage());
+            // Return a JSON error response
+            return response()->json(['error' => $e->getMessage()], 500);
         }
     }
 }

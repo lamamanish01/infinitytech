@@ -54,13 +54,19 @@
                                     <th>Roles</th>
                                     <th>Created</th>
                                     <th width="120">Action</th>
+
+                                    @if(auth()->user()->can('view users') || auth()->user()->can('edit users') || auth()->user()->can('delete users'))
+                                        <th class="text-end">Actions</th>
+                                    @endif
                                 </tr>
                             </thead>
 
                             <tbody>
 
                                 @forelse($users as $user)
-
+                                    @php
+                                        $userRoles = $user->getRoleNames();
+                                    @endphp
                                     <tr>
 
                                         <td>{{ $loop->iteration }}</td>

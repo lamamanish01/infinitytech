@@ -22,7 +22,10 @@ class UserController extends Controller
 
     public function index()
     {
-        $users = User::orderBy('name', 'asc')->paginate(5);
+        $users = User::whereDoesntHave('roles', function ($query) {
+            $query->where('name', 'Super Admin');
+        })->paginate(10);
+
         return view('users.index', compact('users'));
     }
 
