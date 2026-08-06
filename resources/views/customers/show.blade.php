@@ -13,7 +13,7 @@
             <div class="row align-items-center">
                 <div class="col-6 col-md-3 mb-3">
                     <h4 class="fw-bold">{{ $customer->name }}</h4>
-                    {{-- Clickable status badge – green/red on load, spin on click --}}
+                    {{-- Clickable status badge – green/red on load, yellow while checking, then revert on error --}}
                     <span id="status-badge"
                           class="badge status-refresh {{ $customer->is_online ? 'bg-success' : 'bg-danger' }}"
                           style="cursor: pointer;"
@@ -146,7 +146,7 @@
 document.addEventListener('DOMContentLoaded', function() {
 
     // -------------------------------------------------------------
-    // CLICKABLE STATUS BADGE – NO WARNING FLASH
+    // CLICKABLE STATUS BADGE – WARNING ON CHECK, REVERT ON ERROR
     // -------------------------------------------------------------
     const badge = document.getElementById('status-badge');
     if (badge) {
@@ -156,8 +156,9 @@ document.addEventListener('DOMContentLoaded', function() {
             const originalHtml = this.innerHTML;
             const originalClass = this.className;
 
-            // Show loading state
-            this.innerHTML = '<i class="fas fa-sync-alt fa-spin"></i> Checking...';
+            // Show warning while checking
+            this.innerHTML = '<i class="fas fa-exclamation-triangle"></i> Checking...';
+            this.className = 'badge bg-warning status-refresh';
             this.style.pointerEvents = 'none';
 
             fetch(`/customers/${customerId}/online-status`)
@@ -177,7 +178,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 })
                 .catch(err => {
                     console.error('Failed to refresh status:', err);
-                    // Revert to previous state – no warning flash
+                    // Revert to original state on error (no "Error" badge)
                     this.innerHTML = originalHtml;
                     this.className = originalClass;
                     this.style.pointerEvents = 'auto';
@@ -215,71 +216,76 @@ document.addEventListener('DOMContentLoaded', function() {
             console.warn('trafficChart canvas not found');
             return;
         }
-        const ctx = trafficCanvas.getContext('2d');
-        window.trafficChartInstance = new Chart(ctx, {
-            type: 'line',
-            data: {
-                labels: [],
-                datasets: [
-                    {
-                        label: 'Upload (TX)',
-                        borderColor: '#20c997',
-                        backgroundColor: 'rgba(32, 201, 151, 0.1)',
-                        data: [],
-                        fill: true,
-                        tension: 0.3,
-                        borderWidth: 3,
-                        pointRadius: 1,
-                    },
-                    {
-                        label: 'Download (RX)',
-                        borderColor: '#0d6efd',
-                        backgroundColor: 'rgba(13, 110, 253, 0.1)',
-                        data: [],
-                        fill: true,
-                        tension: 0.3,
-                        borderWidth: 3,
-                        pointRadius: 1,
-                    }
-                ]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                animation: { duration: 300 },
-                plugins: {
-                    legend: { position: 'top' },
-                    tooltip: {
-                        callbacks: {
-                            label: function(context) {
-                                return context.dataset.label + ': ' + context.parsed.y.toFixed(2) + ' Mbps';
+        try {
+            const ctx = trafficCanvas.getContext('2d');
+            window.trafficChartInstance = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: [],
+                    datasets: [
+                        {
+                            label: 'Upload (TX)',
+                            borderColor: '#20c997',
+                            backgroundColor: 'rgba(32, 201, 151, 0.1)',
+                            data: [],
+                            fill: true,
+                            tension: 0.3,
+                            borderWidth: 3,
+                            pointRadius: 1,
+                        },
+                        {
+                            label: 'Download (RX)',
+                            borderColor: '#0d6efd',
+                            backgroundColor: 'rgba(13, 110, 253, 0.1)',
+                            data: [],
+                            fill: true,
+                            tension: 0.3,
+                            borderWidth: 3,
+                            pointRadius: 1,
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    animation: { duration: 300 },
+                    plugins: {
+                        legend: { position: 'top' },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return context.dataset.label + ': ' + context.parsed.y.toFixed(2) + ' Mbps';
+                                }
                             }
                         }
-                    }
-                },
-                scales: {
-                    x: {
-                        type: 'category',
-                        grid: { display: false },
-                        ticks: { maxTicksLimit: 15 }
                     },
-                    y: {
-                        beginAtZero: true,
-                        title: { display: true, text: 'Traffic (Mbps)' },
-                        ticks: {
-                            callback: function(value) {
-                                if (value >= 1000) return (value / 1000).toFixed(1) + ' Gbps';
-                                if (value >= 1) return value.toFixed(1) + ' Mbps';
-                                if (value >= 0.001) return (value * 1000).toFixed(0) + ' Kbps';
-                                return (value * 1000000).toFixed(0) + ' bps';
+                    scales: {
+                        x: {
+                            type: 'category',
+                            grid: { display: false },
+                            ticks: { maxTicksLimit: 15 }
+                        },
+                        y: {
+                            beginAtZero: true,
+                            title: { display: true, text: 'Traffic (Mbps)' },
+                            ticks: {
+                                callback: function(value) {
+                                    if (value >= 1000) return (value / 1000).toFixed(1) + ' Gbps';
+                                    if (value >= 1) return value.toFixed(1) + ' Mbps';
+                                    if (value >= 0.001) return (value * 1000).toFixed(0) + ' Kbps';
+                                    return (value * 1000000).toFixed(0) + ' bps';
+                                }
                             }
                         }
                     }
                 }
-            }
-        });
+            });
+        } catch (err) {
+            console.error('Failed to create traffic chart:', err);
+            return;
+        }
 
-        // ----- Traffic Polling (NO MOCK DATA) -----
+        // ----- Traffic Polling -----
         const username = '{{ $customer->username }}';
         const MAX_POINTS = 60;
 
@@ -295,6 +301,7 @@ document.addEventListener('DOMContentLoaded', function() {
             tx = (typeof tx === 'number' && !isNaN(tx)) ? tx : 0;
 
             const chart = window.trafficChartInstance;
+            if (!chart) return;
             chart.data.labels.push(timeLabel);
             chart.data.datasets[0].data.push(rx);  // Upload
             chart.data.datasets[1].data.push(tx);  // Download
@@ -462,6 +469,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // ---- PAGINATION HANDLER ----
     function attachPaginationHandler(container, tabName) {
+        if (!container) return;
         const paginationLinks = container.querySelectorAll('.pagination a');
         if (!paginationLinks.length) return;
 
@@ -473,9 +481,16 @@ document.addEventListener('DOMContentLoaded', function() {
 
         function paginationClickHandler(e) {
             e.preventDefault();
-            const url = this.href;
+            // Extract page parameter from the link's href
+            const linkUrl = new URL(this.href);
+            const page = linkUrl.searchParams.get('page') || 1;
 
-            // Show spinner inside the container while loading new page
+            // Build AJAX URL for the tab content with page parameter
+            const ajaxUrl = "{{ route('customer.load-tab', ['id' => ':id', 'tab' => ':tab']) }}"
+                .replace(':id', customerId)
+                .replace(':tab', tabName) + '?page=' + page;
+
+            // Show spinner inside the container while loading
             container.innerHTML = `
                 <div class="d-flex flex-column justify-content-center align-items-center py-3" style="min-height: 100px;">
                     <i class="fas fa-spinner fa-spin fa-2x text-primary mb-2"></i>
@@ -483,7 +498,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 </div>
             `;
 
-            fetch(url)
+            fetch(ajaxUrl)
                 .then(response => {
                     if (!response.ok) throw new Error(`HTTP ${response.status}`);
                     return response.text();
@@ -492,11 +507,9 @@ document.addEventListener('DOMContentLoaded', function() {
                     container.innerHTML = html;
                     // Re‑attach pagination handler for the new links
                     attachPaginationHandler(container, tabName);
-                    // If this is the session tab and charts are present, re‑init charts
+                    // Re‑init charts if this is the session tab
                     if (tabName === 'session' && typeof window.initCharts === 'function') {
-                        // Only re‑init if the charts were destroyed – but we didn't destroy them.
-                        // The container only contains the table/pagination, not the whole tab.
-                        // So we can skip.
+                        window.initCharts();
                     }
                 })
                 .catch(err => {
@@ -513,7 +526,10 @@ document.addEventListener('DOMContentLoaded', function() {
 
     function loadTabContent(tabName, containerId, callback) {
         const container = document.getElementById(containerId);
-        if (!container) return;
+        if (!container) {
+            console.warn(`Container #${containerId} not found`);
+            return;
+        }
 
         // If already loaded, just call callback (if any) and exit
         if (loadedTabs[tabName]) {
