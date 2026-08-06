@@ -601,11 +601,11 @@
                         const updateTimeEl = document.getElementById('traffic-update-time');
 
                         if (downloadEl) {
-                            downloadEl.textContent = `⬇️ ${formatSpeed(rxMbps)}`;
+                            downloadEl.textContent = `⬆️ ${formatSpeed(rxMbps)}`;
                             downloadEl.style.color = '#20c997';
                         }
                         if (uploadEl) {
-                            uploadEl.textContent = `⬆️ ${formatSpeed(txMbps)}`;
+                            uploadEl.textContent = `⬇️ ${formatSpeed(txMbps)}`;
                             uploadEl.style.color = '#0d6efd';
                         }
                         if (updateTimeEl) updateTimeEl.textContent = `Last update: ${now}`;
