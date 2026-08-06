@@ -84,16 +84,9 @@ class RadiusService
      */
     public function disableCustomer(Customer $customer): void
     {
-        // Block with Expiration (past date)
         RadCheck::updateOrCreate(
             ['username' => $customer->username, 'attribute' => 'Expiration'],
             ['op' => ':=', 'value' => $customer->expire_date->format('d M Y H:i:s')]
-        );
-
-        // Move to suspended group
-        RadUserGroup::updateOrCreate(
-            ['username' => $customer->username],
-            ['groupname' => 'suspended', 'priority' => 10]
         );
 
         RadAcct::where('username', $customer->username)
@@ -221,5 +214,20 @@ class RadiusService
             ]);
 
         $this->disconnect($customer);
+    }
+
+    public function discontinueCustomer(Customer $customer)
+    {
+        $customer->update(['status' => 'discontinued']);
+
+        RadCheck::where('username', $customer->username)
+            ->delete();
+
+        RadReply::where('username', $customer->username)
+            ->delete();
+
+        RadReply::where('username', $customer->username)
+            ->where('attribute', 'Framed-Pool')
+            ->delete();
     }
 }

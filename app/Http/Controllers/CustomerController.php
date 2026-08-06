@@ -49,16 +49,25 @@ class CustomerController extends Controller
 
     public function index(Request $request)
     {
-        return view('customers.index', [
-            'customers' => Customer::with('internetPlan')
-                ->when($request->q, function ($query, $q) {
-                    $query->where(function ($sub) use ($q) {
-                        $sub->where('username', 'like', "%$q%")
-                            ->orWhere('contact_number', 'like', "%$q%");
-                    });
-                })
-                ->paginate(15)
-        ]);
+        $user = auth()->user();
+
+        $query = Customer::with('internetPlan')
+            ->where('status', '!=', 'discontinued');
+
+        if (!$user->hasRole('super-admin') && !$user->can('view all customers')) {
+            $query->where('branch_id', $user->branch_id);
+        }
+
+        if ($request->q) {
+            $query->where(function ($sub) use ($request) {
+                $sub->where('username', 'like', "%{$request->q}%")
+                    ->orWhere('contact_number', 'like', "%{$request->q}%");
+            });
+        }
+
+        $customers = $query->paginate(15);
+
+        return view('customers.index', compact('customers'));
     }
 
     /**
@@ -553,6 +562,75 @@ class CustomerController extends Controller
         } catch (\Exception $e) {
             return back()->with('error', 'Failed to disable customer.');
         }
+    }
+
+    public function continue(Customer $customer)
+    {
+        try {
+            $customer->update([
+                'status' => 'active',
+            ]);
+
+            Activity::add(
+                'Customer Reactivated',
+                "{$customer->name} has been reactivated (status: active).",
+                'fas fa-play text-success',
+                $customer->username,
+                route('customers.show', $customer->id)
+            );
+
+            app(RadiusService::class)->enableCustomer($customer);
+
+            return back()->with('success', 'Customer reactivated successfully.');
+        } catch (\Exception $e) {
+            return back()->with('error', 'Failed to reactivate customer.');
+        }
+    }
+
+    public function discontinue(Customer $customer)
+    {
+        try {
+            $customer->update(['status' => 'discontinued']);
+
+            Activity::add(
+                'Customer Discontinued',
+                "{$customer->name} has been permanently discontinued.",
+                'fas fa-ban text-danger',
+                $customer->username,
+                route('customers.show', $customer->id)
+            );
+
+            app(RadiusService::class)->discontinueCustomer($customer);
+
+            return back()->with('success', 'Customer discontinued permanently.');
+        } catch (\Exception $e) {
+            return back()->with('error', 'Failed to discontinue customer.');
+        }
+    }
+
+    public function discontinued(Request $request)
+    {
+        $user = auth()->user();
+
+        $query = Customer::with('internetPlan')
+            ->where('status', 'discontinued');
+
+        if (!$user->hasRole('super-admin') && !$user->can('view all customers')) {
+            $query->where('branch_id', $user->branch_id);
+        }
+
+        if ($request->filled('q')) {
+            $search = $request->q;
+            $query->where(function ($sub) use ($search) {
+                $sub->where('username', 'like', "%{$search}%")
+                    ->orWhere('name', 'like', "%{$search}%")
+                    ->orWhere('contact_number', 'like', "%{$search}%");
+            });
+        }
+
+        $customers = $query->orderBy('updated_at', 'desc')->paginate(15);
+
+        return view('customers.discontinued', compact('customers'));
     }
 
     public function search(Request $request)

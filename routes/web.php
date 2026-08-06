@@ -74,6 +74,7 @@ Route::middleware('auth')->group(function () {
     Route::post('/customers/import', [CustomerImportController::class, 'import'])->name('customers.import');
     Route::get('/customers/import/template', [CustomerImportController::class, 'downloadTemplate'])->name('customers.import.template');
     Route::get('/customers/export', [CustomerController::class, 'export'])->name('customers.export');
+    Route::get('/customers/discontinued', [CustomerController::class, 'discontinued'])->name('customers.discontinued');
     Route::resource('/customers', CustomerController::class);
     Route::get('/customers/{customer}/expiry', [CustomerController::class, 'expiryForm'])
         ->name('customers.expiry-form');
@@ -93,6 +94,8 @@ Route::middleware('auth')->group(function () {
         ->name('customer.daily-traffic');
     Route::post('/customer/{customer}/enable', [CustomerController::class, 'enable'])->name('customer.enable');
     Route::post('/customer/{customer}/disable', [CustomerController::class, 'disable'])->name('customer.disable');
+    Route::post('/customers/{customer}/continue', [CustomerController::class, 'continue'])->name('customer.continue');
+    Route::post('/customers/{customer}/discontinue', [CustomerController::class, 'discontinue'])->name('customer.discontinue');
     Route::get('/customer/search', [CustomerController::class, 'search'])
         ->name('customers.search');
     Route::get('/customers/{id}/tab/{tab}', [CustomerController::class, 'loadTab'])->name('customer.load-tab');
