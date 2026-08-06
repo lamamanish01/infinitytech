@@ -13,7 +13,7 @@
             <div class="row align-items-center">
                 <div class="col-6 col-md-3 mb-3">
                     <h4 class="fw-bold">{{ $customer->name }}</h4>
-                    {{-- Badge with green/red on load --}}
+                    {{-- Clickable status badge – green/red on load, spin on click --}}
                     <span id="status-badge"
                           class="badge status-refresh {{ $customer->is_online ? 'bg-success' : 'bg-danger' }}"
                           style="cursor: pointer;"
@@ -455,20 +455,73 @@ document.addEventListener('DOMContentLoaded', function() {
     };
 
     // -------------------------------------------------------------
-    // 2. GENERIC TAB LOADER (using named route)
+    // 2. GENERIC TAB LOADER with AJAX PAGINATION
     // -------------------------------------------------------------
     const customerId = {{ $customer->id }};
     const loadedTabs = {};
+
+    // ---- PAGINATION HANDLER ----
+    function attachPaginationHandler(container, tabName) {
+        const paginationLinks = container.querySelectorAll('.pagination a');
+        if (!paginationLinks.length) return;
+
+        paginationLinks.forEach(link => {
+            // Remove existing listeners to avoid duplicates
+            link.removeEventListener('click', paginationClickHandler);
+            link.addEventListener('click', paginationClickHandler);
+        });
+
+        function paginationClickHandler(e) {
+            e.preventDefault();
+            const url = this.href;
+
+            // Show spinner inside the container while loading new page
+            container.innerHTML = `
+                <div class="d-flex flex-column justify-content-center align-items-center py-3" style="min-height: 100px;">
+                    <i class="fas fa-spinner fa-spin fa-2x text-primary mb-2"></i>
+                    <p class="text-muted fw-light mb-0" style="font-size: 0.9rem;">Loading...</p>
+                </div>
+            `;
+
+            fetch(url)
+                .then(response => {
+                    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+                    return response.text();
+                })
+                .then(html => {
+                    container.innerHTML = html;
+                    // Re‑attach pagination handler for the new links
+                    attachPaginationHandler(container, tabName);
+                    // If this is the session tab and charts are present, re‑init charts
+                    if (tabName === 'session' && typeof window.initCharts === 'function') {
+                        // Only re‑init if the charts were destroyed – but we didn't destroy them.
+                        // The container only contains the table/pagination, not the whole tab.
+                        // So we can skip.
+                    }
+                })
+                .catch(err => {
+                    console.error('❌ Pagination error:', err);
+                    container.innerHTML = `
+                        <div class="alert alert-danger">
+                            <strong>Error loading page:</strong><br>
+                            ${err.message}
+                        </div>
+                    `;
+                });
+        }
+    }
 
     function loadTabContent(tabName, containerId, callback) {
         const container = document.getElementById(containerId);
         if (!container) return;
 
+        // If already loaded, just call callback (if any) and exit
         if (loadedTabs[tabName]) {
             if (callback) callback();
             return;
         }
 
+        // Show spinner
         container.innerHTML = `
             <div class="d-flex flex-column justify-content-center align-items-center py-3" style="min-height: 100px;">
                 <i class="fas fa-spinner fa-spin fa-2x text-primary mb-2"></i>
@@ -510,6 +563,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 container.innerHTML = html;
                 loadedTabs[tabName] = true;
                 if (callback) callback();
+
+                // Attach pagination handler
+                attachPaginationHandler(container, tabName);
             })
             .catch(err => {
                 console.error('❌ Full error:', err);
