@@ -95,6 +95,10 @@ Route::middleware('auth')->group(function () {
     Route::post('/customer/{customer}/disable', [CustomerController::class, 'disable'])->name('customer.disable');
     Route::get('/customer/search', [CustomerController::class, 'search'])
         ->name('customers.search');
+    Route::get('/customers/{id}/tab/{tab}', [CustomerController::class, 'loadTab'])->name('customer.load-tab');
+    Route::get('/customers/{id}/daily-traffic', [CustomerController::class, 'dailyTraffic'])->name('customer.daily-traffic');
+    Route::get('/customers/{username}/ppp-traffic', [CustomerController::class, 'pppTraffic'])->name('customer.ppp-traffic');
+    Route::get('/customers/{id}/online-status', [CustomerController::class, 'onlineStatus'])->name('customer.online-status');
 
     Route::prefix('tr069')->middleware('auth')->group(function () {
         Route::post(

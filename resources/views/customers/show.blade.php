@@ -13,11 +13,17 @@
             <div class="row align-items-center">
                 <div class="col-6 col-md-3 mb-3">
                     <h4 class="fw-bold">{{ $customer->name }}</h4>
-                    @if($customer->is_online)
-                        <span class="badge bg-success"><i class="fas fa-sync-alt fa-spin"></i> ONLINE</span>
-                    @else
-                        <span class="badge bg-danger"><i class="fas fa-sync-alt"></i> OFFLINE</span>
-                    @endif
+                    {{-- Badge with green/red on load --}}
+                    <span id="status-badge"
+                          class="badge status-refresh {{ $customer->is_online ? 'bg-success' : 'bg-danger' }}"
+                          style="cursor: pointer;"
+                          data-customer-id="{{ $customer->id }}">
+                        @if($customer->is_online)
+                            <i class="fas fa-sync-alt fa-spin"></i> ONLINE
+                        @else
+                            <i class="fas fa-sync-alt"></i> OFFLINE
+                        @endif
+                    </span>
                 </div>
                 <div class="col-6 col-md-3 text-right">
                     <div class="mb-0">{{ $customer->address ?? 'Address not available' }} <i class="fas fa-map-marker-alt text-danger me-2"></i></div>
@@ -82,378 +88,52 @@
             <div class="tab-content">
 
                 {{-- ================= OVERVIEW ================= --}}
-                <div class="tab-pane fade show active" id="overview">
-                    @php $grace = $customer->activeGrace(); @endphp
-                    <div class="row">
-                        <div class="col-md-6">
-                            <ul class="list-group">
-                                <li class="list-group-item d-flex justify-content-between"><strong>Username</strong><strong><span class="badge badge-success">{{ $customer->username ?? '-' }}</span></strong></li>
-                                <li class="list-group-item d-flex justify-content-between"><strong>Internet Plan</strong><strong><span class="badge badge-primary">{{ $customer->internetPlan->bandwidth_name ?? '-' }}</span></strong></li>
-                                <li class="list-group-item d-flex justify-content-between"><strong>Status</strong><strong><span class="badge @if($customer->status == 'active') badge-success @elseif($customer->status == 'grace') badge-warning text-dark @else badge-danger @endif">{{ strtoupper($customer->status) }}</span></strong></li>
-                                <li class="list-group-item d-flex justify-content-between"><strong>Registered Date</strong><strong><span class="badge badge-primary">{{ $customer->registered_at->format('Y-m-d') }}</span></strong></li>
-                                <li class="list-group-item d-flex justify-content-between"><strong>Expire Date</strong><strong><span class="badge badge-danger">{{ optional($customer->expire_date)->format('Y-m-d') }}</span></strong></li>
-                                <li class="list-group-item d-flex justify-content-between"><strong>Grace</strong><strong>@if($grace)<span class="badge bg-warning text-dark">{{ $grace->grace_days }} Days</span>@else<span class="badge bg-info text-muted">No Grace</span>@endif</strong></li>
-                                @if($grace)
-                                    <li class="list-group-item d-flex justify-content-between"><strong>Grace Start</strong><strong><span class="badge badge-primary">{{ $grace->grace_start->format('Y-m-d') }}</span></strong></li>
-                                    <li class="list-group-item d-flex justify-content-between"><strong>Grace End</strong><strong><span class="badge badge-danger">{{ $grace->grace_end->format('Y-m-d') }}</span></strong></li>
-                                @endif
-                                <li class="list-group-item d-flex justify-content-between"><strong>MAC Address</strong><strong>@if($customer->mac_address)<span class="badge badge-primary">{{ $customer->mac_address }}</span>@else<span class="badge badge-danger">Not Bound</span>@endif</strong></li>
-                                <li class="list-group-item d-flex justify-content-between"><strong>Termination Cause</strong><strong>@if($lastSession && $lastSession->acctterminatecause)<span class="badge badge-danger">{{ $lastSession->acctterminatecause }}</span>@else<span class="badge badge-success">N/A</span>@endif</strong></li>
-                            </ul>
-                        </div>
-                    </div>
-
-                    {{-- QUICK ACTIONS --}}
-                    <div class="card mt-3 shadow-sm">
-                        <div class="card-header bg-white"><strong>Quick Actions</strong></div>
-                        <div class="card-body d-flex flex-wrap gap-2">
-
-                            {{-- Recharge --}}
-                            @can('recharge customers')
-                                <a href="{{ route('recharges.create', $customer->id) }}" class="btn btn-warning btn-sm">Recharge</a>
-                            @endcan
-
-                            {{-- Change Expiry --}}
-                            @can('change expiry customers')
-                                <a href="{{ route('customers.expiry-form', $customer->id) }}" class="btn btn-danger btn-sm">Change Expiry</a>
-                            @endcan
-
-                            {{-- Grace (3 days) --}}
-                            @can('grace customers')
-                                <form action="{{ route('provide-grace', $customer->id) }}" method="POST">
-                                    @csrf
-                                    <button class="btn btn-info btn-sm">+3 Days Grace</button>
-                                </form>
-                            @endcan
-
-                            {{-- Disconnect --}}
-                            @can('disconnect customers')
-                                <form action="{{ route('customer.disconnect', $customer->id) }}" method="POST">
-                                    @csrf
-                                    <button class="btn btn-dark btn-sm">Disconnect</button>
-                                </form>
-                            @endcan
-
-                            {{-- Bind / Unbind MAC --}}
-                            @if($customer->mac_address)
-                                @can('unbind mac customers')
-                                    <form action="{{ route('customer.unbind-mac', $customer->id) }}" method="POST">
-                                        @csrf
-                                        <button type="submit" class="btn btn-danger btn-sm">Unbind MAC</button>
-                                    </form>
-                                @endcan
-                            @else
-                                @can('bind mac customers')
-                                    <form action="{{ route('customer.bind-mac', $customer->id) }}" method="POST">
-                                        @csrf
-                                        <button type="submit" class="btn btn-primary btn-sm">Bind MAC</button>
-                                    </form>
-                                @endcan
-                            @endif
-
-                            {{-- ========== ENABLE / DISABLE TOGGLE ========== --}}
-                            @if($customer->status === 'active')
-                                @can('disable customers')
-                                    <form action="{{ route('customer.disable', $customer->id) }}" method="POST"
-                                        onsubmit="return confirm('Are you sure you want to disable this customer?')">
-                                        @csrf
-                                        <button type="submit" class="btn btn-secondary btn-sm">
-                                            <i class="bi bi-x-circle"></i> Disable
-                                        </button>
-                                    </form>
-                                @endcan
-                            @else
-                                @can('enable customers')
-                                    <form action="{{ route('customer.enable', $customer->id) }}" method="POST"
-                                        onsubmit="return confirm('Are you sure you want to enable this customer?')">
-                                        @csrf
-                                        <button type="submit" class="btn btn-success btn-sm">
-                                            <i class="bi bi-check-circle"></i> Enable
-                                        </button>
-                                    </form>
-                                @endcan
-                            @endif
-
-                        </div>
+                <div class="tab-pane fade show active" id="overview" role="tabpanel">
+                    <div id="overview-content">
+                        @include('partials.loading-spinner')
                     </div>
                 </div>
 
                 {{-- ================= SESSION ================= --}}
-                <div class="tab-pane fade" id="session">
-                    <h6 class="mb-2">Active Session</h6>
-                    @if($customer->active)
-                        <div class="table-responsive">
-                            <table class="table table-sm table-striped table-hover text-nowrap">
-                                <thead class="table-light"><tr><th>IP</th><th>Start Time</th><th>End Time</th><th>Time</th><th>Mac Address</th><th>NAS IP</th><th>Upload</th><th>Download</th><th>Server</th></tr></thead>
-                                <tbody>
-                                    <tr>
-                                        <td>
-                                            @php $ip = optional($customer->active)->ip_address; @endphp
-                                            @if($ip)
-                                                <a href="http://{{ $ip }}" target="_blank" rel="noopener noreferrer">{{ $ip }}</a>
-                                            @else
-                                                <span>N/A</span>
-                                            @endif
-                                        </td>
-                                        <td>{{ \Carbon\Carbon::parse($customer->active->start_time)->format('Y-m-d H:i:s A') }}</td>
-                                        <td>@if($lastSession && $lastSession->acctstoptime){{ \Carbon\Carbon::parse($lastSession->acctstoptime)->format('Y-m-d h:i:s A') }}@else<span class="badge badge-success">Never Disconnected</span>@endif</td>
-                                        <td>{{ $customer->active->session_time_human }}</td>
-                                        <td>{{ $customer->active->mac_address }}</td>
-                                        <td>{{ $customer->active->nas_ip }}</td>
-                                        <td>{{ $customer->active->upload_mb }}</td>
-                                        <td>{{ $customer->active->download_mb }}</td>
-                                        <td>{{ $customer->active->ppp_server }}</td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                        </div>
-                    @else
-                        <div class="alert alert-secondary">No active session</div>
-                    @endif
-
-                    {{-- LIVE TRAFFIC CHART --}}
-                    <div class="card mt-3 shadow-sm">
-                        <div class="card-header bg-white d-flex justify-content-between align-items-center">
-                            <strong>📊 Live PPP User Traffic</strong>
-                            <div class="text-muted small text-end">
-                                <span id="traffic-download" class="me-3" style="color: #20c997;">0 bps</span>/
-                                <span id="traffic-upload" class="me-3" style="color: #0d6efd;">0 bps</span>
-                                <span id="traffic-update-time">Updating...</span>
-                            </div>
-                        </div>
-                        <div class="card-body">
-                            <div style="position: relative; height: 280px; min-height: 280px; width: 100%;">
-                                <canvas id="trafficChart"></canvas>
-                            </div>
-                        </div>
+                <div class="tab-pane fade" id="session" role="tabpanel">
+                    <div id="session-content">
+                        @include('partials.loading-spinner')
                     </div>
-
-                    {{-- DAILY TRAFFIC CHART --}}
-                    <div class="card mt-3 shadow-sm">
-                        <div class="card-header bg-white">
-                            <strong>📊 Daily Traffic Volume (Last 30 Days)</strong>
-                        </div>
-                        <div class="card-body">
-                            <div style="position: relative; height: 300px; min-height: 300px; width: 100%;">
-                                <canvas id="dailyTrafficChart"></canvas>
-                            </div>
-                        </div>
-                    </div>
-
-                    {{-- PREVIOUS SESSIONS --}}
-                    <h6 class="mt-4 mb-2">Previous Sessions</h6>
-                    @if($customer->previous)
-                        <div class="table-responsive">
-                            <table class="table table-sm table-striped table-hover text-nowrap">
-                                <thead class="table-light"><tr><th>IP</th><th>Start Time</th><th>End Time</th><th>Time</th><th>Mac Address</th><th>NAS IP</th><th>Upload</th><th>Download</th><th>Server</th></tr></thead>
-                                <tbody>
-                                    @forelse ($previousSessions as $session)
-                                        <tr>
-                                            <td>{{ $session->ip_address ?? '-' }}</td>
-                                            <td>{{ \Carbon\Carbon::parse($session->start_time)->format('Y-m-d H:i:s A') }}</td>
-                                            <td>@if($session->acctstoptime){{ \Carbon\Carbon::parse($session->acctstoptime)->format('Y-m-d H:i:s A') }}@else<span class="badge badge-success">Active</span>@endif</td>
-                                            <td>{{ $session->session_time_human ?? '-' }}</td>
-                                            <td>{{ $session->mac_address ?? '-' }}</td>
-                                            <td>{{ $session->nas_ip ?? '-' }}</td>
-                                            <td>{{ $session->upload_mb ?? '-' }}</td>
-                                            <td>{{ $session->download_mb ?? '-' }}</td>
-                                            <td>{{ $session->ppp_server ?? '-' }}</td>
-                                        </tr>
-                                    @empty
-                                        <tr><td colspan="9" class="text-center">No previous sessions found</td></tr>
-                                    @endforelse
-                                </tbody>
-                            </table>
-                            <div class="mt-3">{{ $previousSessions->links() }}</div>
-                        </div>
-                    @else
-                        <div class="alert alert-light">No previous session found</div>
-                    @endif
                 </div>
 
-                {{-- ================= ROUTER MANAGEMENT ================= --}}
-                <div class="tab-pane fade" id="router">
-                    @php $router = $customer->routerDevices->first(); $server = $router?->server; @endphp
-                    @if($router)
-                        <form method="POST" action="{{ route('tr069.device.router.update', $router->id) }}">@csrf
-                            <div class="row">
-                                <div class="col-md-4">
-                                    <div class="card shadow-sm mb-3">
-                                        <div class="card-header bg-dark text-white"><strong>📡 ACS Server Info</strong></div>
-                                        <div class="card-body">
-                                            <p><strong>ACS URL:</strong><br><span class="text-primary">{{ $server->acs_url ?? '-' }}</span></p>
-                                            <p><strong>Username:</strong> {{ $server->acs_username ?? '-' }}</p>
-                                            <p><strong>Status:</strong> <span class="badge {{ $router->status == 'online' ? 'bg-success' : 'bg-danger' }}">{{ strtoupper($router->status) }}</span></p>
-                                            <p><strong>Last Sync:</strong><br>{{ $router->updated_at?->diffForHumans() }}</p>
-                                        </div>
-                                    </div>
-                                    <div class="card shadow-sm">
-                                        <div class="card-header bg-white"><strong>📦 Router Info</strong></div>
-                                        <div class="card-body">
-                                            <p><strong>Serial:</strong> {{ $router->serial }}</p>
-                                            <p><strong>Product Class:</strong> {{ $router->product_class ?? '-' }}</p>
-                                            <p><strong>Manufacturer:</strong> {{ $router->manufacturer ?? '-' }}</p>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="col-md-8">
-                                    <div class="card shadow-sm border-primary mb-3">
-                                        <div class="card-header bg-primary text-white"><strong>📶 WiFi Settings (2.4G + 5G)</strong></div>
-                                        <div class="card-body">
-                                            <div class="row">
-                                                <div class="{{ $router->wifi_5_ssid ? 'col-md-6' : 'col-md-12' }}">
-                                                    <h6 class="text-primary">2.4 GHz</h6>
-                                                    <div class="mb-2"><label>SSID</label><input type="text" name="ssid_24" class="form-control" value="{{ old('ssid_24', $router->wifi_24_ssid ?? '') }}"></div>
-                                                    <div class="mb-2"><label>Password</label><input type="text" name="password_24" class="form-control" value="{{ old('password_24', $router->wifi_24_password ?? '') }}"></div>
-                                                    <div class="form-check form-switch"><input class="form-check-input" type="checkbox" name="hide_ssid_24" value="1" {{ $router->hide_ssid_24 ? 'checked' : '' }}><label class="form-check-label">Hide SSID</label></div>
-                                                </div>
-                                                @if($router->wifi_5_ssid)
-                                                    <div class="col-md-6">
-                                                        <h6 class="text-success">5 GHz</h6>
-                                                        <div class="mb-2"><label>SSID</label><input type="text" name="ssid_5" class="form-control" value="{{ old('ssid_5', $router->wifi_5_ssid) }}"></div>
-                                                        <div class="mb-2"><label>Password</label><input type="text" name="password_5" class="form-control" value="{{ old('password_5', $router->wifi_5_password) }}"></div>
-                                                        <div class="form-check form-switch"><input class="form-check-input" type="checkbox" name="hide_ssid_5" value="1" {{ $router->hide_ssid_5 ? 'checked' : '' }}><label class="form-check-label">Hide SSID</label></div>
-                                                    </div>
-                                                @endif
-                                            </div>
-                                            <div class="text-end mt-3"><button type="submit" name="action" value="update_wifi" class="btn btn-sm btn-primary">🚀 Update WiFi</button></div>
-                                        </div>
-                                    </div>
-                                    <div class="card shadow-sm border-success">
-                                        <div class="card-header bg-success text-white"><strong>🌐 PPPoE Settings</strong></div>
-                                        <div class="card-body">
-                                            <div class="mb-2"><label>Username</label><input type="text" name="pppoe_username" class="form-control" value="{{ $customer->username }}"></div>
-                                            <div class="mb-2"><label>Password</label><input type="password" name="pppoe_password" class="form-control" value="{{ $customer->password }}"></div>
-                                            <div class="text-end mt-3"><button type="submit" name="action" value="update_pppoe" class="btn btn-sm btn-success">🚀 Update PPPoE</button></div>
-                                        </div>
-                                    </div>
-                                    <div class="card shadow-sm border-0 mt-3">
-                                        <div class="card-header bg-light"><strong>⚙️ Router Actions</strong></div>
-                                        <div class="card-body d-flex gap-2 flex-wrap">
-                                            <form method="POST" action="{{ route('tr069.device.reboot', $router->id) }}">@csrf<button type="submit" class="btn btn-sm btn-outline-primary">🔄 Reboot</button></form>
-                                            <form method="POST" action="{{ route('tr069.device.factory-reset', $router->id) }}">@csrf<button type="submit" class="btn btn-sm btn-outline-danger" onclick="return confirm('Factory reset router?')">⚠️ Factory Reset</button></form>
-                                            <form method="POST" action="{{ route('tr069.device.push-acs', $router->id) }}">@csrf<button type="submit" class="btn btn-sm btn-outline-dark">🚀 Push ACS</button></form>
-                                            <a href="{{ route('tr069.device.logs', $router->id) }}" class="btn btn-sm btn-outline-secondary">📜 Logs</a>
-                                            <form method="POST" action="{{ route('tr069.device.destroy', $router->id) }}" onsubmit="return confirm('Are you sure you want to delete this router? This action cannot be undone.')">
-                                                @csrf
-                                                @method('DELETE')
-                                                <button type="submit" class="btn btn-sm btn-outline-danger">🗑️ Delete</button>
-                                            </form>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </form>
-                    @else
-                        <div class="alert alert-warning">No router device linked with this customer.</div>
-                    @endif
+                {{-- ================= ROUTER ================= --}}
+                <div class="tab-pane fade" id="router" role="tabpanel">
+                    <div id="router-content">
+                        @include('partials.loading-spinner')
+                    </div>
                 </div>
 
                 {{-- ================= BILLING ================= --}}
-                <div class="tab-pane fade" id="billing">
-                    <div class="table-responsive">
-                        <table class="table table-sm table-striped table-hover text-nowrap">
-                            <thead class="table-light"><tr><th>#</th><th>Invoice</th><th>Package</th><th>Amount</th><th>Expire</th><th>Date</th></tr></thead>
-                            <tbody>
-                                @forelse($billings as $billing)
-                                    <tr>
-                                        <td>{{ $loop->iteration }}</td>
-                                        <td>{{ $billing->billing_no }}</td>
-                                        <td><span class="badge bg-primary">{{ optional($billing->customer->internetPlan)->bandwidth_name }}</span></td>
-                                        <td>{{ number_format($billing->amount, 2) }}</td>
-                                        <td>{{ optional($billing->recharge->expire_date ?? null)->format('Y-m-d') }}</td>
-                                        <td>{{ $billing->created_at->format('Y-m-d') }}</td>
-                                    </tr>
-                                @empty
-                                    <tr><td colspan="6" class="text-center text-muted">No Billing Found</td></tr>
-                                @endforelse
-                            </tbody>
-                        </table>
-                        <div class="mt-3">{{ $billings->links() }}</div>
+                <div class="tab-pane fade" id="billing" role="tabpanel">
+                    <div id="billing-content">
+                        @include('partials.loading-spinner')
                     </div>
                 </div>
 
                 {{-- ================= CREATE TICKET ================= --}}
-                <div class="tab-pane fade" id="create-ticket">
-                    <div class="card shadow-sm">
-                        <div class="card-header"><strong>Create Support Ticket</strong></div>
-                        <div class="card-body">
-                            <form method="POST" action="{{ route('ticket.store') }}">@csrf
-                                <input type="hidden" name="customer_id" value="{{ $customer->id }}">
-                                <div class="mb-3"><label class="form-label">Subject</label><input type="text" name="subject" class="form-control" value="{{ old('subject') }}" required></div>
-                                <div class="mb-3"><label class="form-label">Priority</label><select name="priority" class="form-control"><option value="low">Low</option><option value="medium" selected>Medium</option><option value="high">High</option><option value="urgent">Urgent</option></select></div>
-                                <div class="mb-3"><label class="form-label">Message</label><textarea name="message" rows="6" class="form-control" required>{{ old('message') }}</textarea></div>
-                                <button type="submit" class="btn btn-success"><i class="fas fa-ticket-alt"></i> Create Ticket</button>
-                            </form>
-                        </div>
+                <div class="tab-pane fade" id="create-ticket" role="tabpanel">
+                    <div id="create-ticket-content">
+                        @include('partials.loading-spinner')
                     </div>
                 </div>
 
                 {{-- ================= AUTH LOGS ================= --}}
-                <div class="tab-pane fade" id="auth-logs">
-                    <div class="table-responsive">
-                        <table class="table table-sm table-striped table-hover text-nowrap">
-                            <thead>
-                                <tr>
-                                    <th>#</th>
-                                    <th>User</th>
-                                    <th>Pass</th>
-                                    <th>Reply</th>
-                                    <th>Reply Message</th>
-                                    <th>Nas IP Address</th>
-                                    <th>Mac Address</th>
-                                    <th>Date</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @foreach($authLogs as $log)
-                                    <tr>
-                                        <td>{{ $loop->iteration }}</td>
-                                        <td>{{ $log->username }}</td>
-                                        <td>{{ $log->pass }}</td>
-                                        <td>
-                                            @if($log->reply == 'Access-Accept')
-                                                <span class="badge bg-success">Access-Accept</span>
-                                            @elseif($log->reply == 'Access-Reject')
-                                                <span class="badge bg-danger">Access-Reject</span>
-                                            @else
-                                                <span class="badge bg-secondary">{{ $log->reply }}</span>
-                                            @endif
-                                        </td>
-                                        <td>{{ $log->reply_message }}</td>
-                                        <td>{{ $log->nasipaddress }}</td>
-                                        <td>{{ $log->mac }}</td>
-                                        <td>{{ optional($log->authdate)->toDateTimeString() }}</td>
-                                    </tr>
-                                @endforeach
-                            </tbody>
-                        </table>
-                        <div class="mt-3">{{ $authLogs->links() }}</div>
+                <div class="tab-pane fade" id="auth-logs" role="tabpanel">
+                    <div id="auth-logs-content">
+                        @include('partials.loading-spinner')
                     </div>
                 </div>
 
                 {{-- ================= ACTIVITY LOGS ================= --}}
-                <div class="tab-pane fade" id="activity-logs">
-                    <div class="table-responsive">
-                        <table class="table table-sm table-striped table-hover text-nowrap">
-                            <thead><tr><th>#</th><th>Title</th><th>Message</th><th>User</th><th>Date</th><th>Status</th></tr></thead>
-                            <tbody>
-                                @forelse($activityLogs as $activity)
-                                    <tr>
-                                        <td>{{ $loop->iteration }}</td>
-                                        <td><i class="{{ $activity->icon ?? 'fas fa-bell' }}"></i> {{ $activity->title }}</td>
-                                        <td>{{ $activity->message ?? '-' }}</td>
-                                        <td>{{ $activity->user->name ?? 'System' }}</td>
-                                        <td>{{ $activity->created_at->format('Y-m-d H:i') }}<br><small class="text-muted">{{ $activity->created_at->diffForHumans() }}</small></td>
-                                        <td>@if($activity->is_read)<span class="badge bg-success">Read</span>@else<span class="badge bg-warning">Unread</span>@endif</td>
-                                    </tr>
-                                @empty
-                                    <tr><td colspan="6" class="text-center text-muted">No activities found for this customer.</td></tr>
-                                @endforelse
-                            </tbody>
-                        </table>
+                <div class="tab-pane fade" id="activity-logs" role="tabpanel">
+                    <div id="activity-logs-content">
+                        @include('partials.loading-spinner')
                     </div>
-                    <div class="mt-3">{{ $activityLogs->links() }}</div>
                 </div>
 
             </div>
@@ -461,239 +141,256 @@
     </div>
 </div>
 
-{{-- ================= CHART SCRIPTS ================= --}}
+{{-- ================= SCRIPTS ================= --}}
 <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        let chartsInitialized = false;
-        let trafficInterval = null;
+document.addEventListener('DOMContentLoaded', function() {
 
-        // Helper: format speed
-        function formatSpeed(mbps) {
-            if (mbps >= 1000) {
-                return (mbps / 1000).toFixed(2) + ' Gbps';
-            } else if (mbps >= 1) {
-                return mbps.toFixed(2) + ' Mbps';
-            } else if (mbps >= 0.001) {
-                return (mbps * 1000).toFixed(0) + ' Kbps';
-            } else {
-                return (mbps * 1000000).toFixed(0) + ' bps';
-            }
+    // -------------------------------------------------------------
+    // CLICKABLE STATUS BADGE – NO WARNING FLASH
+    // -------------------------------------------------------------
+    const badge = document.getElementById('status-badge');
+    if (badge) {
+        badge.addEventListener('click', function(e) {
+            e.preventDefault();
+            const customerId = this.dataset.customerId;
+            const originalHtml = this.innerHTML;
+            const originalClass = this.className;
+
+            // Show loading state
+            this.innerHTML = '<i class="fas fa-sync-alt fa-spin"></i> Checking...';
+            this.style.pointerEvents = 'none';
+
+            fetch(`/customers/${customerId}/online-status`)
+                .then(response => {
+                    if (!response.ok) throw new Error('Network error');
+                    return response.json();
+                })
+                .then(data => {
+                    if (data.is_online) {
+                        this.innerHTML = '<i class="fas fa-sync-alt fa-spin"></i> ONLINE';
+                        this.className = 'badge bg-success status-refresh';
+                    } else {
+                        this.innerHTML = '<i class="fas fa-sync-alt"></i> OFFLINE';
+                        this.className = 'badge bg-danger status-refresh';
+                    }
+                    this.style.pointerEvents = 'auto';
+                })
+                .catch(err => {
+                    console.error('Failed to refresh status:', err);
+                    // Revert to previous state – no warning flash
+                    this.innerHTML = originalHtml;
+                    this.className = originalClass;
+                    this.style.pointerEvents = 'auto';
+                });
+        });
+    }
+
+    // -------------------------------------------------------------
+    // 1. GLOBAL CHART INITIALISATION (for Session tab)
+    // -------------------------------------------------------------
+    window.initCharts = function() {
+        // Destroy previous instances if they exist
+        if (window.trafficChartInstance) {
+            window.trafficChartInstance.destroy();
+            window.trafficChartInstance = null;
+        }
+        if (window.dailyChartInstance) {
+            window.dailyChartInstance.destroy();
+            window.dailyChartInstance = null;
+        }
+        if (window.trafficPollInterval) {
+            clearInterval(window.trafficPollInterval);
+            window.trafficPollInterval = null;
         }
 
-        // -------------------------------------------------------------
-        // 1. LIVE TRAFFIC CHART – initialization function
-        // -------------------------------------------------------------
-        function initLiveTrafficChart() {
-            if (typeof Chart === 'undefined') {
-                console.error('Chart.js not loaded');
-                document.getElementById('traffic-update-time').textContent = '⚠️ Chart library missing';
-                return;
-            }
+        // Ensure Chart.js is loaded
+        if (typeof Chart === 'undefined') {
+            console.warn('Chart.js not loaded – charts will not render');
+            return;
+        }
 
-            const canvas = document.getElementById('trafficChart');
-            if (!canvas) {
-                console.error('Canvas not found');
-                return;
-            }
-
-            const ctx = canvas.getContext('2d');
-            const chart = new Chart(ctx, {
-                type: 'line',
-                data: {
-                    labels: [],
-                    datasets: [
-                        {
-                            label: 'Upload (TX)',
-                            borderColor: '#20c997',
-                            backgroundColor: 'rgba(32, 201, 151, 0.1)',
-                            data: [],
-                            fill: true,
-                            tension: 0.3,
-                            borderWidth: 3,
-                            pointRadius: 1,
-                        },
-                        {
-                            label: 'Download (RX)',
-                            borderColor: '#0d6efd',
-                            backgroundColor: 'rgba(13, 110, 253, 0.1)',
-                            data: [],
-                            fill: true,
-                            tension: 0.3,
-                            borderWidth: 3,
-                            pointRadius: 1,
-                        }
-                    ]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    animation: { duration: 300 },
-                    plugins: {
-                        legend: { position: 'top' },
-                        tooltip: {
-                            callbacks: {
-                                label: function(context) {
-                                    return context.dataset.label + ': ' + context.parsed.y.toFixed(2) + ' Mbps';
-                                }
+        // ----- Live Traffic Chart -----
+        const trafficCanvas = document.getElementById('trafficChart');
+        if (!trafficCanvas) {
+            console.warn('trafficChart canvas not found');
+            return;
+        }
+        const ctx = trafficCanvas.getContext('2d');
+        window.trafficChartInstance = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: [],
+                datasets: [
+                    {
+                        label: 'Upload (TX)',
+                        borderColor: '#20c997',
+                        backgroundColor: 'rgba(32, 201, 151, 0.1)',
+                        data: [],
+                        fill: true,
+                        tension: 0.3,
+                        borderWidth: 3,
+                        pointRadius: 1,
+                    },
+                    {
+                        label: 'Download (RX)',
+                        borderColor: '#0d6efd',
+                        backgroundColor: 'rgba(13, 110, 253, 0.1)',
+                        data: [],
+                        fill: true,
+                        tension: 0.3,
+                        borderWidth: 3,
+                        pointRadius: 1,
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                animation: { duration: 300 },
+                plugins: {
+                    legend: { position: 'top' },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                return context.dataset.label + ': ' + context.parsed.y.toFixed(2) + ' Mbps';
                             }
                         }
+                    }
+                },
+                scales: {
+                    x: {
+                        type: 'category',
+                        grid: { display: false },
+                        ticks: { maxTicksLimit: 15 }
                     },
-                    scales: {
-                        x: {
-                            type: 'category',
-                            grid: { display: false },
-                            ticks: { maxTicksLimit: 15 }
-                        },
-                        y: {
-                            beginAtZero: true,
-                            title: { display: true, text: 'Traffic (Mbps)' },
-                            ticks: {
-                                callback: function(value) {
-                                    if (value >= 1000) return (value / 1000).toFixed(1) + ' Gbps';
-                                    if (value >= 1) return value.toFixed(1) + ' Mbps';
-                                    if (value >= 0.001) return (value * 1000).toFixed(0) + ' Kbps';
-                                    return (value * 1000000).toFixed(0) + ' bps';
-                                }
+                    y: {
+                        beginAtZero: true,
+                        title: { display: true, text: 'Traffic (Mbps)' },
+                        ticks: {
+                            callback: function(value) {
+                                if (value >= 1000) return (value / 1000).toFixed(1) + ' Gbps';
+                                if (value >= 1) return value.toFixed(1) + ' Mbps';
+                                if (value >= 0.001) return (value * 1000).toFixed(0) + ' Kbps';
+                                return (value * 1000000).toFixed(0) + ' bps';
                             }
                         }
                     }
                 }
-            });
-
-            const username = '{{ $customer->username }}';
-            const MAX_POINTS = 60;
-            let failCount = 0;
-
-            function addData(timeLabel, rx, tx, source = 'API') {
-                rx = (typeof rx === 'number' && !isNaN(rx)) ? rx : 0;
-                tx = (typeof tx === 'number' && !isNaN(tx)) ? tx : 0;
-
-                chart.data.labels.push(timeLabel);
-                chart.data.datasets[0].data.push(rx);
-                chart.data.datasets[1].data.push(tx);
-
-                if (chart.data.labels.length > MAX_POINTS) {
-                    chart.data.labels.shift();
-                    chart.data.datasets[0].data.shift();
-                    chart.data.datasets[1].data.shift();
-                }
-                chart.update();
-                console.log(`📊 ${source}: ${timeLabel} RX=${rx.toFixed(3)} TX=${tx.toFixed(3)}`);
             }
+        });
 
-            function fetchTraffic() {
-                const url = `/customer/${username}/ppp-traffic`;
-                fetch(url)
-                    .then(response => {
-                        if (!response.ok) throw new Error(`HTTP ${response.status}`);
-                        return response.json();
-                    })
-                    .then(data => {
-                        if (!data.success) throw new Error('Invalid response');
-                        let rxMbps = (data.rx_bps || 0) / 1_000_000;
-                        let txMbps = (data.tx_bps || 0) / 1_000_000;
-                        const now = new Date().toLocaleTimeString();
+        // ----- Traffic Polling (NO MOCK DATA) -----
+        const username = '{{ $customer->username }}';
+        const MAX_POINTS = 60;
 
-                        addData(now, rxMbps, txMbps, 'API');
-
-                        const downloadEl = document.getElementById('traffic-download');
-                        const uploadEl = document.getElementById('traffic-upload');
-                        const updateTimeEl = document.getElementById('traffic-update-time');
-
-                        if (downloadEl) {
-                            downloadEl.textContent = `⬆️ ${formatSpeed(rxMbps)}`;
-                            downloadEl.style.color = '#20c997';
-                        }
-                        if (uploadEl) {
-                            uploadEl.textContent = `⬇️ ${formatSpeed(txMbps)}`;
-                            uploadEl.style.color = '#0d6efd';
-                        }
-                        if (updateTimeEl) updateTimeEl.textContent = `Last update: ${now}`;
-
-                        failCount = 0;
-                    })
-                    .catch(err => {
-                        console.error('❌ Fetch error:', err);
-                        failCount++;
-                        if (failCount > 3) {
-                            const now = new Date().toLocaleTimeString();
-                            const rx = Math.random() * 10;
-                            const tx = Math.random() * 8;
-                            addData(now, rx, tx, 'Mock (fallback)');
-                            const downloadEl = document.getElementById('traffic-download');
-                            const uploadEl = document.getElementById('traffic-upload');
-                            const updateTimeEl = document.getElementById('traffic-update-time');
-                            if (downloadEl) {
-                                downloadEl.textContent = `${formatSpeed(rx)} (mock)`;
-                                downloadEl.style.color = '#0d6efd';
-                            }
-                            if (uploadEl) {
-                                uploadEl.textContent = `${formatSpeed(tx)} (mock)`;
-                                uploadEl.style.color = '#20c997';
-                            }
-                            if (updateTimeEl) updateTimeEl.textContent = `⚠️ API unreachable – using mock`;
-                        } else {
-                            const now = new Date().toLocaleTimeString();
-                            addData(now, 0, 0, 'Fallback');
-                            const downloadEl = document.getElementById('traffic-download');
-                            const uploadEl = document.getElementById('traffic-upload');
-                            const updateTimeEl = document.getElementById('traffic-update-time');
-                            if (downloadEl) {
-                                downloadEl.textContent = `0 bps`;
-                                downloadEl.style.color = '#0d6efd';
-                            }
-                            if (uploadEl) {
-                                uploadEl.textContent = `0 bps`;
-                                uploadEl.style.color = '#20c997';
-                            }
-                            if (updateTimeEl) updateTimeEl.textContent = `⚠️ Error – using 0`;
-                        }
-                    });
-            }
-
-            // Seed with zero point
-            addData(new Date().toLocaleTimeString(), 0, 0, 'Seed');
-            // Start fetching
-            fetchTraffic();
-            // Clear any previous interval before setting new one
-            if (trafficInterval) clearInterval(trafficInterval);
-            trafficInterval = setInterval(fetchTraffic, 1000);
-
-            // Resize on tab show
-            const sessionTab = document.querySelector('button[data-bs-target="#session"]');
-            if (sessionTab) {
-                sessionTab.addEventListener('shown.bs.tab', function() {
-                    chart.resize();
-                    chart.update();
-                });
-            }
-            setTimeout(() => { chart.resize(); chart.update(); }, 300);
+        function formatSpeed(mbps) {
+            if (mbps >= 1000) return (mbps / 1000).toFixed(2) + ' Gbps';
+            if (mbps >= 1) return mbps.toFixed(2) + ' Mbps';
+            if (mbps >= 0.001) return (mbps * 1000).toFixed(0) + ' Kbps';
+            return (mbps * 1000000).toFixed(0) + ' bps';
         }
 
-        // -------------------------------------------------------------
-        // 2. DAILY TRAFFIC CHART – initialization function
-        // -------------------------------------------------------------
-        function initDailyTrafficChart() {
-            const dailyCanvas = document.getElementById('dailyTrafficChart');
-            if (!dailyCanvas) {
-                console.error('Daily traffic canvas not found');
-                return;
-            }
+        function addData(timeLabel, rx, tx) {
+            rx = (typeof rx === 'number' && !isNaN(rx)) ? rx : 0;
+            tx = (typeof tx === 'number' && !isNaN(tx)) ? tx : 0;
 
-            const url = `/customer/{{ $customer->id }}/daily-traffic`;
+            const chart = window.trafficChartInstance;
+            chart.data.labels.push(timeLabel);
+            chart.data.datasets[0].data.push(rx);  // Upload
+            chart.data.datasets[1].data.push(tx);  // Download
+
+            if (chart.data.labels.length > MAX_POINTS) {
+                chart.data.labels.shift();
+                chart.data.datasets[0].data.shift();
+                chart.data.datasets[1].data.shift();
+            }
+            chart.update();
+        }
+
+        function fetchTraffic() {
+            const url = `/customers/${username}/ppp-traffic`;
             fetch(url)
                 .then(response => {
                     if (!response.ok) throw new Error(`HTTP ${response.status}`);
                     return response.json();
                 })
                 .then(data => {
-                    if (!data.dates || data.dates.length === 0) {
+                    if (!data.success) throw new Error('Invalid response');
+                    let rxMbps = (data.rx_bps || 0) / 1_000_000;
+                    let txMbps = (data.tx_bps || 0) / 1_000_000;
+                    const now = new Date().toLocaleTimeString();
+
+                    addData(now, rxMbps, txMbps);
+
+                    const downloadEl = document.getElementById('traffic-download');
+                    const uploadEl = document.getElementById('traffic-upload');
+                    const updateTimeEl = document.getElementById('traffic-update-time');
+                    if (downloadEl) {
+                        downloadEl.textContent = `⬆️ ${formatSpeed(rxMbps)}`;
+                        downloadEl.style.color = '#20c997';
+                    }
+                    if (uploadEl) {
+                        uploadEl.textContent = `⬇️ ${formatSpeed(txMbps)}`;
+                        uploadEl.style.color = '#0d6efd';
+                    }
+                    if (updateTimeEl) updateTimeEl.textContent = `Last update: ${now}`;
+                })
+                .catch(err => {
+                    console.error('❌ Traffic fetch error:', err);
+                    const now = new Date().toLocaleTimeString();
+                    addData(now, 0, 0);
+
+                    const downloadEl = document.getElementById('traffic-download');
+                    const uploadEl = document.getElementById('traffic-upload');
+                    const updateTimeEl = document.getElementById('traffic-update-time');
+                    if (downloadEl) {
+                        downloadEl.textContent = '⬆️ 0 bps';
+                        downloadEl.style.color = '#20c997';
+                    }
+                    if (uploadEl) {
+                        uploadEl.textContent = '⬇️ 0 bps';
+                        uploadEl.style.color = '#0d6efd';
+                    }
+                    if (updateTimeEl) {
+                        updateTimeEl.textContent = `⚠️ Error – ${now}`;
+                        updateTimeEl.style.color = '#dc3545';
+                    }
+                });
+        }
+
+        // Seed with zero point
+        addData(new Date().toLocaleTimeString(), 0, 0);
+        // Start polling
+        fetchTraffic();
+        window.trafficPollInterval = setInterval(fetchTraffic, 1000);
+
+        // ----- Daily Traffic Chart -----
+        const dailyCanvas = document.getElementById('dailyTrafficChart');
+        if (dailyCanvas) {
+            const dailyUrl = `/customers/{{ $customer->id }}/daily-traffic`;
+            fetch(dailyUrl)
+                .then(response => {
+                    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+                    return response.json();
+                })
+                .then(data => {
+                    if (!data || !data.dates || data.dates.length === 0) {
                         dailyCanvas.parentElement.innerHTML = `
                             <p class="text-muted text-center my-4">No daily data available.</p>`;
                         return;
                     }
-                    const ctx = dailyCanvas.getContext('2d');
-                    new Chart(ctx, {
+
+                    const hasData = data.upload.some(v => v > 0) || data.download.some(v => v > 0);
+                    if (!hasData) {
+                        dailyCanvas.parentElement.innerHTML = `
+                            <p class="text-muted text-center my-4">No daily data available.</p>`;
+                        return;
+                    }
+
+                    const ctx2 = dailyCanvas.getContext('2d');
+                    const toGB = (bytes) => bytes / 1073741824;
+
+                    window.dailyChartInstance = new Chart(ctx2, {
                         type: 'bar',
                         data: {
                             labels: data.dates.map(d => {
@@ -703,14 +400,14 @@
                             datasets: [
                                 {
                                     label: 'Upload (TX)',
-                                    data: data.download.map(v => v / 1024),
+                                    data: data.upload.map(v => toGB(v)),
                                     backgroundColor: 'rgba(32, 201, 151, 0.7)',
                                     borderColor: '#20c997',
                                     borderWidth: 1,
                                 },
                                 {
                                     label: 'Download (RX)',
-                                    data: data.upload.map(v => v / 1024),
+                                    data: data.download.map(v => toGB(v)),
                                     backgroundColor: 'rgba(13, 110, 253, 0.7)',
                                     borderColor: '#0d6efd',
                                     borderWidth: 1,
@@ -728,7 +425,13 @@
                                 y: {
                                     stacked: true,
                                     beginAtZero: true,
-                                    title: { display: true, text: 'Volume (GB)' }
+                                    title: { display: true, text: 'Volume (GB)' },
+                                    ticks: {
+                                        callback: function(value) {
+                                            if (value >= 1000) return (value / 1000).toFixed(1) + ' TB';
+                                            return value.toFixed(2) + ' GB';
+                                        }
+                                    }
                                 }
                             },
                             plugins: {
@@ -749,42 +452,127 @@
                         <p class="text-danger text-center my-4">⚠️ Could not load daily data</p>`;
                 });
         }
+    };
 
-        // -------------------------------------------------------------
-        // 3. Lazy loading logic – init only when session tab is shown
-        // -------------------------------------------------------------
-        function initCharts() {
-            if (chartsInitialized) return;
-            chartsInitialized = true;
+    // -------------------------------------------------------------
+    // 2. GENERIC TAB LOADER (using named route)
+    // -------------------------------------------------------------
+    const customerId = {{ $customer->id }};
+    const loadedTabs = {};
 
-            // Check if Chart.js is loaded
-            if (typeof Chart === 'undefined') {
-                console.error('Chart.js not loaded – charts will not render');
-                return;
-            }
+    function loadTabContent(tabName, containerId, callback) {
+        const container = document.getElementById(containerId);
+        if (!container) return;
 
-            // Initialize both charts
-            initLiveTrafficChart();
-            initDailyTrafficChart();
+        if (loadedTabs[tabName]) {
+            if (callback) callback();
+            return;
         }
 
-        // Check if session tab is already active on page load
-        const sessionPane = document.getElementById('session');
-        const isActive = sessionPane && sessionPane.classList.contains('active') && sessionPane.classList.contains('show');
+        container.innerHTML = `
+            <div class="d-flex flex-column justify-content-center align-items-center py-3" style="min-height: 100px;">
+                <i class="fas fa-spinner fa-spin fa-2x text-primary mb-2"></i>
+                <p class="text-muted fw-light mb-0" style="font-size: 0.9rem;">
+                    Loading<span class="dot-loader">...</span>
+                </p>
+            </div>
+            <style>
+                .dot-loader {
+                    display: inline-block;
+                    width: 1.2em;
+                    text-align: left;
+                    animation: dots 1.5s steps(4, end) infinite;
+                }
+                @keyframes dots {
+                    0%   { opacity: 0; }
+                    25%  { opacity: 0.2; }
+                    50%  { opacity: 0.5; }
+                    75%  { opacity: 0.8; }
+                    100% { opacity: 1; }
+                }
+            </style>
+        `;
 
-        if (isActive) {
-            // Tab is visible → load charts immediately
-            initCharts();
-        }
+        const url = "{{ route('customer.load-tab', ['id' => ':id', 'tab' => ':tab']) }}"
+            .replace(':id', customerId)
+            .replace(':tab', tabName);
 
-        // Listen to tab show event
-        const tabTrigger = document.querySelector('[data-bs-target="#session"]');
-        if (tabTrigger) {
-            tabTrigger.addEventListener('shown.bs.tab', function (e) {
-                initCharts();
+        fetch(url)
+            .then(response => {
+                if (!response.ok) {
+                    return response.text().then(text => {
+                        throw new Error(`HTTP ${response.status}: ${text.substring(0, 200)}`);
+                    });
+                }
+                return response.text();
+            })
+            .then(html => {
+                container.innerHTML = html;
+                loadedTabs[tabName] = true;
+                if (callback) callback();
+            })
+            .catch(err => {
+                console.error('❌ Full error:', err);
+                container.innerHTML = `
+                    <div class="alert alert-danger">
+                        <strong>Error loading ${tabName}:</strong><br>
+                        ${err.message}<br>
+                        <small>Check console for full details.</small>
+                    </div>
+                `;
             });
-        }
+    }
+
+    // -------------------------------------------------------------
+    // 3. TAB EVENT BINDING
+    // -------------------------------------------------------------
+    const tabConfig = {
+        'overview': { container: 'overview-content', callback: null },
+        'session': { container: 'session-content', callback: () => {
+            if (typeof window.initCharts === 'function') {
+                window.initCharts();
+            }
+        }},
+        'router': { container: 'router-content', callback: null },
+        'billing': { container: 'billing-content', callback: null },
+        'create-ticket': { container: 'create-ticket-content', callback: null },
+        'auth-logs': { container: 'auth-logs-content', callback: null },
+        'activity-logs': { container: 'activity-logs-content', callback: null },
+    };
+
+    Object.keys(tabConfig).forEach(tabName => {
+        const trigger = document.querySelector(`button[data-bs-target="#${tabName}"]`);
+        if (!trigger) return;
+        const config = tabConfig[tabName];
+        trigger.addEventListener('shown.bs.tab', function(e) {
+            loadTabContent(tabName, config.container, config.callback);
+        });
     });
+
+    // -------------------------------------------------------------
+    // 4. LOAD THE ACTIVE TAB ON PAGE LOAD
+    // -------------------------------------------------------------
+    const activeTabPane = document.querySelector('.tab-pane.active');
+    if (activeTabPane) {
+        const activeId = activeTabPane.id;
+        const tabName = activeId;
+        const config = tabConfig[tabName];
+        if (config) {
+            loadTabContent(tabName, config.container, config.callback);
+        }
+    }
+
+});
 </script>
+
+<style>
+    /* Smooth hover transition for the status badge */
+    .status-refresh {
+        transition: opacity 0.2s;
+    }
+    .status-refresh:hover {
+        opacity: 0.8;
+    }
+</style>
 
 @endsection

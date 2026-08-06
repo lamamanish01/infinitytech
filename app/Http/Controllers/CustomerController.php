@@ -17,6 +17,7 @@ use App\Services\RadiusService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Schema;
 use Maatwebsite\Excel\Facades\Excel;
 
@@ -597,6 +598,168 @@ class CustomerController extends Controller
             // Log the error (optional)
             \Log::error('Customer search error: ' . $e->getMessage());
             // Return a JSON error response
+            return response()->json(['error' => $e->getMessage()], 500);
+        }
+    }
+
+    public function loadTab($id, $tab)
+    {
+        try {
+            // Eager load the relationships needed across all tabs
+            $customer = Customer::with(['internetPlan', 'activeSession'])->findOrFail($id);
+            $data = ['customer' => $customer];
+
+            switch ($tab) {
+                case 'overview':
+                    $data['grace'] = $customer->activeGrace();
+                    // Get the last session (for termination cause)
+                    $data['lastSession'] = $customer->previousSession()
+                        ->orderBy('acctstoptime', 'desc')
+                        ->first();
+                    break;
+
+                case 'session':
+                    // Previous sessions – ordered by acctstarttime (correct column name)
+                    $data['previousSessions'] = $customer->previousSession()
+                        ->orderBy('acctstarttime', 'desc')
+                        ->paginate(10);
+                    // Last session (for termination cause)
+                    $data['lastSession'] = $customer->previousSession()
+                        ->orderBy('acctstoptime', 'desc')
+                        ->first();
+                    break;
+
+                case 'router':
+                    $data['router'] = $customer->routerDevices->first();
+                    $data['server'] = $data['router']?->server;
+                    break;
+
+                case 'billing':
+                    $data['billings'] = $customer->billings()
+                        ->with(['recharge', 'customer.internetPlan'])
+                        ->orderBy('created_at', 'desc')
+                        ->paginate(10);
+                    break;
+
+                case 'create-ticket':
+                    // No extra data needed for this tab
+                    break;
+
+                case 'auth-logs':
+                    $data['authLogs'] = $customer->authLogs()
+                        ->orderBy('authdate', 'desc')
+                        ->paginate(10);
+                    break;
+
+                case 'activity-logs':
+                    $data['activityLogs'] = $customer->activities()
+                        ->with('user')
+                        ->orderBy('created_at', 'desc')
+                        ->paginate(10);
+                    break;
+
+                default:
+                    abort(404, 'Tab not found');
+            }
+
+            // Build the view name from the tab (e.g., partials.customer_session_tab)
+            $viewName = "partials.customer_{$tab}_tab";
+
+            // Check if the view exists to avoid a fatal error
+            if (!view()->exists($viewName)) {
+                throw new \Exception("View [{$viewName}] not found.");
+            }
+
+            return view($viewName, $data);
+        } catch (\Exception $e) {
+            // Log the error for debugging
+            \Log::error("AJAX tab load error (customer {$id}, tab {$tab}): " . $e->getMessage());
+            // Return a plain text error so the JavaScript can display it
+            return response("Error: " . $e->getMessage(), 500);
+        }
+    }
+
+    public function dailyTraffic($id)
+    {
+        try {
+            $customer = Customer::findOrFail($id);
+            $username = $customer->username;
+
+            // Last 30 days (including today)
+            $dates = collect();
+            for ($i = 29; $i >= 0; $i--) {
+                $dates->push(Carbon::now()->subDays($i)->toDateString());
+            }
+
+            // Aggregate daily totals from radacct
+            $traffic = RadAcct::where('username', $username)
+                ->whereBetween('acctstarttime', [Carbon::now()->subDays(30), Carbon::now()])
+                ->select(
+                    DB::raw('DATE(acctstarttime) as date'),
+                    DB::raw('SUM(acctinputoctets) as total_upload'),   // bytes from user (TX)
+                    DB::raw('SUM(acctoutputoctets) as total_download') // bytes to user (RX)
+                )
+                ->groupBy(DB::raw('DATE(acctstarttime)'))
+                ->orderBy('date', 'asc')
+                ->get()
+                ->keyBy('date');
+
+            // Build response (data in bytes)
+            $response = [
+                'dates'    => $dates->toArray(),
+                'upload'   => [],
+                'download' => []
+            ];
+
+            foreach ($dates as $date) {
+                if ($traffic->has($date)) {
+                    $row = $traffic->get($date);
+                    $response['upload'][]   = (int) $row->total_upload;
+                    $response['download'][] = (int) $row->total_download;
+                } else {
+                    $response['upload'][]   = 0;
+                    $response['download'][] = 0;
+                }
+            }
+
+            return response()->json($response);
+        } catch (\Exception $e) {
+            \Log::error("Daily traffic error for customer $id: " . $e->getMessage());
+            return response()->json(['error' => $e->getMessage()], 500);
+        }
+    }
+
+    public function pppTraffic($username)
+    {
+        try {
+            $traffic = MikrotikService::getPPPUserTraffic($username);
+
+            return response()->json([
+                'success' => true,
+                'rx_bps'  => $traffic['rx_bps'] ?? 0,
+                'tx_bps'  => $traffic['tx_bps'] ?? 0,
+            ]);
+        } catch (\Exception $e) {
+            \Log::error("PPP traffic error for $username: " . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'error'   => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    public function onlineStatus($id)
+    {
+        try {
+            $customer = Customer::findOrFail($id);
+            // Check if there's an active RADIUS session
+            $isOnline = $customer->activeSession()->exists();
+            // Update the database (optional, but keeps consistency)
+            $customer->is_online = $isOnline;
+            $customer->save();
+
+            return response()->json(['is_online' => $isOnline]);
+        } catch (\Exception $e) {
             return response()->json(['error' => $e->getMessage()], 500);
         }
     }

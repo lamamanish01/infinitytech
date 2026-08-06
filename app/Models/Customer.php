@@ -299,9 +299,10 @@ class Customer extends Model
         return $this->hasMany(Tr069Device::class, 'ppp_username', 'username');
     }
 
-    // public function onu()
-    // {
-    //     return $this->hasOne(Onu::class);
-    // }
+    public function activities()
+    {
+        return $this->hasMany(ActivityLog::class, 'user_id', 'id');
+    }
+
 }
 
