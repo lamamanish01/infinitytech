@@ -216,8 +216,8 @@
                         <div class="card-header bg-white d-flex justify-content-between align-items-center">
                             <strong>📊 Live PPP User Traffic</strong>
                             <div class="text-muted small text-end">
-                                <span id="traffic-download" class="me-3" style="color: #0d6efd;">0 bps</span>/
-                                <span id="traffic-upload" class="me-3" style="color: #20c997;">0 bps</span>
+                                <span id="traffic-download" class="me-3" style="color: #20c997;">0 bps</span>/
+                                <span id="traffic-upload" class="me-3" style="color: #0d6efd;">0 bps</span>
                                 <span id="traffic-update-time">Updating...</span>
                             </div>
                         </div>
@@ -504,8 +504,8 @@
                     datasets: [
                         {
                             label: 'Upload (TX)',
-                            borderColor: '#0d6efd',
-                            backgroundColor: 'rgba(13, 110, 253, 0.1)',
+                            borderColor: '#20c997',
+                            backgroundColor: 'rgba(32, 201, 151, 0.1)',
                             data: [],
                             fill: true,
                             tension: 0.3,
@@ -514,8 +514,8 @@
                         },
                         {
                             label: 'Download (RX)',
-                            borderColor: '#20c997',
-                            backgroundColor: 'rgba(32, 201, 151, 0.1)',
+                            borderColor: '#0d6efd',
+                            backgroundColor: 'rgba(13, 110, 253, 0.1)',
                             data: [],
                             fill: true,
                             tension: 0.3,
@@ -602,11 +602,11 @@
 
                         if (downloadEl) {
                             downloadEl.textContent = `⬇️ ${formatSpeed(rxMbps)}`;
-                            downloadEl.style.color = '#0d6efd';
+                            downloadEl.style.color = '#20c997';
                         }
                         if (uploadEl) {
                             uploadEl.textContent = `⬆️ ${formatSpeed(txMbps)}`;
-                            uploadEl.style.color = '#20c997';
+                            uploadEl.style.color = '#0d6efd';
                         }
                         if (updateTimeEl) updateTimeEl.textContent = `Last update: ${now}`;
 
@@ -704,15 +704,15 @@
                                 {
                                     label: 'Upload (TX)',
                                     data: data.download.map(v => v / 1024),
-                                    backgroundColor: 'rgba(13, 110, 253, 0.7)',
-                                    borderColor: '#0d6efd',
+                                    backgroundColor: 'rgba(32, 201, 151, 0.7)',
+                                    borderColor: '#20c997',
                                     borderWidth: 1,
                                 },
                                 {
                                     label: 'Download (RX)',
                                     data: data.upload.map(v => v / 1024),
-                                    backgroundColor: 'rgba(32, 201, 151, 0.7)',
-                                    borderColor: '#20c997',
+                                    backgroundColor: 'rgba(13, 110, 253, 0.7)',
+                                    borderColor: '#0d6efd',
                                     borderWidth: 1,
                                 }
                             ]
