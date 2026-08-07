@@ -12,6 +12,45 @@
                         <strong><span class="badge badge-secondary">{{ $customer->username ?? '-' }}</span></strong>
                     </li>
                     <li class="list-group-item d-flex justify-content-between px-0 py-2">
+                        <span class="text-muted">
+                            @php
+                                $status = $customer->status ?? 'unknown';
+                                $icon = 'fa-question-circle';
+                                $badge = 'badge-secondary';
+
+                                switch ($status) {
+                                    case 'active':
+                                        $icon = 'fa-check-circle';
+                                        $badge = 'badge-success';
+                                        break;
+                                    case 'grace':
+                                        $icon = 'fa-times-circle';
+                                        $badge = 'badge-warning';
+                                        break;
+                                    case 'expired':
+                                        $icon = 'fa-exclamation-circle';
+                                        $badge = 'badge-danger';
+                                        break;
+                                    case 'suspended':
+                                        $icon = 'fa-pause-circle';
+                                        $badge = 'badge-dark';
+                                        break;
+                                    case 'discontinued':
+                                        $icon = 'fa-pause-circle';
+                                        $badge = 'badge-dark';
+                                        break;
+                                    default:
+                                        // keep defaults
+                                }
+                            @endphp
+
+                            <i class="fas {{ $icon }} mr-2"></i> Status
+                        </span>
+                        <strong>
+                            <span class="badge {{ $badge }}">{{ ucfirst($status) }}</span>
+                        </strong>
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between px-0 py-2">
                         <span class="text-muted"><i class="fas fa-wifi mr-2"></i>Plan</span>
                         <strong><span class="badge badge-primary">{{ $customer->internetPlan->bandwidth_name ?? '-' }}</span></strong>
                     </li>
@@ -114,13 +153,13 @@
                             </button>
                         </form>
                     @endcan
-                    @can('disconnect customers')
-                        <form action="{{ route('customer.disconnect', $customer->id) }}" method="POST" class="mb-2 mr-2">
-                            @csrf
-                            <button class="btn btn-dark btn-sm" type="submit">
-                                <i class="fas fa-plug"></i> Disconnect
-                            </button>
-                        </form>
+
+                    @can('change ppp customers')
+                        <a href="#" class="btn btn-primary btn-sm mb-2 mr-2 change-pppoe-btn"
+                        data-customer-id="{{ $customer->id }}"
+                        data-url="{{ route('customers.change-pppoe-password', $customer->id) }}">
+                            <i class="fas fa-key"></i> Change PPPoE Password
+                        </a>
                     @endcan
 
                     @if($customer->status === 'discontinued')
@@ -166,8 +205,10 @@
                                 </form>
                             @endcan
                         @endif
-
-                        @if($customer->status === 'active')
+                        @php
+                            $grace = $customer->activeGrace();
+                        @endphp
+                        @if($customer->status === 'active' && $grace )
                             @can('disable customers')
                                 <form action="{{ route('customer.disable', $customer->id) }}" method="POST" class="mb-2 mr-2"
                                       onsubmit="return confirm('Are you sure you want to disable this customer?')">

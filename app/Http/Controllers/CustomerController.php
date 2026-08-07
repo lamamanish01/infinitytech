@@ -841,4 +841,21 @@ class CustomerController extends Controller
             return response()->json(['error' => $e->getMessage()], 500);
         }
     }
+
+    public function changePppoePassword(Request $request, Customer $customer)
+    {
+        $request->validate([
+            'password' => 'required|string|min:6',
+        ]);
+
+        $customer->password = $request->password;
+        $customer->save();
+
+        app(RadiusService::class)->changeRadPassword($customer);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'PPPoE password updated successfully.'
+        ]);
+    }
 }

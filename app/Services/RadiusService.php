@@ -230,4 +230,12 @@ class RadiusService
             ->where('attribute', 'Framed-Pool')
             ->delete();
     }
+
+    public function changeRadPassword(Customer $customer)
+    {
+        RadCheck::updateOrCreate(
+            ['username' => $customer->username, 'attribute' => 'Cleartext-Password'],
+            ['op' => ':=', 'value' => $customer->password]
+        );
+    }
 }

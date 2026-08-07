@@ -102,6 +102,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/customers/{id}/daily-traffic', [CustomerController::class, 'dailyTraffic'])->name('customer.daily-traffic');
     Route::get('/customers/{username}/ppp-traffic', [CustomerController::class, 'pppTraffic'])->name('customer.ppp-traffic');
     Route::get('/customers/{id}/online-status', [CustomerController::class, 'onlineStatus'])->name('customer.online-status');
+    Route::post('/customers/{customer}/change-pppoe-password', [CustomerController::class, 'changePppoePassword'])->name('customers.change-pppoe-password');
 
     Route::prefix('tr069')->middleware('auth')->group(function () {
         Route::post(

@@ -634,6 +634,67 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
+    // -------------------------------------------------------------
+    // QUICK ACTION: Change PPPoE Password (Overview Tab)
+    // -------------------------------------------------------------
+    const overviewContainer = document.getElementById('overview-content');
+
+    if (overviewContainer) {
+        overviewContainer.addEventListener('click', function(e) {
+            const button = e.target.closest('.change-pppoe-btn');
+            if (!button) return;
+            e.preventDefault();
+
+            const newPassword = prompt('Enter new PPPoE password (minimum 6 characters):');
+            if (!newPassword) return;
+            if (newPassword.length < 6) {
+                alert('Password must be at least 6 characters.');
+                return;
+            }
+
+            const url = button.dataset.url;
+
+            let resultDiv = document.getElementById('pppoe-password-result');
+            if (!resultDiv) {
+                resultDiv = document.createElement('div');
+                resultDiv.id = 'pppoe-password-result';
+                resultDiv.className = 'mt-3';
+                button.closest('.card-body')?.appendChild(resultDiv);
+            }
+
+            resultDiv.innerHTML = `<div class="alert alert-info">Updating password, please wait...</div>`;
+
+            fetch(url, {
+                method: 'POST',
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ password: newPassword })
+            })
+            .then(response => {
+                if (!response.ok) {
+                    return response.text().then(text => {
+                        throw new Error(`HTTP ${response.status}: ${text.substring(0, 100)}`);
+                    });
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (data.success) {
+                    resultDiv.innerHTML = `<div class="alert alert-success">${data.message}</div>`;
+                } else {
+                    resultDiv.innerHTML = `<div class="alert alert-danger">${data.message}</div>`;
+                }
+            })
+            .catch(err => {
+                console.error('Error:', err);
+                resultDiv.innerHTML = `<div class="alert alert-danger">Error: ${err.message}</div>`;
+            });
+        });
+    }
+
 });
 </script>
 

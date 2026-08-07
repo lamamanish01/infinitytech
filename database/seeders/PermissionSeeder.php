@@ -45,6 +45,7 @@ class PermissionSeeder extends Seeder
             'export customers',
             'disable customers',
             'enable customers',
+            'change ppp password',
 
             // ================= INTERNET PLAN =================
             'view internet plans',
