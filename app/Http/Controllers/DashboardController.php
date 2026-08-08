@@ -76,7 +76,7 @@ class DashboardController extends Controller
 
         return view('dashboard.index', [
             'onlineCustomers'   => $onlineCustomers,
-            'totalCustomers'    => Customer::count(),
+            'totalCustomers'    => Customer::where('status', '!=', 'discontinued')->count(),
             'expiringCustomers' => $expiringCustomers,
             'expiredCustomers'  => $expiredCustomers,
             'activeSessions'    => $activeSessions,
