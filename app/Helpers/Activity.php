@@ -14,6 +14,7 @@ class Activity
             'message' => $message,
             'icon' => $icon ?? 'fas fa-bell text-primary',
             'username' => $username,
+            'is_read'  => false,
             'url' => $url ? trim($url) : null,
         ]);
     }

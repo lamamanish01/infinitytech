@@ -4,7 +4,6 @@ namespace App\Models;
 
 use App\Models\GracePeriod;
 use App\Models\InternetPlan;
-use App\Models\Onu;
 use App\Models\RadCheck;
 use App\Models\RadPostAuth;
 use App\Models\RadReply;
@@ -301,7 +300,7 @@ class Customer extends Model
 
     public function activities()
     {
-        return $this->hasMany(ActivityLog::class, 'user_id', 'id');
+        return $this->hasMany(ActivityLog::class, 'username', 'username');
     }
 
 }
