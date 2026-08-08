@@ -144,8 +144,11 @@
 <script>
 document.addEventListener('DOMContentLoaded', function() {
 
+    // ---- Online status flag (used to control polling) ----
+    window.customerOnline = {{ $customer->is_online ? 'true' : 'false' }};
+
     // -------------------------------------------------------------
-    // CLICKABLE STATUS BADGE – WARNING ON CHECK, REVERT ON ERROR
+    // CLICKABLE STATUS BADGE – updates online flag
     // -------------------------------------------------------------
     const badge = document.getElementById('status-badge');
     if (badge) {
@@ -155,7 +158,6 @@ document.addEventListener('DOMContentLoaded', function() {
             const originalHtml = this.innerHTML;
             const originalClass = this.className;
 
-            // Show warning while checking
             this.innerHTML = '<i class="fas fa-exclamation-triangle"></i> Checking...';
             this.className = 'badge bg-warning status-refresh';
             this.style.pointerEvents = 'none';
@@ -166,18 +168,31 @@ document.addEventListener('DOMContentLoaded', function() {
                     return response.json();
                 })
                 .then(data => {
+                    // Update global flag
+                    window.customerOnline = data.is_online;
+
                     if (data.is_online) {
                         this.innerHTML = '<i class="fas fa-sync-alt fa-spin"></i> ONLINE';
                         this.className = 'badge bg-success status-refresh';
+                        // If Session tab is active, restart polling
+                        const sessionTab = document.querySelector('#session');
+                        if (sessionTab && sessionTab.classList.contains('active')) {
+                            if (typeof startTrafficPolling === 'function') {
+                                startTrafficPolling();
+                            }
+                        }
                     } else {
                         this.innerHTML = '<i class="fas fa-sync-alt"></i> OFFLINE';
                         this.className = 'badge bg-danger status-refresh';
+                        // If polling is running, stop it
+                        stopTrafficPolling();
+                        // Update traffic display to offline
+                        updateTrafficOffline();
                     }
                     this.style.pointerEvents = 'auto';
                 })
                 .catch(err => {
                     console.error('Failed to refresh status:', err);
-                    // Revert to original state on error (no "Error" badge)
                     this.innerHTML = originalHtml;
                     this.className = originalClass;
                     this.style.pointerEvents = 'auto';
@@ -186,7 +201,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // -------------------------------------------------------------
-    // 1. GLOBAL CHART INITIALISATION (for Session tab)
+    // 1. CHART FUNCTIONS (only for Session tab)
     // -------------------------------------------------------------
     window.initCharts = function() {
         // Destroy previous instances if they exist
@@ -197,10 +212,6 @@ document.addEventListener('DOMContentLoaded', function() {
         if (window.dailyChartInstance) {
             window.dailyChartInstance.destroy();
             window.dailyChartInstance = null;
-        }
-        if (window.trafficPollInterval) {
-            clearInterval(window.trafficPollInterval);
-            window.trafficPollInterval = null;
         }
 
         // Ensure Chart.js is loaded
@@ -284,91 +295,15 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
 
-        // ----- Traffic Polling -----
-        const username = '{{ $customer->username }}';
-        const MAX_POINTS = 60;
-
-        function formatSpeed(mbps) {
-            if (mbps >= 1000) return (mbps / 1000).toFixed(2) + ' Gbps';
-            if (mbps >= 1) return mbps.toFixed(2) + ' Mbps';
-            if (mbps >= 0.001) return (mbps * 1000).toFixed(0) + ' Kbps';
-            return (mbps * 1000000).toFixed(0) + ' bps';
-        }
-
-        function addData(timeLabel, rx, tx) {
-            rx = (typeof rx === 'number' && !isNaN(rx)) ? rx : 0;
-            tx = (typeof tx === 'number' && !isNaN(tx)) ? tx : 0;
-
-            const chart = window.trafficChartInstance;
-            if (!chart) return;
-            chart.data.labels.push(timeLabel);
-            chart.data.datasets[0].data.push(rx);  // Upload
-            chart.data.datasets[1].data.push(tx);  // Download
-
-            if (chart.data.labels.length > MAX_POINTS) {
-                chart.data.labels.shift();
-                chart.data.datasets[0].data.shift();
-                chart.data.datasets[1].data.shift();
-            }
-            chart.update();
-        }
-
-        function fetchTraffic() {
-            const url = `/customers/${username}/ppp-traffic`;
-            fetch(url)
-                .then(response => {
-                    if (!response.ok) throw new Error(`HTTP ${response.status}`);
-                    return response.json();
-                })
-                .then(data => {
-                    if (!data.success) throw new Error('Invalid response');
-                    let rxMbps = (data.rx_bps || 0) / 1_000_000;
-                    let txMbps = (data.tx_bps || 0) / 1_000_000;
-                    const now = new Date().toLocaleTimeString();
-
-                    addData(now, rxMbps, txMbps);
-
-                    const downloadEl = document.getElementById('traffic-download');
-                    const uploadEl = document.getElementById('traffic-upload');
-                    const updateTimeEl = document.getElementById('traffic-update-time');
-                    if (downloadEl) {
-                        downloadEl.textContent = `⬆️ ${formatSpeed(rxMbps)}`;
-                        downloadEl.style.color = '#20c997';
-                    }
-                    if (uploadEl) {
-                        uploadEl.textContent = `⬇️ ${formatSpeed(txMbps)}`;
-                        uploadEl.style.color = '#0d6efd';
-                    }
-                    if (updateTimeEl) updateTimeEl.textContent = `Last update: ${now}`;
-                })
-                .catch(err => {
-                    console.error('❌ Traffic fetch error:', err);
-                    const now = new Date().toLocaleTimeString();
-                    addData(now, 0, 0);
-
-                    const downloadEl = document.getElementById('traffic-download');
-                    const uploadEl = document.getElementById('traffic-upload');
-                    const updateTimeEl = document.getElementById('traffic-update-time');
-                    if (downloadEl) {
-                        downloadEl.textContent = '⬆️ 0 bps';
-                        downloadEl.style.color = '#20c997';
-                    }
-                    if (uploadEl) {
-                        uploadEl.textContent = '⬇️ 0 bps';
-                        uploadEl.style.color = '#0d6efd';
-                    }
-                    if (updateTimeEl) {
-                        updateTimeEl.textContent = `⚠️ Error – ${now}`;
-                        updateTimeEl.style.color = '#dc3545';
-                    }
-                });
-        }
-
         // Seed with zero point
-        addData(new Date().toLocaleTimeString(), 0, 0);
-        // Start polling
-        fetchTraffic();
-        window.trafficPollInterval = setInterval(fetchTraffic, 1000);
+        addTrafficData(new Date().toLocaleTimeString(), 0, 0);
+
+        // Start polling only if customer is online
+        if (window.customerOnline) {
+            startTrafficPolling();
+        } else {
+            updateTrafficOffline();
+        }
 
         // ----- Daily Traffic Chart -----
         const dailyCanvas = document.getElementById('dailyTrafficChart');
@@ -460,36 +395,158 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     };
 
+    // ----- Traffic data helpers -----
+    const MAX_POINTS = 60;
+    const username = '{{ $customer->username }}';
+
+    function formatSpeed(mbps) {
+        if (mbps >= 1000) return (mbps / 1000).toFixed(2) + ' Gbps';
+        if (mbps >= 1) return mbps.toFixed(2) + ' Mbps';
+        if (mbps >= 0.001) return (mbps * 1000).toFixed(0) + ' Kbps';
+        return (mbps * 1000000).toFixed(0) + ' bps';
+    }
+
+    function addTrafficData(timeLabel, rx, tx) {
+        rx = (typeof rx === 'number' && !isNaN(rx)) ? rx : 0;
+        tx = (typeof tx === 'number' && !isNaN(tx)) ? tx : 0;
+
+        const chart = window.trafficChartInstance;
+        if (!chart) return;
+        chart.data.labels.push(timeLabel);
+        chart.data.datasets[0].data.push(rx);  // Upload
+        chart.data.datasets[1].data.push(tx);  // Download
+
+        if (chart.data.labels.length > MAX_POINTS) {
+            chart.data.labels.shift();
+            chart.data.datasets[0].data.shift();
+            chart.data.datasets[1].data.shift();
+        }
+        chart.update();
+    }
+
+    function updateTrafficOffline() {
+        const downloadEl = document.getElementById('traffic-download');
+        const uploadEl = document.getElementById('traffic-upload');
+        const updateTimeEl = document.getElementById('traffic-update-time');
+        if (downloadEl) {
+            downloadEl.textContent = '⬆️ 0 bps';
+            downloadEl.style.color = '#dc3545';
+        }
+        if (uploadEl) {
+            uploadEl.textContent = '⬇️ 0 bps';
+            uploadEl.style.color = '#dc3545';
+        }
+        if (updateTimeEl) {
+            updateTimeEl.textContent = '⛔ Customer is offline';
+            updateTimeEl.style.color = '#dc3545';
+        }
+    }
+
+    function fetchTraffic() {
+        // Skip if offline
+        if (!window.customerOnline) {
+            updateTrafficOffline();
+            return;
+        }
+
+        const url = `/customers/${username}/ppp-traffic`;
+        fetch(url)
+            .then(response => {
+                if (!response.ok) throw new Error(`HTTP ${response.status}`);
+                return response.json();
+            })
+            .then(data => {
+                if (!data.success) throw new Error('Invalid response');
+                let rxMbps = (data.rx_bps || 0) / 1_000_000;
+                let txMbps = (data.tx_bps || 0) / 1_000_000;
+                const now = new Date().toLocaleTimeString();
+
+                addTrafficData(now, rxMbps, txMbps);
+
+                const downloadEl = document.getElementById('traffic-download');
+                const uploadEl = document.getElementById('traffic-upload');
+                const updateTimeEl = document.getElementById('traffic-update-time');
+                if (downloadEl) {
+                    downloadEl.textContent = `⬆️ ${formatSpeed(rxMbps)}`;
+                    downloadEl.style.color = '#20c997';
+                }
+                if (uploadEl) {
+                    uploadEl.textContent = `⬇️ ${formatSpeed(txMbps)}`;
+                    uploadEl.style.color = '#0d6efd';
+                }
+                if (updateTimeEl) updateTimeEl.textContent = `Last update: ${now}`;
+            })
+            .catch(err => {
+                console.error('❌ Traffic fetch error:', err);
+                const now = new Date().toLocaleTimeString();
+                addTrafficData(now, 0, 0);
+
+                const downloadEl = document.getElementById('traffic-download');
+                const uploadEl = document.getElementById('traffic-upload');
+                const updateTimeEl = document.getElementById('traffic-update-time');
+                if (downloadEl) {
+                    downloadEl.textContent = '⬆️ 0 bps';
+                    downloadEl.style.color = '#20c997';
+                }
+                if (uploadEl) {
+                    uploadEl.textContent = '⬇️ 0 bps';
+                    uploadEl.style.color = '#0d6efd';
+                }
+                if (updateTimeEl) {
+                    updateTimeEl.textContent = `⚠️ Error – ${now}`;
+                    updateTimeEl.style.color = '#dc3545';
+                }
+            });
+    }
+
+    // ----- Polling control -----
+    function startTrafficPolling() {
+        // Stop any existing interval
+        if (window.trafficPollInterval) {
+            clearInterval(window.trafficPollInterval);
+            window.trafficPollInterval = null;
+        }
+        // Only start if online and chart exists
+        if (window.customerOnline && window.trafficChartInstance) {
+            fetchTraffic(); // immediate fetch
+            window.trafficPollInterval = setInterval(fetchTraffic, 1000);
+        } else if (!window.customerOnline) {
+            updateTrafficOffline();
+        }
+    }
+
+    function stopTrafficPolling() {
+        if (window.trafficPollInterval) {
+            clearInterval(window.trafficPollInterval);
+            window.trafficPollInterval = null;
+        }
+    }
+
     // -------------------------------------------------------------
     // 2. GENERIC TAB LOADER with AJAX PAGINATION
     // -------------------------------------------------------------
     const customerId = {{ $customer->id }};
     const loadedTabs = {};
 
-    // ---- PAGINATION HANDLER ----
     function attachPaginationHandler(container, tabName) {
         if (!container) return;
         const paginationLinks = container.querySelectorAll('.pagination a');
         if (!paginationLinks.length) return;
 
         paginationLinks.forEach(link => {
-            // Remove existing listeners to avoid duplicates
             link.removeEventListener('click', paginationClickHandler);
             link.addEventListener('click', paginationClickHandler);
         });
 
         function paginationClickHandler(e) {
             e.preventDefault();
-            // Extract page parameter from the link's href
             const linkUrl = new URL(this.href);
             const page = linkUrl.searchParams.get('page') || 1;
 
-            // Build AJAX URL for the tab content with page parameter
             const ajaxUrl = "{{ route('customer.load-tab', ['id' => ':id', 'tab' => ':tab']) }}"
                 .replace(':id', customerId)
                 .replace(':tab', tabName) + '?page=' + page;
 
-            // Show spinner inside the container while loading
             container.innerHTML = `
                 <div class="d-flex flex-column justify-content-center align-items-center py-3" style="min-height: 100px;">
                     <i class="fas fa-spinner fa-spin fa-2x text-primary mb-2"></i>
@@ -504,9 +561,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 })
                 .then(html => {
                     container.innerHTML = html;
-                    // Re‑attach pagination handler for the new links
                     attachPaginationHandler(container, tabName);
-                    // Re‑init charts if this is the session tab
                     if (tabName === 'session' && typeof window.initCharts === 'function') {
                         window.initCharts();
                     }
@@ -530,13 +585,11 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
 
-        // If already loaded, just call callback (if any) and exit
         if (loadedTabs[tabName]) {
             if (callback) callback();
             return;
         }
 
-        // Show spinner
         container.innerHTML = `
             <div class="d-flex flex-column justify-content-center align-items-center py-3" style="min-height: 100px;">
                 <i class="fas fa-spinner fa-spin fa-2x text-primary mb-2"></i>
@@ -578,8 +631,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 container.innerHTML = html;
                 loadedTabs[tabName] = true;
                 if (callback) callback();
-
-                // Attach pagination handler
                 attachPaginationHandler(container, tabName);
             })
             .catch(err => {
@@ -619,6 +670,24 @@ document.addEventListener('DOMContentLoaded', function() {
             loadTabContent(tabName, config.container, config.callback);
         });
     });
+
+    // ----- Special handling for Session tab to stop/start polling on hide/show -----
+    const sessionTrigger = document.querySelector('button[data-bs-target="#session"]');
+    if (sessionTrigger) {
+        sessionTrigger.addEventListener('hide.bs.tab', function(e) {
+            stopTrafficPolling();
+        });
+
+        sessionTrigger.addEventListener('shown.bs.tab', function(e) {
+            if (loadedTabs['session'] && window.trafficChartInstance) {
+                if (window.customerOnline) {
+                    startTrafficPolling();
+                } else {
+                    updateTrafficOffline();
+                }
+            }
+        });
+    }
 
     // -------------------------------------------------------------
     // 4. LOAD THE ACTIVE TAB ON PAGE LOAD
