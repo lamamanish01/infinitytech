@@ -225,10 +225,6 @@ class RadiusService
 
         RadReply::where('username', $customer->username)
             ->delete();
-
-        RadReply::where('username', $customer->username)
-            ->where('attribute', 'Framed-Pool')
-            ->delete();
     }
 
     public function changeRadPassword(Customer $customer)

@@ -12,11 +12,26 @@ use Carbon\Carbon;
 
 class DiscontinueCustomers extends Command
 {
+    /**
+     * The name and signature of the console command.
+     *
+     * @var string
+     */
     protected $signature = 'customers:discontinue';
+
+    /**
+     * The console command description.
+     *
+     * @var string
+     */
     protected $description = 'Discontinue customers with no recharge in 3 months (via RADIUS)';
 
+    /**
+     * Execute the console command.
+     */
     public function handle(RadiusService $radiusService): int
     {
+        // --- Check cron job configuration ---
         $job = CronJob::where('key', $this->signature)->first();
 
         if (!$job) {
@@ -29,45 +44,32 @@ class DiscontinueCustomers extends Command
             return self::FAILURE;
         }
 
-        // --- Stats counters ---
-        $discontinued = 0;   // successfully disabled in both RADIUS & local DB
-        $failed = 0;         // RADIUS call failed (local DB NOT updated)
-        $skipped = 0;        // already discontinued or not eligible
-
+        // --- Statistics counters ---
+        $discontinued = 0;
+        $failed = 0;
+        $skipped = 0;
         $cutoff = Carbon::now()->subMonths(3);
 
         try {
-            // Process customers in chunks to avoid memory overload
+            // Process eligible customers in chunks to avoid memory overload
             Customer::where('status', '!=', 'discontinued')
                     ->where('expire_date', '<', $cutoff)
                     ->chunkById(200, function ($customers) use ($radiusService, &$discontinued, &$failed, &$skipped) {
                         foreach ($customers as $customer) {
                             try {
-                                // 1) Call RADIUS service to discontinue the customer
-                                $radiusSuccess = $radiusService->discontinueCustomer($customer);
+                                // Call the RADIUS service – it updates status and deletes RADIUS entries
+                                $radiusService->discontinueCustomer($customer);
 
-                                // 2) If successful, update local status; otherwise increment fail counter
-                                if ($radiusSuccess) {
-                                    $customer->status = 'discontinued';
-                                    $customer->save();
-                                    $discontinued++;
-                                    $this->info("✓ Customer #{$customer->id} discontinued.");
-                                } else {
-                                    $failed++;
-                                    $this->warn("✗ RADIUS failed for customer #{$customer->id}.");
-                                    // Optionally log the failure for manual intervention
-                                    Log::warning('RADIUS discontinuation failed', [
-                                        'customer_id' => $customer->id,
-                                        'username'    => $customer->username,
-                                    ]);
-                                }
+                                // If we get here, no exception was thrown → success
+                                $discontinued++;
+                                $this->info("✓ Customer #{$customer->id} discontinued.");
 
                             } catch (\Throwable $e) {
                                 $failed++;
-                                Log::error('Error processing customer for discontinuation', [
-                                    'customer_id' => $customer->id ?? null,
-                                    'error'       => $e->getMessage(),
+                                Log::error('Discontinuation failed for customer ' . $customer->id, [
+                                    'error' => $e->getMessage(),
                                 ]);
+                                $this->error("✗ Failed for #{$customer->id}: " . $e->getMessage());
                             }
                         }
                     });
