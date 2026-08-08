@@ -13,7 +13,6 @@
             <div class="row align-items-center">
                 <div class="col-6 col-md-3 mb-3">
                     <h4 class="fw-bold">{{ $customer->name }}</h4>
-                    {{-- Clickable status badge – green/red on load, yellow while checking, then revert on error --}}
                     <span id="status-badge"
                           class="badge status-refresh {{ $customer->is_online ? 'bg-success' : 'bg-danger' }}"
                           style="cursor: pointer;"

@@ -205,30 +205,24 @@
                                 </form>
                             @endcan
                         @endif
-                        @php
-                            $grace = $customer->activeGrace();
-                        @endphp
-                        @if($customer->status === 'active' && $grace )
-                            @can('disable customers')
-                                <form action="{{ route('customer.disable', $customer->id) }}" method="POST" class="mb-2 mr-2"
-                                      onsubmit="return confirm('Are you sure you want to disable this customer?')">
-                                    @csrf
-                                    <button type="submit" class="btn btn-outline-secondary btn-sm">
-                                        <i class="fas fa-pause"></i> Disable
-                                    </button>
-                                </form>
-                            @endcan
-                        @else
-                            @can('enable customers')
-                                <form action="{{ route('customer.enable', $customer->id) }}" method="POST" class="mb-2 mr-2"
-                                      onsubmit="return confirm('Are you sure you want to enable this customer?')">
+                        @can('enable customers')
+                            <form action="{{ route('customer.enable', $customer->id) }}" method="POST" class="mb-2 mr-2"
+                                onsubmit="return confirm('Are you sure you want to enable this customer?')">
                                     @csrf
                                     <button type="submit" class="btn btn-outline-success btn-sm">
                                         <i class="fas fa-play"></i> Enable
                                     </button>
-                                </form>
-                            @endcan
-                        @endif
+                            </form>
+                        @endcan
+                        @can('disable customers')
+                            <form action="{{ route('customer.disable', $customer->id) }}" method="POST" class="mb-2 mr-2"
+                                onsubmit="return confirm('Are you sure you want to disable this customer?')">
+                                    @csrf
+                                    <button type="submit" class="btn btn-outline-secondary btn-sm">
+                                        <i class="fas fa-pause"></i> Disable
+                                    </button>
+                            </form>
+                        @endcan
                     </div>
                 </div>
             </div>

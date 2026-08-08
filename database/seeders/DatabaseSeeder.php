@@ -3,11 +3,11 @@
 namespace Database\Seeders;
 
 use App\Models\User;
-// use Illuminate\Database\Console\Seeds\WithoutModelEvents;
-use Illuminate\Database\Seeder;
-use Database\Seeders\RoleSeeder;
-use Illuminate\Support\Facades\Hash;
+use Database\Seeders\CronJobSeeder;
 use Database\Seeders\PermissionSeeder;
+use Database\Seeders\RoleSeeder;
+use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\Hash;
 
 class DatabaseSeeder extends Seeder
 {
@@ -20,6 +20,7 @@ class DatabaseSeeder extends Seeder
         $this->call(MenuSeeder::class);
         $this->call(RoleSeeder::class);
         $this->call(PermissionSeeder::class);
+        $this->call(CronJobSeeder::class);
 
         $user = User::factory()->create([
             'name' => 'Super Admin',
